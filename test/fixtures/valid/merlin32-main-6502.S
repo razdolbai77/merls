@@ -13,6 +13,7 @@ TEXT    =   $FB39
 CROUT   =   $FD8E
 DOSWARM =   $3D0
 TSTADDR =   $1000
+MY_VAL  EQU $42
 
         DUM 0
 dum0    ds  1

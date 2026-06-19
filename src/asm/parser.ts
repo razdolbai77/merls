@@ -127,7 +127,10 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
     };
   }
 
-  if (token.kind === "expressionOperator" && token.lexeme === "=") {
+  if (
+    (token.kind === "expressionOperator" && token.lexeme === "=") ||
+    (token.kind === "directive" && token.lexeme.toLowerCase() === "equ")
+  ) {
     if (label === null) {
       throw new Error("equate requires a label");
     }

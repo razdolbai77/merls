@@ -24,18 +24,24 @@ export function runSymbolsTest(): void {
   assert.deepEqual(symbols.get("TEST_START"), {
     name: "TEST_START",
     kind: "label",
-    line: 31
+    line: 32
   });
 
   assert.deepEqual(symbols.get("dum0"), {
     name: "dum0",
     kind: "data",
-    line: 17
+    line: 18
   });
 
   assert.deepEqual(symbols.get("_num1"), {
     name: "_num1",
     kind: "data",
-    line: 25
+    line: 26
+  });
+
+  assert.deepEqual(symbols.get("MY_VAL"), {
+    name: "MY_VAL",
+    kind: "equate",
+    line: 15
   });
 }

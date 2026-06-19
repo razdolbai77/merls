@@ -132,7 +132,7 @@ export async function runDefinitionReferencesTest(): Promise<void> {
 
     const definition = definitionResponse.result as { uri: string; range: { start: { line: number } } };
     assert.equal(definition.uri, mainUri);
-    assert.equal(definition.range.start.line, 69);
+    assert.equal(definition.range.start.line, 70);
 
     const referencesResponse = await sendRequest("textDocument/references", {
       textDocument: { uri: mainUri },
@@ -144,8 +144,8 @@ export async function runDefinitionReferencesTest(): Promise<void> {
 
     const references = referencesResponse.result as Array<{ uri: string; range: { start: { line: number } } }>;
     assert.equal(Array.isArray(references), true);
-    assert.equal(references.some((reference) => reference.uri === mainUri && reference.range.start.line === 69), true);
     assert.equal(references.some((reference) => reference.uri === mainUri && reference.range.start.line === 70), true);
+    assert.equal(references.some((reference) => reference.uri === mainUri && reference.range.start.line === 71), true);
   } finally {
     child.kill();
   }

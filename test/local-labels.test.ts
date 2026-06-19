@@ -15,33 +15,33 @@ export function runLocalLabelScopeTest(): void {
   const document = parseDocument(source);
   const scope = resolveLocalLabels(document);
 
-  assert.deepEqual(scope.definitions.get("]loop@69"), {
+  assert.deepEqual(scope.definitions.get("]loop@70"), {
     name: "]loop",
-    line: 71,
+    line: 72,
     anchor: "GetKey",
-    qualifiedName: "]loop@69"
+    qualifiedName: "]loop@70"
   });
 
-  assert.deepEqual(scope.references.get("]loop@73"), {
+  assert.deepEqual(scope.references.get("]loop@74"), {
     name: "]loop",
-    line: 73,
+    line: 74,
     anchor: "GetKey",
-    qualifiedName: "]loop@69",
-    targetLine: 71
+    qualifiedName: "]loop@70",
+    targetLine: 72
   });
 
-  assert.deepEqual(scope.definitions.get(":err@69"), {
+  assert.deepEqual(scope.definitions.get(":err@70"), {
     name: ":err",
+    line: 83,
+    anchor: "GetKey",
+    qualifiedName: ":err@70"
+  });
+
+  assert.deepEqual(scope.references.get(":good@82"), {
+    name: ":good",
     line: 82,
     anchor: "GetKey",
-    qualifiedName: ":err@69"
-  });
-
-  assert.deepEqual(scope.references.get(":good@81"), {
-    name: ":good",
-    line: 81,
-    anchor: "GetKey",
-    qualifiedName: ":good@69",
-    targetLine: 84
+    qualifiedName: ":good@70",
+    targetLine: 85
   });
 }
