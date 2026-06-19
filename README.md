@@ -8,18 +8,18 @@ The MVP LSP feature set for Merlin-style 6502 assembly is complete and published
 
 ## Goals
 
-- provide a standalone LSP server over stdio
-- work cleanly with coc.nvim through standard language-server configuration
+- Provide a standalone LSP server over stdio
+- Work cleanly with coc.nvim through standard language-server configuration
 - support Merlin-style 6502 source structure, symbols, directives, and expressions
-- deliver useful editing features before deeper assembler integration
+- Deliver useful editing features before deeper assembler integration
 
 ## Scope
 
-### In scope
+### In Scope
 
 - 6502-only Merlin-style assembly
-- parser-based diagnostics for the MVP
-- core LSP features such as:
+- Parser-based diagnostics for the MVP
+- Core LSP features such as:
   - diagnostics
   - hover
   - completion
@@ -29,11 +29,9 @@ The MVP LSP feature set for Merlin-style 6502 assembly is complete and published
   - workspace symbols
   - semantic tokens (syntax highlighting)
 
-### Out of scope
+### Out of Scope
 
 - 65816 support
-- assembler-backed diagnostics in the first implementation pass
-- coc.nvim-specific plugin code for the MVP
 
 
 ## Implementation
@@ -52,7 +50,7 @@ Install globally via npm:
 npm install -g @razdolbai/merls
 ```
 
-## Development workflow
+## Development Workflow
 
 - `npm install`: install project dependencies
 - `npm run build`: compile the TypeScript sources into `dist/`
@@ -60,14 +58,14 @@ npm install -g @razdolbai/merls
 - `npm run dev`: run the TypeScript compiler in watch mode during bootstrap work
 - `pwsh test/smoke/run-smoke.ps1`: run the headless Vim + coc.nvim smoke test (requires Vim with coc.nvim installed via vim-plug)
 
-The packaged CLI entrypoint now lives at `dist/src/cli.js`.
+The packaged CLI entry point now lives at `dist/src/cli.js`.
 
-## CLI contract
+## CLI Contract
 
 The supported stdio launch contract is `merls --stdio`.
 
 
-## coc.nvim target
+## coc.nvim Target
 
 The intended integration model is a standard `languageserver` entry in `coc-settings.json` that launches `merls` over stdio.
 
@@ -97,12 +95,12 @@ To enable semantic tokens for syntax highlighting, ensure `"semanticTokens.enabl
 
 An example configuration lives in `examples/coc-settings.json`.
 
-## Development notes
+## Development Notes
 
 - TDD is mandatory for implementation work in this repository.
 - Core syntax, parsing, and document model logic is located in `src/asm/`.
 - LSP handlers (hover, completion, diagnostics, etc.) are located in `src/lsp/`.
-- The CLI entrypoint lives in `src/cli.ts` and compiles to `dist/src/cli.js`.
+- The CLI entry point lives in `src/cli.ts` and compiles to `dist/src/cli.js`.
 - The `test/fixtures/valid/` directory contains supported 6502 Merlin-style syntax samples.
 - The `test/fixtures/invalid/` directory contains unsupported 65816-only syntax samples for negative testing.
 - The integration test suite covers stdio `initialize`, the CLI contract, and core LSP features.
