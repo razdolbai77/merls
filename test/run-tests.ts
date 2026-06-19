@@ -3,6 +3,7 @@ import { runFixtureCorpusTest } from "./fixture-corpus.test";
 import { runMetadataTableTest } from "./metadata.test";
 import { runInitializeHandshakeTest } from "./server-initialize.test";
 import { runServerEntrypointTest } from "./server-entrypoint.test";
+import { runSyntaxShapeTest } from "./syntax-shape.test";
 
 type TestCase = {
   name: string;
@@ -29,6 +30,10 @@ const tests: TestCase[] = [
   {
     name: "shared opcode and directive metadata covers 6502 and Merlin syntax",
     run: runMetadataTableTest
+  },
+  {
+    name: "token kinds and line shapes cover Merlin syntax categories",
+    run: runSyntaxShapeTest
   }
 ];
 

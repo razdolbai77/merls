@@ -80,6 +80,7 @@ The bundled example uses `node` plus an absolute path to the compiled server and
 
 - TDD is mandatory for implementation work in this repository.
 - Shared 6502 opcode and Merlin directive metadata now lives in `src/asm/metadata.ts`.
+- Shared token-kind and line-shape metadata now lives in `src/asm/syntax.ts`.
 - The positive fixture corpus now starts with transcribed Merlin32 material under `test/fixtures/valid/`.
 - Positive fixtures should cover supported 6502 Merlin-style syntax.
 - The negative fixture corpus now starts with explicit 65816-only samples under `test/fixtures/invalid/`.
