@@ -15,7 +15,8 @@ export function runDiagnosticsTest(): void {
     "dup     equ 2",
     "        adc (",
     "        dsk ../build/WORLD",
-    "        typ BIN"
+    "        typ BIN",
+    "        end BLAH"
   ].join("\n");
 
   const bankOpsPath = path.resolve(
@@ -79,6 +80,17 @@ export function runDiagnosticsTest(): void {
         diagnostic.filePath === "<memory>" &&
         diagnostic.code === "malformed-line" &&
         diagnostic.line === 3
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<memory>" &&
+        diagnostic.code === "malformed-line" &&
+        diagnostic.line === 6 &&
+        diagnostic.message === "unexpected operand for end"
     ),
     true
   );

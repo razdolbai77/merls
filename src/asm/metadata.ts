@@ -129,6 +129,7 @@ export const directiveDefinitions: readonly DirectiveDefinition[] = [
   defineDirective("dsk", "build", true, "Set the output disk or image name."),
   defineDirective("ds", "storage", true, "Reserve storage bytes."),
   defineDirective("dum", "storage", true, "Begin a DUM storage section."),
+  defineDirective("end", "assembler", true, "End assembly."),
   defineDirective("equ", "assembler", true, "Define a symbolic constant."),
   defineDirective("err", "assembler", true, "Force an assembly error."),
   defineDirective("hex", "data", true, "Emit raw hexadecimal bytes."),

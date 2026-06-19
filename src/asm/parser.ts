@@ -166,6 +166,12 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
     }
 
     const operandTokens = tokens.slice(index + 1);
+    const directiveName = token.lexeme.toLowerCase();
+
+    if (operandTokens.length > 0 && (directiveName === "end" || directiveName === "dend" || directiveName === "xc")) {
+      throw new Error(`unexpected operand for ${directiveName}`);
+    }
+
     const operand = operandTokens.length > 0
       ? parseExpression(operandTokens).expression
       : null;
@@ -173,7 +179,7 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
       shape: "directive",
       text,
       label,
-      directive: token.lexeme.toLowerCase(),
+      directive: directiveName,
       operand
     };
   }

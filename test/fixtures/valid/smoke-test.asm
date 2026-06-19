@@ -4,3 +4,4 @@
 GetKey  ldx $C000
         bpl GetKey
         jmp NoSuchLabel
+        END
