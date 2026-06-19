@@ -49,7 +49,13 @@ This repository now has an initial Node.js and TypeScript workspace scaffold plu
 - `npm test`: build the project and run the current test suite
 - `npm run dev`: run the TypeScript compiler in watch mode during bootstrap work
 
-The compiled server entrypoint currently lives at `dist/src/server.js`.
+The packaged CLI entrypoint now lives at `dist/src/cli.js`.
+
+## CLI contract
+
+The supported stdio launch contract is `merls --stdio`.
+
+For local development from this checkout, the equivalent compiled command is `node dist/src/cli.js --stdio`.
 
 ## Roadmap
 
@@ -72,9 +78,9 @@ An initial example lives in `examples/coc-settings.json`. The current bootstrap 
 
 1. run `npm install`
 2. run `npm run build`
-3. point coc.nvim at `dist/src/server.js`
+3. point coc.nvim at `dist/src/cli.js --stdio`
 
-The bundled example uses `node` plus an absolute path to the compiled server and currently targets the `asm` filetype.
+The bundled example uses `node` plus an absolute path to the packaged CLI and currently targets the `asm` filetype.
 
 ## Development notes
 
@@ -95,9 +101,10 @@ The bundled example uses `node` plus an absolute path to the compiled server and
 - The current `textDocument/hover` handler is wired through `src/server.ts` and `src/lsp/hover.ts`.
 - The current `textDocument/completion` handler is wired through `src/server.ts` and `src/lsp/completion.ts`.
 - The current `textDocument/publishDiagnostics` path is wired through `src/server.ts` and `src/lsp/diagnostics.ts`, with full-document sync on open and change so coc.nvim receives live parser and resolver errors.
+- The packaged CLI entrypoint now lives in `src/cli.ts`, compiles to `dist/src/cli.js`, and supports the explicit stdio contract `merls --stdio`.
 - The positive fixture corpus now starts with transcribed Merlin32 material under `test/fixtures/valid/`.
 - Positive fixtures should cover supported 6502 Merlin-style syntax.
 - The negative fixture corpus now starts with explicit 65816-only samples under `test/fixtures/invalid/`.
 - Negative fixtures should explicitly cover unsupported 65816 syntax.
 - The current bootstrap test harness is intentionally minimal and runs against compiled output to avoid depending on editor or browser tooling.
-- The current integration coverage reaches through stdio `initialize`, completion, hover, symbol navigation, and diagnostics publication.
+- The current integration coverage reaches through stdio `initialize`, the packaged CLI contract, completion, hover, symbol navigation, and diagnostics publication.

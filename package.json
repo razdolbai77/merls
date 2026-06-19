@@ -4,6 +4,9 @@
   "private": true,
   "description": "Language server for Merlin-style 6502 assembly.",
   "type": "commonjs",
+  "bin": {
+    "merls": "dist/src/cli.js"
+  },
   "main": "dist/src/server.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",

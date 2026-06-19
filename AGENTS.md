@@ -6,7 +6,7 @@ This repository is in the bootstrap stage. Today, the main documents are `README
 
 When the workspace is scaffolded, keep code under `src/`, tests under `test/`, and editor integration examples under `examples/` such as `examples/coc-settings.json`. Store parser fixtures in a dedicated test-fixture area and separate valid 6502 cases from invalid 65816 cases.
 
-The current bootstrap entrypoint is `src/server.ts`, which compiles to `dist/src/server.js`.
+The current bootstrap server entrypoint is `src/server.ts`, and the packaged CLI entrypoint is `src/cli.ts`, which compiles to `dist/src/cli.js`.
 The repository now includes `examples/coc-settings.json` as the baseline coc.nvim launch example.
 The initial positive fixture corpus now lives under `test/fixtures/valid/` and is transcribed from upstream Merlin32 sources.
 The initial negative fixture corpus now lives under `test/fixtures/invalid/` and captures unsupported 65816-only syntax.
@@ -26,6 +26,7 @@ The current `textDocument/definition` and `textDocument/references` handlers are
 The current `textDocument/hover` handler is wired through `src/server.ts` and `src/lsp/hover.ts`.
 The current `textDocument/completion` handler is wired through `src/server.ts` and `src/lsp/completion.ts`.
 The current `textDocument/publishDiagnostics` path is wired through `src/server.ts` and `src/lsp/diagnostics.ts`, with full-document sync on open/change so editor clients receive live parser and resolver diagnostics.
+The current packaged CLI entrypoint lives under `src/cli.ts` and is covered by a compiled stdio launch-contract integration test.
 
 ## Build, Test, and Development Commands
 
@@ -36,7 +37,7 @@ The repository now includes the initial Node/TypeScript workspace scaffold:
 - `npm test`: build the project and run the current test suite.
 - `npm run dev`: run the TypeScript compiler in watch mode during bootstrap work.
 
-Update this section again when the stdio server entrypoint replaces the temporary bootstrap-oriented dev loop.
+The supported stdio launch contract is now `merls --stdio`, with `node dist/src/cli.js --stdio` as the equivalent local-development invocation.
 
 ## Coding Style & Naming Conventions
 
@@ -50,7 +51,7 @@ TDD is mandatory in this repository: add or extend a failing test or fixture bef
 
 Prefer focused unit tests for lexer/parser behavior and integration tests for LSP requests such as `initialize`, hover, and definition.
 
-The current bootstrap test suite already includes compiled-stdio integration checks for `initialize` and diagnostics publication.
+The current bootstrap test suite already includes compiled-stdio integration checks for the packaged CLI contract, `initialize`, and diagnostics publication.
 
 ## Commit & Pull Request Guidelines
 

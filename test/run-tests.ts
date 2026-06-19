@@ -1,4 +1,5 @@
 import { runBootstrapTest } from "./bootstrap.test";
+import { runCliContractTest } from "./cli-contract.test";
 import { runCompletionTest } from "./completion.test";
 import { runDefinitionReferencesTest } from "./definition-references.test";
 import { runDiagnosticsTest } from "./diagnostics.test";
@@ -28,6 +29,10 @@ const tests: TestCase[] = [
   {
     name: "workspace bootstrap exposes the project name",
     run: runBootstrapTest
+  },
+  {
+    name: "cli contract exposes a packaged stdio entrypoint",
+    run: runCliContractTest
   },
   {
     name: "server entrypoint exposes callable startup helpers",
