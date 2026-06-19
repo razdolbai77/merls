@@ -18,25 +18,29 @@ export function buildCompletionItems(
   }
 
   const document = parseDocument(source);
-  const text = document.lines[line]?.node.text.trimStart().toLowerCase() ?? "";
+  const completions: CompletionItem[] = [];
 
-  if (text === "ld" || text === "ld\n" || text.startsWith("ld")) {
-    return opcodeDefinitions.map((opcode) => ({
+  for (const opcode of opcodeDefinitions) {
+    completions.push({
       label: opcode.mnemonic,
       kind: CompletionItemKind.Keyword
-    }));
+    });
   }
 
-  if (text === "du" || text.startsWith("du")) {
-    return directiveDefinitions.map((directive) => ({
+  for (const directive of directiveDefinitions) {
+    completions.push({
       label: directive.name,
       kind: CompletionItemKind.Function
-    }));
+    });
   }
 
   const symbols = collectSymbols(document);
-  return [...symbols.values()].map((symbol) => ({
-    label: symbol.name,
-    kind: CompletionItemKind.Variable
-  }));
+  for (const symbol of symbols.values()) {
+    completions.push({
+      label: symbol.name,
+      kind: CompletionItemKind.Variable
+    });
+  }
+
+  return completions;
 }
