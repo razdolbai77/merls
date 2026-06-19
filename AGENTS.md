@@ -27,6 +27,7 @@ The current `textDocument/hover` handler is wired through `src/server.ts` and `s
 The current `textDocument/completion` handler is wired through `src/server.ts` and `src/lsp/completion.ts`.
 The current `textDocument/publishDiagnostics` path is wired through `src/server.ts` and `src/lsp/diagnostics.ts`, with full-document sync on open/change so editor clients receive live parser and resolver diagnostics.
 The current packaged CLI entrypoint lives under `src/cli.ts` and is covered by a compiled stdio launch-contract integration test.
+The final coc.nvim smoke step is still pending because the current local Neovim profile uses built-in `vim.lsp` and no local `coc.nvim` installation was available on June 19, 2026.
 
 ## Build, Test, and Development Commands
 

@@ -4,7 +4,7 @@
 
 ## Status
 
-This repository now has an initial Node.js and TypeScript workspace scaffold plus a minimal stdio LSP entrypoint in `src/server.ts`. The language server implementation itself is still at the bootstrap stage, and the remaining work is tracked in `PLAN.md`.
+This repository now has an initial Node.js and TypeScript workspace scaffold, a packaged stdio CLI contract, and the MVP LSP feature set. The remaining work is the final coc.nvim acceptance pass tracked in `PLAN.md`; on June 19, 2026 that pass was still blocked locally because the available Neovim profile did not include `coc.nvim`.
 
 ## Goals
 
@@ -106,6 +106,7 @@ The intended `languageserver` shape is:
 ```
 
 Replace the example path with the local checkout or installed package location on your machine.
+The final acceptance step is still to run this configuration inside a real coc.nvim environment; that could not be completed from the current machine because its installed Neovim profile uses built-in `vim.lsp` instead of `coc.nvim`.
 
 ## Development notes
 
