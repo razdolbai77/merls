@@ -6,6 +6,7 @@ import {
 } from "vscode-languageserver/node";
 
 import { buildDocumentSymbols } from "./lsp/document-symbols";
+import { findDefinition, findReferences } from "./lsp/symbol-navigation";
 import { buildWorkspaceSymbols } from "./lsp/workspace-symbols";
 
 export function createServerConnection(
@@ -42,6 +43,21 @@ export function startServer(
   });
   connection.onWorkspaceSymbol((params) =>
     buildWorkspaceSymbols(openDocuments, params.query)
+  );
+  connection.onDefinition((params) =>
+    findDefinition(
+      openDocuments,
+      params.textDocument.uri,
+      params.position.line
+    )
+  );
+  connection.onReferences((params) =>
+    findReferences(
+      openDocuments,
+      params.textDocument.uri,
+      params.position.line,
+      params.context.includeDeclaration
+    )
   );
   connection.listen();
   return connection;
