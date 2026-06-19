@@ -18,6 +18,7 @@ The current line parser now lives under `src/asm/parser.ts` and classifies equat
 The current document model now lives under `src/asm/document.ts` and preserves line-by-line structure while collecting malformed-line errors.
 The current symbol collector now lives under `src/asm/symbols.ts` and indexes labels, equates, and named storage/data definitions.
 The current local-label resolver now lives under `src/asm/local-labels.ts` and resolves Merlin `]local` and `:local` labels within the nearest global-label scope.
+The current workspace indexer now lives under `src/asm/workspace.ts` and follows `asm`/`put`/`use` directives across the local fixture corpus.
 
 ## Build, Test, and Development Commands
 

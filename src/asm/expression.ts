@@ -10,6 +10,11 @@ export type IdentifierExpression = {
   value: string;
 };
 
+export type StringExpression = {
+  kind: "string";
+  value: string;
+};
+
 export type ModifierExpression = {
   kind: "modifier";
   operator: "<" | ">" | "^";
@@ -26,6 +31,7 @@ export type BinaryExpression = {
 export type Expression =
   | NumericLiteralExpression
   | IdentifierExpression
+  | StringExpression
   | ModifierExpression
   | BinaryExpression;
 
@@ -177,6 +183,16 @@ function parsePrefix(tokens: readonly Token[], startIndex: number): ParsedExpres
       expression: {
         kind: "identifier",
         value: token.lexeme
+      },
+      nextTokenIndex: startIndex + 1
+    };
+  }
+
+  if (token.kind === "string") {
+    return {
+      expression: {
+        kind: "string",
+        value: token.lexeme.slice(1, -1)
       },
       nextTokenIndex: startIndex + 1
     };

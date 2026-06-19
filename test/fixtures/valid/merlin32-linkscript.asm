@@ -12,5 +12,5 @@
     dsk Merlin32Test
     org $800
 
-    asm main.s
+    asm "merlin32-main-6502.asm"
     sna main

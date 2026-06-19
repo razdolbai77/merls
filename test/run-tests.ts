@@ -10,6 +10,7 @@ import { runInitializeHandshakeTest } from "./server-initialize.test";
 import { runServerEntrypointTest } from "./server-entrypoint.test";
 import { runSymbolsTest } from "./symbols.test";
 import { runSyntaxShapeTest } from "./syntax-shape.test";
+import { runWorkspaceGraphTest } from "./workspace.test";
 
 type TestCase = {
   name: string;
@@ -64,6 +65,10 @@ const tests: TestCase[] = [
   {
     name: "local label scope resolves Merlin local definitions and references",
     run: runLocalLabelScopeTest
+  },
+  {
+    name: "workspace indexing follows Merlin include directives and merges symbols",
+    run: runWorkspaceGraphTest
   }
 ];
 

@@ -78,10 +78,10 @@ export function runLexerTest(): void {
   );
 
   assert.deepEqual(
-    summarizeTokens(findLine(linkLines, "    asm main.s").tokens),
+    summarizeTokens(findLine(linkLines, "    asm \"merlin32-main-6502.asm\"").tokens),
     [
       ["directive", "asm"],
-      ["identifier", "main.s"]
+      ["string", "\"merlin32-main-6502.asm\""]
     ]
   );
 }
