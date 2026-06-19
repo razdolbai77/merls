@@ -6,6 +6,7 @@ import {
 } from "vscode-languageserver/node";
 
 import { buildDocumentSymbols } from "./lsp/document-symbols";
+import { buildCompletionItems } from "./lsp/completion";
 import { buildHover } from "./lsp/hover";
 import { findDefinition, findReferences } from "./lsp/symbol-navigation";
 import { buildWorkspaceSymbols } from "./lsp/workspace-symbols";
@@ -26,6 +27,7 @@ export function startServer(
 
   connection.onInitialize(() => ({
     capabilities: {
+      completionProvider: {},
       documentSymbolProvider: true,
       hoverProvider: true,
       workspaceSymbolProvider: true,
@@ -67,6 +69,13 @@ export function startServer(
       params.textDocument.uri,
       params.position.line,
       params.position.character
+    )
+  );
+  connection.onCompletion((params) =>
+    buildCompletionItems(
+      openDocuments,
+      params.textDocument.uri,
+      params.position.line
     )
   );
   connection.listen();

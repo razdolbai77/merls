@@ -54,7 +54,7 @@ Build a new standalone language server for Merlin-style 6502 assembly, intended 
 - [x] Implement `workspace/symbol` on top of the workspace symbol index.
 - [x] Implement `textDocument/definition` and `textDocument/references` for labels and equates.
 - [x] Implement `textDocument/hover` for opcodes, directives, and resolved symbols.
-- [ ] Implement `textDocument/completion` for opcodes, directives, and in-scope symbols.
+- [x] Implement `textDocument/completion` for opcodes, directives, and in-scope symbols.
 - [ ] Implement `textDocument/publishDiagnostics` wiring so parser and resolver errors appear in coc.nvim.
 
 ### Phase 6 - Packaging and acceptance

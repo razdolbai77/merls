@@ -1,4 +1,5 @@
 import { runBootstrapTest } from "./bootstrap.test";
+import { runCompletionTest } from "./completion.test";
 import { runDefinitionReferencesTest } from "./definition-references.test";
 import { runDiagnosticsTest } from "./diagnostics.test";
 import { runDocumentModelTest } from "./document-model.test";
@@ -94,6 +95,10 @@ const tests: TestCase[] = [
   {
     name: "server returns hover information for opcodes directives and symbols",
     run: runHoverTest
+  },
+  {
+    name: "server returns opcode directive and symbol completions",
+    run: runCompletionTest
   }
 ];
 
