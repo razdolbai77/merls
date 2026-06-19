@@ -8,6 +8,7 @@ When the workspace is scaffolded, keep code under `src/`, tests under `test/`, a
 
 The current bootstrap entrypoint is `src/server.ts`, which compiles to `dist/src/server.js`.
 The repository now includes `examples/coc-settings.json` as the baseline coc.nvim launch example.
+The initial positive fixture corpus now lives under `test/fixtures/valid/` and is transcribed from upstream Merlin32 sources.
 
 ## Build, Test, and Development Commands
 

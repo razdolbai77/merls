@@ -1,4 +1,5 @@
 import { runBootstrapTest } from "./bootstrap.test";
+import { runFixtureCorpusTest } from "./fixture-corpus.test";
 import { runInitializeHandshakeTest } from "./server-initialize.test";
 import { runServerEntrypointTest } from "./server-entrypoint.test";
 
@@ -19,6 +20,10 @@ const tests: TestCase[] = [
   {
     name: "server process answers initialize",
     run: runInitializeHandshakeTest
+  },
+  {
+    name: "positive fixture corpus includes upstream Merlin32 samples",
+    run: runFixtureCorpusTest
   }
 ];
 

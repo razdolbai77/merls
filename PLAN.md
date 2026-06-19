@@ -29,7 +29,7 @@ Build a new standalone language server for Merlin-style 6502 assembly, intended 
 
 ### Phase 2 - 6502 Merlin syntax corpus and metadata
 
-- [ ] Import or transcribe a minimal real-world fixture corpus from Merlin32 examples, keeping only 6502-valid cases for positive fixtures.
+- [x] Import or transcribe a minimal real-world fixture corpus from Merlin32 examples, keeping only 6502-valid cases for positive fixtures.
 - [ ] Add negative fixtures for 65816-only syntax so unsupported constructs are explicitly recognized by tests.
 - [ ] Define the 6502 opcode table and Merlin-style directive table the parser and LSP features will share.
 - [ ] Define the token kinds and line-shape rules for comments, labels, local labels, directives, strings, numeric literals, modifiers, and expressions.
