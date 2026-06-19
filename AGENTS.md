@@ -15,6 +15,7 @@ Shared token-kind and line-shape metadata now lives under `src/asm/syntax.ts`.
 The current lexer implementation now lives under `src/asm/lexer.ts` and is covered by fixture-driven unit tests.
 The current expression parser now lives under `src/asm/expression.ts` and is covered by unit tests for numeric forms, modifiers, arithmetic, and indexed operands.
 The current line parser now lives under `src/asm/parser.ts` and classifies equates, instructions, directives, data lines, and malformed input.
+The current document model now lives under `src/asm/document.ts` and preserves line-by-line structure while collecting malformed-line errors.
 
 ## Build, Test, and Development Commands
 

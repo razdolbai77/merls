@@ -1,4 +1,5 @@
 import { runBootstrapTest } from "./bootstrap.test";
+import { runDocumentModelTest } from "./document-model.test";
 import { runExpressionTest } from "./expression.test";
 import { runFixtureCorpusTest } from "./fixture-corpus.test";
 import { runLexerTest } from "./lexer.test";
@@ -49,6 +50,10 @@ const tests: TestCase[] = [
   {
     name: "line parser recognizes equates instructions directives data and malformed lines",
     run: runLineParserTest
+  },
+  {
+    name: "document model preserves line structure and tolerates malformed lines",
+    run: runDocumentModelTest
   }
 ];
 
