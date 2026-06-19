@@ -75,6 +75,7 @@ If you installed `merls` globally via npm, the `languageserver` shape is:
 
 ```json
 {
+  "semanticTokens.enable": true,
   "languageserver": {
     "merls": {
       "command": "merls",
@@ -85,12 +86,14 @@ If you installed `merls` globally via npm, the `languageserver` shape is:
         ".git"
       ],
       "filetypes": [
-        "asm"
+        "6502"
       ]
     }
   }
 }
 ```
+
+To enable semantic tokens for syntax highlighting, ensure `"semanticTokens.enable": true` is set in your `coc-settings.json` and that your Vim buffer is set to the matching filetype (e.g. `set filetype=6502`).
 
 An example configuration lives in `examples/coc-settings.json`.
 
