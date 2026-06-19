@@ -3,7 +3,12 @@
     "merls": {
       "command": "node",
       "args": [
-        "C:/Users/alexe/Projects/merls/dist/src/server.js"
+        "C:/Users/alexe/Projects/merls/dist/src/cli.js",
+        "--stdio"
+      ],
+      "rootPatterns": [
+        ".git",
+        "package.json"
       ],
       "filetypes": [
         "asm"

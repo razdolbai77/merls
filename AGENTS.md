@@ -7,7 +7,7 @@ This repository is in the bootstrap stage. Today, the main documents are `README
 When the workspace is scaffolded, keep code under `src/`, tests under `test/`, and editor integration examples under `examples/` such as `examples/coc-settings.json`. Store parser fixtures in a dedicated test-fixture area and separate valid 6502 cases from invalid 65816 cases.
 
 The current bootstrap server entrypoint is `src/server.ts`, and the packaged CLI entrypoint is `src/cli.ts`, which compiles to `dist/src/cli.js`.
-The repository now includes `examples/coc-settings.json` as the baseline coc.nvim launch example.
+The repository now includes `examples/coc-settings.json` as the baseline coc.nvim launch example, targeting `dist/src/cli.js --stdio` with `.git` and `package.json` root markers.
 The initial positive fixture corpus now lives under `test/fixtures/valid/` and is transcribed from upstream Merlin32 sources.
 The initial negative fixture corpus now lives under `test/fixtures/invalid/` and captures unsupported 65816-only syntax.
 Shared 6502 opcode and Merlin directive metadata now lives under `src/asm/metadata.ts`.

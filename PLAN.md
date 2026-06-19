@@ -60,7 +60,7 @@ Build a new standalone language server for Merlin-style 6502 assembly, intended 
 ### Phase 6 - Packaging and acceptance
 
 - [x] Finalize the documented CLI contract for launching the server with stdio.
-- [ ] Finalize coc.nvim setup documentation and example configuration for the server.
+- [x] Finalize coc.nvim setup documentation and example configuration for the server.
 - [ ] Run a manual coc.nvim smoke workflow against sample assembly files and capture any gaps back into the task list.
 
 ## Validation

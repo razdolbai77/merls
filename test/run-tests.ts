@@ -1,5 +1,6 @@
 import { runBootstrapTest } from "./bootstrap.test";
 import { runCliContractTest } from "./cli-contract.test";
+import { runCocConfigTest } from "./coc-config.test";
 import { runCompletionTest } from "./completion.test";
 import { runDefinitionReferencesTest } from "./definition-references.test";
 import { runDiagnosticsTest } from "./diagnostics.test";
@@ -33,6 +34,10 @@ const tests: TestCase[] = [
   {
     name: "cli contract exposes a packaged stdio entrypoint",
     run: runCliContractTest
+  },
+  {
+    name: "coc.nvim example targets the packaged stdio CLI contract",
+    run: runCocConfigTest
   },
   {
     name: "server entrypoint exposes callable startup helpers",

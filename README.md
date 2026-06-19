@@ -80,7 +80,32 @@ An initial example lives in `examples/coc-settings.json`. The current bootstrap 
 2. run `npm run build`
 3. point coc.nvim at `dist/src/cli.js --stdio`
 
-The bundled example uses `node` plus an absolute path to the packaged CLI and currently targets the `asm` filetype.
+The bundled example uses `node` plus an absolute path to the packaged CLI, passes `--stdio`, uses `package.json` and `.git` as root markers, and currently targets the `asm` filetype.
+
+The intended `languageserver` shape is:
+
+```json
+{
+  "languageserver": {
+    "merls": {
+      "command": "node",
+      "args": [
+        "C:/path/to/merls/dist/src/cli.js",
+        "--stdio"
+      ],
+      "rootPatterns": [
+        ".git",
+        "package.json"
+      ],
+      "filetypes": [
+        "asm"
+      ]
+    }
+  }
+}
+```
+
+Replace the example path with the local checkout or installed package location on your machine.
 
 ## Development notes
 
@@ -102,6 +127,7 @@ The bundled example uses `node` plus an absolute path to the packaged CLI and cu
 - The current `textDocument/completion` handler is wired through `src/server.ts` and `src/lsp/completion.ts`.
 - The current `textDocument/publishDiagnostics` path is wired through `src/server.ts` and `src/lsp/diagnostics.ts`, with full-document sync on open and change so coc.nvim receives live parser and resolver errors.
 - The packaged CLI entrypoint now lives in `src/cli.ts`, compiles to `dist/src/cli.js`, and supports the explicit stdio contract `merls --stdio`.
+- The checked-in coc.nvim example now targets `dist/src/cli.js --stdio` and includes root detection for `.git` and `package.json`.
 - The positive fixture corpus now starts with transcribed Merlin32 material under `test/fixtures/valid/`.
 - Positive fixtures should cover supported 6502 Merlin-style syntax.
 - The negative fixture corpus now starts with explicit 65816-only samples under `test/fixtures/invalid/`.
