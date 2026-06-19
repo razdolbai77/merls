@@ -120,7 +120,7 @@ export async function runSemanticTokensTest(): Promise<void> {
 
     const result = semanticTokensResponse.result as { data: number[] };
     assert.ok(Array.isArray(result.data), "Expected data to be an array");
-    assert.ok(result.data.length > 0, "Expected non-empty semantic tokens array");
+    console.log(result.data); assert.ok(result.data.length > 0, "Expected non-empty semantic tokens array");
 
   } finally {
     child.kill();
