@@ -23,6 +23,7 @@ The current diagnostics pass now lives under `src/asm/diagnostics.ts` and report
 The current `textDocument/documentSymbol` provider is wired through `src/server.ts` and `src/lsp/document-symbols.ts`.
 The current `workspace/symbol` provider is wired through `src/server.ts` and `src/lsp/workspace-symbols.ts` over the open-document symbol set.
 The current `textDocument/definition` and `textDocument/references` handlers are wired through `src/server.ts` and `src/lsp/symbol-navigation.ts`.
+The current `textDocument/hover` handler is wired through `src/server.ts` and `src/lsp/hover.ts`.
 
 ## Build, Test, and Development Commands
 

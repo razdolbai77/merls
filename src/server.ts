@@ -6,6 +6,7 @@ import {
 } from "vscode-languageserver/node";
 
 import { buildDocumentSymbols } from "./lsp/document-symbols";
+import { buildHover } from "./lsp/hover";
 import { findDefinition, findReferences } from "./lsp/symbol-navigation";
 import { buildWorkspaceSymbols } from "./lsp/workspace-symbols";
 
@@ -26,6 +27,7 @@ export function startServer(
   connection.onInitialize(() => ({
     capabilities: {
       documentSymbolProvider: true,
+      hoverProvider: true,
       workspaceSymbolProvider: true,
       textDocumentSync: TextDocumentSyncKind.None
     }
@@ -57,6 +59,14 @@ export function startServer(
       params.textDocument.uri,
       params.position.line,
       params.context.includeDeclaration
+    )
+  );
+  connection.onHover((params) =>
+    buildHover(
+      openDocuments,
+      params.textDocument.uri,
+      params.position.line,
+      params.position.character
     )
   );
   connection.listen();

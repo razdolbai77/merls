@@ -5,6 +5,7 @@ import { runDocumentModelTest } from "./document-model.test";
 import { runDocumentSymbolTest } from "./document-symbol.test";
 import { runExpressionTest } from "./expression.test";
 import { runFixtureCorpusTest } from "./fixture-corpus.test";
+import { runHoverTest } from "./hover.test";
 import { runLexerTest } from "./lexer.test";
 import { runLineParserTest } from "./line-parser.test";
 import { runLocalLabelScopeTest } from "./local-labels.test";
@@ -89,6 +90,10 @@ const tests: TestCase[] = [
   {
     name: "server resolves definitions and references for Merlin symbols",
     run: runDefinitionReferencesTest
+  },
+  {
+    name: "server returns hover information for opcodes directives and symbols",
+    run: runHoverTest
   }
 ];
 
