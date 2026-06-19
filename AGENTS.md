@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository is in the bootstrap stage. Today, the main documents are `README.md` for scope and `PLAN.md` for the implementation checklist. The planned runtime is Node.js with TypeScript and `vscode-languageserver`.
+This repository has an established baseline. The main document is `README.md` for scope. The runtime is Node.js with TypeScript and `vscode-languageserver`.
 
 When the workspace is scaffolded, keep code under `src/`, tests under `test/`, and editor integration examples under `examples/` such as `examples/coc-settings.json`. Store parser fixtures in a dedicated test-fixture area and separate valid 6502 cases from invalid 65816 cases.
 

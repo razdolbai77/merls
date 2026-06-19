@@ -4,7 +4,7 @@
 
 ## Status
 
-The MVP LSP feature set for Merlin-style 6502 assembly is complete and published to npm as `@razdolbai/merls`. It provides core language server features and is ready to be used with editors like `coc.nvim`. All planned tasks in `PLAN.md` have been fulfilled.
+The MVP LSP feature set for Merlin-style 6502 assembly is complete and published to npm as `@razdolbai/merls`. It provides core language server features and is ready to be used with editors like `coc.nvim`.
 
 ## Goals
 
