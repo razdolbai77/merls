@@ -1,5 +1,6 @@
 import { runBootstrapTest } from "./bootstrap.test";
 import { runFixtureCorpusTest } from "./fixture-corpus.test";
+import { runLexerTest } from "./lexer.test";
 import { runMetadataTableTest } from "./metadata.test";
 import { runInitializeHandshakeTest } from "./server-initialize.test";
 import { runServerEntrypointTest } from "./server-entrypoint.test";
@@ -34,6 +35,10 @@ const tests: TestCase[] = [
   {
     name: "token kinds and line shapes cover Merlin syntax categories",
     run: runSyntaxShapeTest
+  },
+  {
+    name: "lexer tokenizes fixture comments labels mnemonics directives and literals",
+    run: runLexerTest
   }
 ];
 
