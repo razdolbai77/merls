@@ -62,7 +62,6 @@ Build a new standalone language server for Merlin-style 6502 assembly, intended 
 - [x] Finalize the documented CLI contract for launching the server with stdio.
 - [x] Finalize coc.nvim setup documentation and example configuration for the server.
 - [ ] Run a manual coc.nvim smoke workflow against sample assembly files and capture any gaps back into the task list.
-  Acceptance gap on June 19, 2026: this machine has Neovim installed, but its active profile at `C:\Users\alexe\AppData\Local\nvim\init.lua` uses built-in `vim.lsp` and no local `coc.nvim` installation was found, so a real coc.nvim smoke run could not be executed in this environment.
 
 ## Validation
 
@@ -72,4 +71,4 @@ Build a new standalone language server for Merlin-style 6502 assembly, intended 
 
 ## Open questions
 
-- A real coc.nvim smoke workflow is still pending because the current local Neovim environment does not include `coc.nvim`.
+- A real coc.nvim smoke workflow is still pending.
