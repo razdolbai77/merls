@@ -4,7 +4,7 @@
 
 ## Status
 
-This repository now has an initial Node.js and TypeScript workspace scaffold. The language server implementation itself is still at the bootstrap stage, and the remaining work is tracked in `PLAN.md`.
+This repository now has an initial Node.js and TypeScript workspace scaffold plus a minimal stdio LSP entrypoint in `src/server.ts`. The language server implementation itself is still at the bootstrap stage, and the remaining work is tracked in `PLAN.md`.
 
 ## Goals
 
@@ -48,6 +48,8 @@ This repository now has an initial Node.js and TypeScript workspace scaffold. Th
 - `npm run build`: compile the TypeScript sources into `dist/`
 - `npm test`: build the project and run the current test suite
 - `npm run dev`: run the TypeScript compiler in watch mode during bootstrap work
+
+The compiled server entrypoint currently lives at `dist/src/server.js`.
 
 ## Roadmap
 

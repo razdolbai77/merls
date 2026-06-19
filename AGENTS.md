@@ -6,6 +6,8 @@ This repository is in the bootstrap stage. Today, the main documents are `README
 
 When the workspace is scaffolded, keep code under `src/`, tests under `test/`, and editor integration examples under `examples/` such as `examples/coc-settings.json`. Store parser fixtures in a dedicated test-fixture area and separate valid 6502 cases from invalid 65816 cases.
 
+The current bootstrap entrypoint is `src/server.ts`, which compiles to `dist/src/server.js`.
+
 ## Build, Test, and Development Commands
 
 The repository now includes the initial Node/TypeScript workspace scaffold:

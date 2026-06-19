@@ -1,4 +1,5 @@
 import { runBootstrapTest } from "./bootstrap.test";
+import { runServerEntrypointTest } from "./server-entrypoint.test";
 
 type TestCase = {
   name: string;
@@ -9,6 +10,10 @@ const tests: TestCase[] = [
   {
     name: "workspace bootstrap exposes the project name",
     run: runBootstrapTest
+  },
+  {
+    name: "server entrypoint exposes callable startup helpers",
+    run: runServerEntrypointTest
   }
 ];
 
