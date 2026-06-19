@@ -1,4 +1,4 @@
 - Windows shell is PowerShell; use PowerShell forms when documenting local commands.
-- Current useful repo commands are read-only/doc-oriented: `Get-ChildItem`, `Get-Content README.md`, `Get-Content PLAN.md`, `Get-Content AGENTS.md`.
-- Planned commands after Phase 1 scaffolding: `npm install`, `npm run build`, `npm test`, `npm run dev` (or equivalent stdio server runner).
-- Do not assume npm scripts exist until `package.json` is added.
+- Current useful repo commands are read-only/doc-oriented: `Get-ChildItem`, `Get-Content README.md`, `Get-Content AGENTS.md`.
+- Available commands: `npm install`, `npm run build`, `npm test`, `npm run dev` (run the TypeScript compiler in watch mode).
+- A local publishing script is available at `.\publish.ps1`.

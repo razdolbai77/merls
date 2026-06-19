@@ -1,7 +1,6 @@
-- Completed MVP repo; current durable docs are \README.md\, \PLAN.md\, \AGENTS.md\.
-- Purpose: standalone LSP server for Merlin-style 6502 assembly, primary editor target coc.nvim, stdio transport.
+- Completed MVP repo; current durable docs are \README.md\, \AGENTS.md\.
+- Purpose: standalone LSP server for Merlin-style 6502 assembly, primary editor target coc.nvim, stdio transport. Published to npm as `@razdolbai/merls`.
 - Scope invariant: 6502-only. 65816 syntax is out of scope and should be diagnosed as unsupported.
-- Implementation plan and phase breakdown live in \PLAN.md\. All planned tasks are completed.
 - Contributor rules and doc-maintenance requirement live in \AGENTS.md\.
 - For stack and workspace layout, read \mem:tech_stack\.
 - For code/test/doc conventions, read \mem:conventions\.
