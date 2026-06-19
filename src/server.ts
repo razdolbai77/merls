@@ -16,6 +16,9 @@ export function startServer(
   outputStream: NodeJS.WritableStream = process.stdout
 ): Connection {
   const connection = createServerConnection(inputStream, outputStream);
+  connection.onInitialize(() => ({
+    capabilities: {}
+  }));
   connection.listen();
   return connection;
 }

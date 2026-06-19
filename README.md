@@ -74,3 +74,4 @@ The intended integration model is a standard `languageserver` entry in `coc-sett
 - Positive fixtures should cover supported 6502 Merlin-style syntax.
 - Negative fixtures should explicitly cover unsupported 65816 syntax.
 - The current bootstrap test harness is intentionally minimal and runs against compiled output to avoid depending on editor or browser tooling.
+- The current integration coverage reaches through the stdio `initialize` handshake.

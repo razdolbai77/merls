@@ -31,6 +31,8 @@ TDD is mandatory in this repository: add or extend a failing test or fixture bef
 
 Prefer focused unit tests for lexer/parser behavior and integration tests for LSP requests such as `initialize`, hover, and definition.
 
+The current bootstrap test suite already includes an `initialize` integration check against the compiled stdio server.
+
 ## Commit & Pull Request Guidelines
 
 This workspace does not currently include accessible git history, so no local commit convention can be inferred from prior commits. Use short, imperative commit subjects such as `Add lexer token fixtures`.
