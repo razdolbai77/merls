@@ -85,6 +85,7 @@ The bundled example uses `node` plus an absolute path to the compiled server and
 - The current expression parser now lives in `src/asm/expression.ts` and covers numeric forms, unary modifiers, arithmetic, and indexed operand fragments.
 - The current line parser now lives in `src/asm/parser.ts` and classifies equates, instructions, directives, data lines, and malformed input.
 - The current document model now lives in `src/asm/document.ts` and preserves line-by-line structure while collecting malformed-line errors.
+- The current symbol collector now lives in `src/asm/symbols.ts` and indexes labels, equates, and named storage/data definitions.
 - The positive fixture corpus now starts with transcribed Merlin32 material under `test/fixtures/valid/`.
 - Positive fixtures should cover supported 6502 Merlin-style syntax.
 - The negative fixture corpus now starts with explicit 65816-only samples under `test/fixtures/invalid/`.

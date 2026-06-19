@@ -43,7 +43,7 @@ Build a new standalone language server for Merlin-style 6502 assembly, intended 
 
 ### Phase 4 - Symbols and cross-file analysis
 
-- [ ] Implement symbol collection for global labels, equates, and named data definitions.
+- [x] Implement symbol collection for global labels, equates, and named data definitions.
 - [ ] Implement local-label scope resolution for Merlin-style local labels such as `]loop` and `:label`.
 - [ ] Implement include/use file graph handling and workspace re-indexing.
 - [ ] Implement diagnostics for duplicate symbols, unresolved references, malformed expressions, and unsupported 65816 syntax.

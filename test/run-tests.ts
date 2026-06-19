@@ -7,6 +7,7 @@ import { runLineParserTest } from "./line-parser.test";
 import { runMetadataTableTest } from "./metadata.test";
 import { runInitializeHandshakeTest } from "./server-initialize.test";
 import { runServerEntrypointTest } from "./server-entrypoint.test";
+import { runSymbolsTest } from "./symbols.test";
 import { runSyntaxShapeTest } from "./syntax-shape.test";
 
 type TestCase = {
@@ -54,6 +55,10 @@ const tests: TestCase[] = [
   {
     name: "document model preserves line structure and tolerates malformed lines",
     run: runDocumentModelTest
+  },
+  {
+    name: "symbol collection indexes labels equates and named data definitions",
+    run: runSymbolsTest
   }
 ];
 
