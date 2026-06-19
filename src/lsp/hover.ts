@@ -42,6 +42,13 @@ export function buildHover(
   }
 
   if (token?.kind === "identifier" || token?.kind === "label" || token?.kind === "localLabel") {
+    const lexemeLower = token.lexeme.toLowerCase();
+    if (lexemeLower === "a" || lexemeLower === "x" || lexemeLower === "y") {
+      return {
+        contents: `Register ${token.lexeme.toUpperCase()}`
+      };
+    }
+
     const definition = findDefinition(openDocuments, uri, line);
     if (definition !== null) {
       return {
