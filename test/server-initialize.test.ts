@@ -8,6 +8,8 @@ type JsonRpcMessage = {
   method?: string;
   result?: {
     capabilities?: {
+      definitionProvider?: boolean;
+      referencesProvider?: boolean;
       textDocumentSync?: {
         change?: number;
         openClose?: boolean;
@@ -91,6 +93,8 @@ export async function runInitializeHandshakeTest(): Promise<void> {
     assert.equal(typeof message.result?.capabilities, "object");
     assert.equal(message.result?.capabilities?.textDocumentSync?.openClose, true);
     assert.equal(message.result?.capabilities?.textDocumentSync?.change, 1);
+    assert.equal(message.result?.capabilities?.definitionProvider, true);
+    assert.equal(message.result?.capabilities?.referencesProvider, true);
   } finally {
     child.kill();
   }

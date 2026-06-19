@@ -1,0 +1,17 @@
+" Minimal vimrc for the coc.nvim smoke test.
+" Loads only coc.nvim from the user's vim-plug directory,
+" configures the merls language server, and runs assertions.
+
+set nocompatible
+filetype off
+
+" Load coc.nvim from the user's vim-plug directory
+set runtimepath+=$USERPROFILE/vimfiles/local/plugged/coc.nvim
+
+filetype plugin indent on
+syntax on
+
+" Point coc.nvim at a temporary config directory so it does not
+" interfere with the user's real configuration.
+let g:coc_config_home = $MERLS_SMOKE_CONFIG
+let g:coc_data_home = $MERLS_SMOKE_DATA

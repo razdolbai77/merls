@@ -29,8 +29,10 @@ export function startServer(
   connection.onInitialize(() => ({
     capabilities: {
       completionProvider: {},
+      definitionProvider: true,
       documentSymbolProvider: true,
       hoverProvider: true,
+      referencesProvider: true,
       workspaceSymbolProvider: true,
       textDocumentSync: {
         openClose: true,

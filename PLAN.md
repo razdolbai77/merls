@@ -61,7 +61,8 @@ Build a new standalone language server for Merlin-style 6502 assembly, intended 
 
 - [x] Finalize the documented CLI contract for launching the server with stdio.
 - [x] Finalize coc.nvim setup documentation and example configuration for the server.
-- [ ] Run a manual coc.nvim smoke workflow against sample assembly files and capture any gaps back into the task list.
+- [x] Run a manual coc.nvim smoke workflow against sample assembly files and capture any gaps back into the task list.
+  Gap found and fixed: `definitionProvider` and `referencesProvider` were missing from the server capability declarations.
 
 ## Validation
 
@@ -71,4 +72,4 @@ Build a new standalone language server for Merlin-style 6502 assembly, intended 
 
 ## Open questions
 
-- A real coc.nvim smoke workflow is still pending.
+- None at this time. All planned tasks are complete.

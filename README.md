@@ -4,7 +4,7 @@
 
 ## Status
 
-This repository now has an initial Node.js and TypeScript workspace scaffold, a packaged stdio CLI contract, and the MVP LSP feature set. The remaining work is the final coc.nvim acceptance pass tracked in `PLAN.md`.
+This repository now has an initial Node.js and TypeScript workspace scaffold, a packaged stdio CLI contract, and the MVP LSP feature set. All planned tasks in `PLAN.md` are complete, including the coc.nvim smoke test.
 
 ## Goals
 
@@ -48,6 +48,7 @@ This repository now has an initial Node.js and TypeScript workspace scaffold, a 
 - `npm run build`: compile the TypeScript sources into `dist/`
 - `npm test`: build the project and run the current test suite
 - `npm run dev`: run the TypeScript compiler in watch mode during bootstrap work
+- `pwsh test/smoke/run-smoke.ps1`: run the headless Vim + coc.nvim smoke test (requires Vim with coc.nvim installed via vim-plug)
 
 The packaged CLI entrypoint now lives at `dist/src/cli.js`.
 
