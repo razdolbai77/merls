@@ -66,7 +66,15 @@ See `PLAN.md` for the full checklist.
 
 ## coc.nvim target
 
-The intended integration model is a standard `languageserver` entry in `coc-settings.json` that launches `merls` over stdio. Example configuration will be added once the server entrypoint exists.
+The intended integration model is a standard `languageserver` entry in `coc-settings.json` that launches `merls` over stdio.
+
+An initial example lives in `examples/coc-settings.json`. The current bootstrap flow is:
+
+1. run `npm install`
+2. run `npm run build`
+3. point coc.nvim at `dist/src/server.js`
+
+The bundled example uses `node` plus an absolute path to the compiled server and currently targets the `asm` filetype.
 
 ## Development notes
 

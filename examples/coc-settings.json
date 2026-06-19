@@ -1,0 +1,13 @@
+{
+  "languageserver": {
+    "merls": {
+      "command": "node",
+      "args": [
+        "C:/Users/alexe/Projects/merls/dist/src/server.js"
+      ],
+      "filetypes": [
+        "asm"
+      ]
+    }
+  }
+}
