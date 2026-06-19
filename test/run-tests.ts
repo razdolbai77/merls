@@ -4,6 +4,7 @@ import { runExpressionTest } from "./expression.test";
 import { runFixtureCorpusTest } from "./fixture-corpus.test";
 import { runLexerTest } from "./lexer.test";
 import { runLineParserTest } from "./line-parser.test";
+import { runLocalLabelScopeTest } from "./local-labels.test";
 import { runMetadataTableTest } from "./metadata.test";
 import { runInitializeHandshakeTest } from "./server-initialize.test";
 import { runServerEntrypointTest } from "./server-entrypoint.test";
@@ -59,6 +60,10 @@ const tests: TestCase[] = [
   {
     name: "symbol collection indexes labels equates and named data definitions",
     run: runSymbolsTest
+  },
+  {
+    name: "local label scope resolves Merlin local definitions and references",
+    run: runLocalLabelScopeTest
   }
 ];
 
