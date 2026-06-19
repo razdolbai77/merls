@@ -1,5 +1,6 @@
 import { runBootstrapTest } from "./bootstrap.test";
 import { runFixtureCorpusTest } from "./fixture-corpus.test";
+import { runMetadataTableTest } from "./metadata.test";
 import { runInitializeHandshakeTest } from "./server-initialize.test";
 import { runServerEntrypointTest } from "./server-entrypoint.test";
 
@@ -24,6 +25,10 @@ const tests: TestCase[] = [
   {
     name: "positive fixture corpus includes upstream Merlin32 samples",
     run: runFixtureCorpusTest
+  },
+  {
+    name: "shared opcode and directive metadata covers 6502 and Merlin syntax",
+    run: runMetadataTableTest
   }
 ];
 
