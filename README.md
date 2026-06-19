@@ -1,0 +1,66 @@
+# merls
+
+`merls` is a planned language server for **Merlin-style 6502 assembly** with **coc.nvim** as the primary editor target.
+
+## Status
+
+This repository is in the bootstrap stage. The implementation has not started yet, but the project scope and task breakdown are captured in `PLAN.md`.
+
+## Goals
+
+- provide a standalone LSP server over stdio
+- work cleanly with coc.nvim through standard language-server configuration
+- support Merlin-style 6502 source structure, symbols, directives, and expressions
+- deliver useful editing features before deeper assembler integration
+
+## Scope
+
+### In scope
+
+- 6502-only Merlin-style assembly
+- parser-based diagnostics for the MVP
+- core LSP features such as:
+  - diagnostics
+  - hover
+  - completion
+  - go to definition
+  - find references
+  - document symbols
+  - workspace symbols
+
+### Out of scope
+
+- 65816 support
+- assembler-backed diagnostics in the first implementation pass
+- coc.nvim-specific plugin code for the MVP
+
+## Planned implementation
+
+- **runtime:** Node.js
+- **language:** TypeScript
+- **LSP library:** `vscode-languageserver`
+- **process model:** standalone stdio server
+- **development style:** TDD from the start
+
+## Roadmap
+
+The current plan is organized into these phases:
+
+1. bootstrap the Node/TypeScript workspace
+2. define the 6502 Merlin syntax corpus and shared metadata
+3. implement the lexer, parser, and document model
+4. implement symbols, include handling, and diagnostics
+5. add the MVP LSP features
+6. package and verify coc.nvim integration
+
+See `PLAN.md` for the full checklist.
+
+## coc.nvim target
+
+The intended integration model is a standard `languageserver` entry in `coc-settings.json` that launches `merls` over stdio. Example configuration will be added once the server entrypoint exists.
+
+## Development notes
+
+- TDD is mandatory for implementation work in this repository.
+- Positive fixtures should cover supported 6502 Merlin-style syntax.
+- Negative fixtures should explicitly cover unsupported 65816 syntax.

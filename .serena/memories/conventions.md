@@ -1,0 +1,6 @@
+- TDD is mandatory from the start; implementation tasks begin with a failing test or fixture.
+- Keep parser-based MVP; do not introduce external `merlin32` execution in the first implementation pass.
+- Separate parser, symbol-resolution, and LSP layers.
+- TypeScript naming: `camelCase` for values/functions, `PascalCase` for types/classes, kebab-case for config/example filenames.
+- Fixture convention: positive fixtures cover supported Merlin-style 6502 syntax; negative fixtures cover unsupported 65816 syntax and expected diagnostics.
+- Task completion rule: if behavior, structure, workflow, or contributor expectations change, update both `README.md` and `AGENTS.md`.
