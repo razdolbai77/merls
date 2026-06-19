@@ -2,6 +2,7 @@ import { runBootstrapTest } from "./bootstrap.test";
 import { runExpressionTest } from "./expression.test";
 import { runFixtureCorpusTest } from "./fixture-corpus.test";
 import { runLexerTest } from "./lexer.test";
+import { runLineParserTest } from "./line-parser.test";
 import { runMetadataTableTest } from "./metadata.test";
 import { runInitializeHandshakeTest } from "./server-initialize.test";
 import { runServerEntrypointTest } from "./server-entrypoint.test";
@@ -44,6 +45,10 @@ const tests: TestCase[] = [
   {
     name: "expression parser handles numeric forms modifiers arithmetic and indexed operands",
     run: runExpressionTest
+  },
+  {
+    name: "line parser recognizes equates instructions directives data and malformed lines",
+    run: runLineParserTest
   }
 ];
 
