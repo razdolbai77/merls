@@ -27,12 +27,14 @@ The MVP LSP feature set for Merlin-style 6502 assembly is complete and published
   - find references
   - document symbols
   - workspace symbols
+  - semantic tokens (syntax highlighting)
 
 ### Out of scope
 
 - 65816 support
 - assembler-backed diagnostics in the first implementation pass
 - coc.nvim-specific plugin code for the MVP
+
 
 ## Implementation
 

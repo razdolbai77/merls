@@ -25,6 +25,7 @@ The current `workspace/symbol` provider is wired through `src/server.ts` and `sr
 The current `textDocument/definition` and `textDocument/references` handlers are wired through `src/server.ts` and `src/lsp/symbol-navigation.ts`.
 The current `textDocument/hover` handler is wired through `src/server.ts` and `src/lsp/hover.ts`.
 The current `textDocument/completion` handler is wired through `src/server.ts` and `src/lsp/completion.ts`.
+The current `textDocument/semanticTokens` handler is wired through `src/server.ts` and `src/lsp/semantic-tokens.ts`.
 The current `textDocument/publishDiagnostics` path is wired through `src/server.ts` and `src/lsp/diagnostics.ts`, with full-document sync on open/change so editor clients receive live parser and resolver diagnostics.
 The current packaged CLI entrypoint lives under `src/cli.ts` and is covered by a compiled stdio launch-contract integration test.
 The coc.nvim smoke test now lives under `test/smoke/` with a headless Vim runner (`run-smoke.ps1`) and a minimal vimrc that isolates the test from the user's real Vim configuration.
