@@ -25,6 +25,7 @@ The current `workspace/symbol` provider is wired through `src/server.ts` and `sr
 The current `textDocument/definition` and `textDocument/references` handlers are wired through `src/server.ts` and `src/lsp/symbol-navigation.ts`.
 The current `textDocument/hover` handler is wired through `src/server.ts` and `src/lsp/hover.ts`.
 The current `textDocument/completion` handler is wired through `src/server.ts` and `src/lsp/completion.ts`.
+The current `textDocument/publishDiagnostics` path is wired through `src/server.ts` and `src/lsp/diagnostics.ts`, with full-document sync on open/change so editor clients receive live parser and resolver diagnostics.
 
 ## Build, Test, and Development Commands
 
@@ -49,7 +50,7 @@ TDD is mandatory in this repository: add or extend a failing test or fixture bef
 
 Prefer focused unit tests for lexer/parser behavior and integration tests for LSP requests such as `initialize`, hover, and definition.
 
-The current bootstrap test suite already includes an `initialize` integration check against the compiled stdio server.
+The current bootstrap test suite already includes compiled-stdio integration checks for `initialize` and diagnostics publication.
 
 ## Commit & Pull Request Guidelines
 

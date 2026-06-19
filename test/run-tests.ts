@@ -11,6 +11,7 @@ import { runLexerTest } from "./lexer.test";
 import { runLineParserTest } from "./line-parser.test";
 import { runLocalLabelScopeTest } from "./local-labels.test";
 import { runMetadataTableTest } from "./metadata.test";
+import { runPublishDiagnosticsTest } from "./publish-diagnostics.test";
 import { runInitializeHandshakeTest } from "./server-initialize.test";
 import { runServerEntrypointTest } from "./server-entrypoint.test";
 import { runSymbolsTest } from "./symbols.test";
@@ -99,6 +100,10 @@ const tests: TestCase[] = [
   {
     name: "server returns opcode directive and symbol completions",
     run: runCompletionTest
+  },
+  {
+    name: "server publishes and clears diagnostics for open Merlin documents",
+    run: runPublishDiagnosticsTest
   }
 ];
 

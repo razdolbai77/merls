@@ -94,9 +94,10 @@ The bundled example uses `node` plus an absolute path to the compiled server and
 - The current `textDocument/definition` and `textDocument/references` handlers are wired through `src/server.ts` and `src/lsp/symbol-navigation.ts`.
 - The current `textDocument/hover` handler is wired through `src/server.ts` and `src/lsp/hover.ts`.
 - The current `textDocument/completion` handler is wired through `src/server.ts` and `src/lsp/completion.ts`.
+- The current `textDocument/publishDiagnostics` path is wired through `src/server.ts` and `src/lsp/diagnostics.ts`, with full-document sync on open and change so coc.nvim receives live parser and resolver errors.
 - The positive fixture corpus now starts with transcribed Merlin32 material under `test/fixtures/valid/`.
 - Positive fixtures should cover supported 6502 Merlin-style syntax.
 - The negative fixture corpus now starts with explicit 65816-only samples under `test/fixtures/invalid/`.
 - Negative fixtures should explicitly cover unsupported 65816 syntax.
 - The current bootstrap test harness is intentionally minimal and runs against compiled output to avoid depending on editor or browser tooling.
-- The current integration coverage reaches through the stdio `initialize` handshake.
+- The current integration coverage reaches through stdio `initialize`, completion, hover, symbol navigation, and diagnostics publication.

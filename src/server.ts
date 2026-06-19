@@ -7,6 +7,7 @@ import {
 
 import { buildDocumentSymbols } from "./lsp/document-symbols";
 import { buildCompletionItems } from "./lsp/completion";
+import { collectDiagnosticsByUri } from "./lsp/diagnostics";
 import { buildHover } from "./lsp/hover";
 import { findDefinition, findReferences } from "./lsp/symbol-navigation";
 import { buildWorkspaceSymbols } from "./lsp/workspace-symbols";
@@ -31,11 +32,32 @@ export function startServer(
       documentSymbolProvider: true,
       hoverProvider: true,
       workspaceSymbolProvider: true,
-      textDocumentSync: TextDocumentSyncKind.None
+      textDocumentSync: {
+        openClose: true,
+        change: TextDocumentSyncKind.Full
+      }
     }
   }));
   connection.onDidOpenTextDocument((params) => {
     openDocuments.set(params.textDocument.uri, params.textDocument.text);
+    publishDiagnostics();
+  });
+  connection.onDidChangeTextDocument((params) => {
+    const nextText = params.contentChanges.at(-1)?.text;
+    if (nextText === undefined) {
+      return;
+    }
+
+    openDocuments.set(params.textDocument.uri, nextText);
+    publishDiagnostics();
+  });
+  connection.onDidCloseTextDocument((params) => {
+    openDocuments.delete(params.textDocument.uri);
+    connection.sendDiagnostics({
+      uri: params.textDocument.uri,
+      diagnostics: []
+    });
+    publishDiagnostics();
   });
   connection.onDocumentSymbol((params) => {
     const source = openDocuments.get(params.textDocument.uri);
@@ -78,6 +100,16 @@ export function startServer(
       params.position.line
     )
   );
+
+  function publishDiagnostics(): void {
+    for (const [uri, diagnostics] of collectDiagnosticsByUri(openDocuments).entries()) {
+      connection.sendDiagnostics({
+        uri,
+        diagnostics: [...diagnostics]
+      });
+    }
+  }
+
   connection.listen();
   return connection;
 }
