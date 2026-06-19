@@ -81,6 +81,7 @@ The bundled example uses `node` plus an absolute path to the compiled server and
 - TDD is mandatory for implementation work in this repository.
 - The positive fixture corpus now starts with transcribed Merlin32 material under `test/fixtures/valid/`.
 - Positive fixtures should cover supported 6502 Merlin-style syntax.
+- The negative fixture corpus now starts with explicit 65816-only samples under `test/fixtures/invalid/`.
 - Negative fixtures should explicitly cover unsupported 65816 syntax.
 - The current bootstrap test harness is intentionally minimal and runs against compiled output to avoid depending on editor or browser tooling.
 - The current integration coverage reaches through the stdio `initialize` handshake.
