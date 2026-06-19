@@ -16,6 +16,7 @@ export function runDiagnosticsTest(): void {
     "        adc (",
     "        dsk ../build/WORLD",
     "        typ BIN",
+    "        typ BLAH",
     "        end BLAH"
   ].join("\n");
 
@@ -78,6 +79,17 @@ export function runDiagnosticsTest(): void {
     diagnostics.some(
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<memory>" &&
+        diagnostic.code === "unresolved-reference" &&
+        diagnostic.line === 6 &&
+        diagnostic.message.includes("BLAH")
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<memory>" &&
         diagnostic.code === "malformed-line" &&
         diagnostic.line === 3
     ),
@@ -89,7 +101,7 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<memory>" &&
         diagnostic.code === "malformed-line" &&
-        diagnostic.line === 6 &&
+        diagnostic.line === 7 &&
         diagnostic.message === "unexpected operand for end"
     ),
     true

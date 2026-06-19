@@ -216,6 +216,16 @@ function findExpressionReferences(node: ParsedLine): readonly string[] {
   if (node.shape === "directive" && node.operand !== null) {
     const directive = directiveTable.get(node.directive);
     if (directive?.kind === "include" || directive?.kind === "build") {
+      if (node.directive === "typ") {
+        const knownAliases = new Set([
+          "txt", "bin", "sys", "bas", "var", "rel",
+          "lib", "s16", "rtl", "exe", "pif", "tif",
+          "nda", "cda", "tol", "dvr", "ldf", "fst"
+        ]);
+        return findReferencesInExpression(node.operand).filter(
+          (ref) => !knownAliases.has(ref.toLowerCase())
+        );
+      }
       return [];
     }
     return findReferencesInExpression(node.operand);
