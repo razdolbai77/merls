@@ -1,14 +1,12 @@
 {
   "languageserver": {
     "merls": {
-      "command": "node",
+      "command": "merls",
       "args": [
-        "C:/Users/alexe/Projects/merls/dist/src/cli.js",
         "--stdio"
       ],
       "rootPatterns": [
-        ".git",
-        "package.json"
+        ".git"
       ],
       "filetypes": [
         "asm"
