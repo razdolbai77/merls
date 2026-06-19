@@ -1,6 +1,7 @@
 import { runBootstrapTest } from "./bootstrap.test";
 import { runDiagnosticsTest } from "./diagnostics.test";
 import { runDocumentModelTest } from "./document-model.test";
+import { runDocumentSymbolTest } from "./document-symbol.test";
 import { runExpressionTest } from "./expression.test";
 import { runFixtureCorpusTest } from "./fixture-corpus.test";
 import { runLexerTest } from "./lexer.test";
@@ -74,6 +75,10 @@ const tests: TestCase[] = [
   {
     name: "diagnostics report duplicates unresolved refs malformed lines and unsupported 65816 syntax",
     run: runDiagnosticsTest
+  },
+  {
+    name: "server returns document symbols for Merlin labels equates and data definitions",
+    run: runDocumentSymbolTest
   }
 ];
 
