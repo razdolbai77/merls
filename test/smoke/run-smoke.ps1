@@ -1,7 +1,7 @@
 # coc.nvim smoke test for merls language server.
 #
 # Launches Vim in headless mode with a minimal coc.nvim configuration,
-# opens an .asm fixture file, waits for the language server to start and
+# opens an .S fixture file, waits for the language server to start and
 # publish diagnostics, then exits with 0 on success / 1 on failure.
 #
 # Usage:  pwsh test/smoke/run-smoke.ps1
@@ -10,7 +10,7 @@ $ErrorActionPreference = "Stop"
 
 $projectRoot = (Resolve-Path "$PSScriptRoot/../..").Path
 $smokeDir    = "$projectRoot/test/smoke"
-$fixture     = "$projectRoot/test/fixtures/valid/smoke-test.asm"
+$fixture     = "$projectRoot/test/fixtures/valid/smoke-test.S"
 $cliPath     = "$projectRoot/dist/src/cli.js"
 
 # Ensure the project is built

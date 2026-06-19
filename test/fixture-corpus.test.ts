@@ -3,13 +3,13 @@ import fs from "node:fs";
 import path from "node:path";
 
 const validFixturePaths = [
-  "test/fixtures/valid/merlin32-linkscript.asm",
-  "test/fixtures/valid/merlin32-main-6502.asm"
+  "test/fixtures/valid/merlin32-linkscript.S",
+  "test/fixtures/valid/merlin32-main-6502.S"
 ];
 
 const invalidFixturePaths = [
-  "test/fixtures/invalid/65816-bank-ops.asm",
-  "test/fixtures/invalid/65816-long-addressing.asm"
+  "test/fixtures/invalid/65816-bank-ops.S",
+  "test/fixtures/invalid/65816-long-addressing.S"
 ];
 
 export function runFixtureCorpusTest(): void {

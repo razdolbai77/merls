@@ -66,7 +66,7 @@ export async function runPublishDiagnosticsTest(): Promise<void> {
   const serverPath = path.resolve(__dirname, "../src/server.js");
   const documentPath = path.resolve(
     process.cwd(),
-    "test/fixtures/invalid/publish-diagnostics.asm"
+    "test/fixtures/invalid/publish-diagnostics.S"
   );
   const documentUri = `file://${documentPath.replace(/\\/g, "/")}`;
   const brokenText = ["dup     equ 1", "        lda missing", "dup     equ 2", "        adc ("].join(

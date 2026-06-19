@@ -21,11 +21,11 @@ function findLine(lines: readonly LexedLine[], source: string): LexedLine {
 export function runLexerTest(): void {
   const mainFixturePath = path.resolve(
     process.cwd(),
-    "test/fixtures/valid/merlin32-main-6502.asm"
+    "test/fixtures/valid/merlin32-main-6502.S"
   );
   const linkFixturePath = path.resolve(
     process.cwd(),
-    "test/fixtures/valid/merlin32-linkscript.asm"
+    "test/fixtures/valid/merlin32-linkscript.S"
   );
 
   const mainFixture = fs.readFileSync(mainFixturePath, "utf8");
@@ -78,10 +78,10 @@ export function runLexerTest(): void {
   );
 
   assert.deepEqual(
-    summarizeTokens(findLine(linkLines, "    asm \"merlin32-main-6502.asm\"").tokens),
+    summarizeTokens(findLine(linkLines, "    asm \"merlin32-main-6502.S\"").tokens),
     [
       ["directive", "asm"],
-      ["string", "\"merlin32-main-6502.asm\""]
+      ["string", "\"merlin32-main-6502.S\""]
     ]
   );
 }

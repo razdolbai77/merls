@@ -46,7 +46,7 @@ export async function runDocumentSymbolTest(): Promise<void> {
   const serverPath = path.resolve(__dirname, "../src/server.js");
   const fixturePath = path.resolve(
     process.cwd(),
-    "test/fixtures/valid/merlin32-main-6502.asm"
+    "test/fixtures/valid/merlin32-main-6502.S"
   );
   const uri = `file://${fixturePath.replace(/\\/g, "/")}`;
   const text = fs.readFileSync(fixturePath, "utf8");

@@ -56,7 +56,7 @@ export async function runCompletionTest(): Promise<void> {
   const serverPath = path.resolve(__dirname, "../src/server.js");
   const mainPath = path.resolve(
     process.cwd(),
-    "test/fixtures/valid/merlin32-main-6502.asm"
+    "test/fixtures/valid/merlin32-main-6502.S"
   );
   const mainUri = `file://${mainPath.replace(/\\/g, "/")}`;
   const text = `${fs.readFileSync(mainPath, "utf8")}\n        ld\n        du\n        bpl G`;

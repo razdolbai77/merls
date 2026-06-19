@@ -8,7 +8,7 @@ import { collectSymbols } from "../src/asm/symbols";
 export function runSymbolsTest(): void {
   const fixturePath = path.resolve(
     process.cwd(),
-    "test/fixtures/valid/merlin32-main-6502.asm"
+    "test/fixtures/valid/merlin32-main-6502.S"
   );
   const source = fs.readFileSync(fixturePath, "utf8");
 

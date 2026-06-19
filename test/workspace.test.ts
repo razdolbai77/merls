@@ -6,11 +6,11 @@ import { indexWorkspace } from "../src/asm/workspace";
 export function runWorkspaceGraphTest(): void {
   const entryPath = path.resolve(
     process.cwd(),
-    "test/fixtures/valid/merlin32-linkscript.asm"
+    "test/fixtures/valid/merlin32-linkscript.S"
   );
   const mainPath = path.resolve(
     process.cwd(),
-    "test/fixtures/valid/merlin32-main-6502.asm"
+    "test/fixtures/valid/merlin32-main-6502.S"
   );
 
   const workspace = indexWorkspace(entryPath);

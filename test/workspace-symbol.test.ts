@@ -45,11 +45,11 @@ export async function runWorkspaceSymbolTest(): Promise<void> {
   const serverPath = path.resolve(__dirname, "../src/server.js");
   const linkPath = path.resolve(
     process.cwd(),
-    "test/fixtures/valid/merlin32-linkscript.asm"
+    "test/fixtures/valid/merlin32-linkscript.S"
   );
   const mainPath = path.resolve(
     process.cwd(),
-    "test/fixtures/valid/merlin32-main-6502.asm"
+    "test/fixtures/valid/merlin32-main-6502.S"
   );
   const linkUri = `file://${linkPath.replace(/\\/g, "/")}`;
   const mainUri = `file://${mainPath.replace(/\\/g, "/")}`;

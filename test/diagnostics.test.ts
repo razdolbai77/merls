@@ -22,11 +22,11 @@ export function runDiagnosticsTest(): void {
 
   const bankOpsPath = path.resolve(
     process.cwd(),
-    "test/fixtures/invalid/65816-bank-ops.asm"
+    "test/fixtures/invalid/65816-bank-ops.S"
   );
   const longPath = path.resolve(
     process.cwd(),
-    "test/fixtures/invalid/65816-long-addressing.asm"
+    "test/fixtures/invalid/65816-long-addressing.S"
   );
 
   const diagnostics = collectWorkspaceDiagnostics([
