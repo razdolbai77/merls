@@ -37,7 +37,7 @@ Build a new standalone language server for Merlin-style 6502 assembly, intended 
 ### Phase 3 - Parser and document model
 
 - [x] Implement the lexer against the fixture corpus, starting with comments, whitespace, labels, mnemonics, directives, and literals.
-- [ ] Implement expression parsing for Merlin-style numeric forms, unary modifiers, arithmetic, and indexed addressing fragments.
+- [x] Implement expression parsing for Merlin-style numeric forms, unary modifiers, arithmetic, and indexed addressing fragments.
 - [ ] Implement line parsing for equates, instructions, directives, data definitions, and malformed lines.
 - [ ] Implement a document model that preserves line structure and tolerant parse errors instead of failing hard on the first bad token.
 

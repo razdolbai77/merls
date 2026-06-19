@@ -29,7 +29,7 @@ export type LexedSource = {
   lines: readonly LexedLine[];
 };
 
-const operatorCharacters = new Set(["(", ")", ",", "#", "+", "-", "*", "/", "="]);
+const operatorCharacters = new Set(["(", ")", ",", "#", "+", "-", "*", "/", "=", "<", ">", "^"]);
 
 export function lexSource(source: string): LexedSource {
   const lines = source.split(/\r?\n/).map((text, index) => lexLine(text, index));
@@ -81,14 +81,26 @@ function lexLine(text: string, line: number): LexedLine {
         continue;
       }
 
-      tokens.push(createToken("expressionOperator", char, index, index + 1));
+      const operatorKind: TokenKind =
+        char === "<" || char === ">" || char === "^"
+          ? "modifier"
+          : "expressionOperator";
+      tokens.push(createToken(operatorKind, char, index, index + 1));
       index += 1;
       continue;
     }
 
     const end = consumeWord(text, index);
     const lexeme = text.slice(index, end);
-    const kind = classifyWord(lexeme, tokens.length === 0, sawOperation, firstNonWhitespace);
+    const kind = classifyWord(
+      text,
+      lexeme,
+      index,
+      end,
+      tokens.length === 0,
+      sawOperation,
+      firstNonWhitespace
+    );
     tokens.push(createToken(kind, lexeme, index, end));
     sawOperation ||= kind === "directive" || kind === "mnemonic";
     index = end;
@@ -147,7 +159,10 @@ function consumeWord(text: string, start: number): number {
 }
 
 function classifyWord(
+  text: string,
   lexeme: string,
+  start: number,
+  end: number,
   isFirstToken: boolean,
   sawOperation: boolean,
   firstNonWhitespace: number
@@ -170,7 +185,11 @@ function classifyWord(
     return "numericLiteral";
   }
 
-  if (isFirstToken && !sawOperation && firstNonWhitespace === 0) {
+  const trailingText = text.slice(end);
+  const looksLikeLabelBoundary =
+    trailingText.length === 0 || /^[\t ]/.test(trailingText);
+
+  if (isFirstToken && !sawOperation && firstNonWhitespace === 0 && looksLikeLabelBoundary) {
     return "label";
   }
 

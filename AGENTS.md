@@ -13,6 +13,7 @@ The initial negative fixture corpus now lives under `test/fixtures/invalid/` and
 Shared 6502 opcode and Merlin directive metadata now lives under `src/asm/metadata.ts`.
 Shared token-kind and line-shape metadata now lives under `src/asm/syntax.ts`.
 The current lexer implementation now lives under `src/asm/lexer.ts` and is covered by fixture-driven unit tests.
+The current expression parser now lives under `src/asm/expression.ts` and is covered by unit tests for numeric forms, modifiers, arithmetic, and indexed operands.
 
 ## Build, Test, and Development Commands
 

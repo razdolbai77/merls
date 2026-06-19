@@ -1,4 +1,5 @@
 import { runBootstrapTest } from "./bootstrap.test";
+import { runExpressionTest } from "./expression.test";
 import { runFixtureCorpusTest } from "./fixture-corpus.test";
 import { runLexerTest } from "./lexer.test";
 import { runMetadataTableTest } from "./metadata.test";
@@ -39,6 +40,10 @@ const tests: TestCase[] = [
   {
     name: "lexer tokenizes fixture comments labels mnemonics directives and literals",
     run: runLexerTest
+  },
+  {
+    name: "expression parser handles numeric forms modifiers arithmetic and indexed operands",
+    run: runExpressionTest
   }
 ];
 
