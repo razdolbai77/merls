@@ -1,7 +1,6 @@
 {
-  "name": "merls",
+  "name": "@razdolbai/merls",
   "version": "0.1.0",
-  "private": true,
   "description": "Language server for Merlin-style 6502 assembly.",
   "type": "commonjs",
   "bin": {
