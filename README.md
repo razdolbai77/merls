@@ -88,6 +88,7 @@ The bundled example uses `node` plus an absolute path to the compiled server and
 - The current symbol collector now lives in `src/asm/symbols.ts` and indexes labels, equates, and named storage/data definitions.
 - The current local-label resolver now lives in `src/asm/local-labels.ts` and resolves Merlin `]local` and `:local` labels within the nearest global-label scope.
 - The current workspace indexer now lives in `src/asm/workspace.ts` and follows `asm`/`put`/`use` directives across the local fixture corpus.
+- The current diagnostics pass now lives in `src/asm/diagnostics.ts` and reports duplicate symbols, unresolved references, malformed lines, and unsupported 65816-only syntax.
 - The positive fixture corpus now starts with transcribed Merlin32 material under `test/fixtures/valid/`.
 - Positive fixtures should cover supported 6502 Merlin-style syntax.
 - The negative fixture corpus now starts with explicit 65816-only samples under `test/fixtures/invalid/`.

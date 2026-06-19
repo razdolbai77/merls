@@ -1,4 +1,5 @@
 import { runBootstrapTest } from "./bootstrap.test";
+import { runDiagnosticsTest } from "./diagnostics.test";
 import { runDocumentModelTest } from "./document-model.test";
 import { runExpressionTest } from "./expression.test";
 import { runFixtureCorpusTest } from "./fixture-corpus.test";
@@ -69,6 +70,10 @@ const tests: TestCase[] = [
   {
     name: "workspace indexing follows Merlin include directives and merges symbols",
     run: runWorkspaceGraphTest
+  },
+  {
+    name: "diagnostics report duplicates unresolved refs malformed lines and unsupported 65816 syntax",
+    run: runDiagnosticsTest
   }
 ];
 
