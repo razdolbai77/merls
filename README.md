@@ -42,6 +42,14 @@ This repository now has an initial Node.js and TypeScript workspace scaffold, a 
 - **process model:** standalone stdio server
 - **development style:** TDD from the start
 
+## Installation
+
+Install globally via npm:
+
+```sh
+npm install -g @razdolbai/merls
+```
+
 ## Development workflow
 
 - `npm install`: install project dependencies
@@ -75,23 +83,14 @@ See `PLAN.md` for the full checklist.
 
 The intended integration model is a standard `languageserver` entry in `coc-settings.json` that launches `merls` over stdio.
 
-An initial example lives in `examples/coc-settings.json`. The current bootstrap flow is:
-
-1. run `npm install`
-2. run `npm run build`
-3. point coc.nvim at `dist/src/cli.js --stdio`
-
-The bundled example uses `node` plus an absolute path to the packaged CLI, passes `--stdio`, uses `package.json` and `.git` as root markers, and currently targets the `asm` filetype.
-
-The intended `languageserver` shape is:
+If you installed `merls` globally via npm, the `languageserver` shape is:
 
 ```json
 {
   "languageserver": {
     "merls": {
-      "command": "node",
+      "command": "merls",
       "args": [
-        "C:/path/to/merls/dist/src/cli.js",
         "--stdio"
       ],
       "rootPatterns": [
@@ -106,7 +105,13 @@ The intended `languageserver` shape is:
 }
 ```
 
-Replace the example path with the local checkout or installed package location on your machine.
+For local development checkouts, an initial example lives in `examples/coc-settings.json`. The current bootstrap flow is:
+
+1. run `npm install`
+2. run `npm run build`
+3. point coc.nvim at `dist/src/cli.js --stdio`
+
+The bundled example uses `node` plus an absolute path to the packaged CLI, passes `--stdio`, uses `package.json` and `.git` as root markers, and currently targets the `asm` filetype.
 
 ## Development notes
 
