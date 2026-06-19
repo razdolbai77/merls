@@ -4,7 +4,7 @@
 
 ## Status
 
-This repository is in the bootstrap stage. The implementation has not started yet, but the project scope and task breakdown are captured in `PLAN.md`.
+This repository now has an initial Node.js and TypeScript workspace scaffold. The language server implementation itself is still at the bootstrap stage, and the remaining work is tracked in `PLAN.md`.
 
 ## Goals
 
@@ -42,6 +42,13 @@ This repository is in the bootstrap stage. The implementation has not started ye
 - **process model:** standalone stdio server
 - **development style:** TDD from the start
 
+## Development workflow
+
+- `npm install`: install project dependencies
+- `npm run build`: compile the TypeScript sources into `dist/`
+- `npm test`: build the project and run the current test suite
+- `npm run dev`: run the TypeScript compiler in watch mode during bootstrap work
+
 ## Roadmap
 
 The current plan is organized into these phases:
@@ -64,3 +71,4 @@ The intended integration model is a standard `languageserver` entry in `coc-sett
 - TDD is mandatory for implementation work in this repository.
 - Positive fixtures should cover supported 6502 Merlin-style syntax.
 - Negative fixtures should explicitly cover unsupported 65816 syntax.
+- The current bootstrap test harness is intentionally minimal and runs against compiled output to avoid depending on editor or browser tooling.

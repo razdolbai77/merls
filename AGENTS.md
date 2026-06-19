@@ -8,14 +8,14 @@ When the workspace is scaffolded, keep code under `src/`, tests under `test/`, a
 
 ## Build, Test, and Development Commands
 
-No build scripts exist yet in this checkout. Phase 1 in `PLAN.md` is expected to add the standard Node/TypeScript workflow below:
+The repository now includes the initial Node/TypeScript workspace scaffold:
 
 - `npm install`: install project dependencies.
-- `npm run build`: compile the TypeScript server.
-- `npm test`: run the full test suite.
-- `npm run dev` or equivalent: run the stdio LSP server locally during development.
+- `npm run build`: compile TypeScript sources to `dist/`.
+- `npm test`: build the project and run the current test suite.
+- `npm run dev`: run the TypeScript compiler in watch mode during bootstrap work.
 
-Update this section when `package.json` is added; do not document commands that are not actually wired in the repository.
+Update this section again when the stdio server entrypoint replaces the temporary bootstrap-oriented dev loop.
 
 ## Coding Style & Naming Conventions
 

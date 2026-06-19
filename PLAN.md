@@ -22,7 +22,7 @@ Build a new standalone language server for Merlin-style 6502 assembly, intended 
 
 ### Phase 1 - Project bootstrap
 
-- [ ] Create the Node/TypeScript workspace skeleton (`package.json`, `tsconfig.json`, source/test directories, build scripts, test runner).
+- [x] Create the Node/TypeScript workspace skeleton (`package.json`, `tsconfig.json`, source/test directories, build scripts, test runner).
 - [ ] Create the initial CLI server entrypoint (`src/server.ts`) that starts an empty stdio LSP connection.
 - [ ] Add the first red/green test proving the server process starts and answers `initialize`.
 - [ ] Write the initial `README.md` and `examples/coc-settings.json` skeleton so the target coc.nvim integration is fixed early.
