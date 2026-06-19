@@ -13,7 +13,9 @@ export function runDiagnosticsTest(): void {
     "dup     equ 1",
     "        lda missing",
     "dup     equ 2",
-    "        adc ("
+    "        adc (",
+    "        dsk ../build/WORLD",
+    "        typ BIN"
   ].join("\n");
 
   const bankOpsPath = path.resolve(
@@ -59,6 +61,16 @@ export function runDiagnosticsTest(): void {
         diagnostic.message.includes("missing")
     ),
     true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<memory>" &&
+        diagnostic.code === "unresolved-reference" &&
+        (diagnostic.line === 4 || diagnostic.line === 5)
+    ),
+    false
   );
 
   assert.equal(

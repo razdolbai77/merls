@@ -214,6 +214,10 @@ function findExpressionReferences(node: ParsedLine): readonly string[] {
   }
 
   if (node.shape === "directive" && node.operand !== null) {
+    const directive = directiveTable.get(node.directive);
+    if (directive?.kind === "include" || directive?.kind === "build") {
+      return [];
+    }
     return findReferencesInExpression(node.operand);
   }
 
