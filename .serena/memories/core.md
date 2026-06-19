@@ -1,8 +1,8 @@
-- Bootstrap-stage repo; current durable docs are `README.md`, `PLAN.md`, `AGENTS.md`.
+- Completed MVP repo; current durable docs are \README.md\, \PLAN.md\, \AGENTS.md\.
 - Purpose: standalone LSP server for Merlin-style 6502 assembly, primary editor target coc.nvim, stdio transport.
 - Scope invariant: 6502-only. 65816 syntax is out of scope and should be diagnosed as unsupported.
-- Implementation plan and phase breakdown live in `PLAN.md`.
-- Contributor rules and doc-maintenance requirement live in `AGENTS.md`.
-- For stack and planned workspace layout, read `mem:tech_stack`.
-- For code/test/doc conventions, read `mem:conventions`.
-- For done criteria and required verification/docs updates, read `mem:task_completion`.
+- Implementation plan and phase breakdown live in \PLAN.md\. All planned tasks are completed.
+- Contributor rules and doc-maintenance requirement live in \AGENTS.md\.
+- For stack and workspace layout, read \mem:tech_stack\.
+- For code/test/doc conventions, read \mem:conventions\.
+- For done criteria and required verification/docs updates, read \mem:task_completion\.

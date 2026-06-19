@@ -1,4 +1,6 @@
-- Planned stack, not scaffolded yet: Node.js runtime, TypeScript implementation, `vscode-languageserver` for LSP.
-- Intended server model: standalone process over stdio; coc.nvim launches it via standard `languageserver` config.
-- Expected workspace shape once bootstrapped: `src/` for implementation, `test/` for automated tests, `examples/` for coc.nvim config/examples, dedicated fixture directories for assembly corpora.
-- No `package.json`, TS config, or build/test toolchain are present yet in this checkout.
+- Node.js runtime, TypeScript implementation, \scode-languageserver\ for LSP.
+- Server model: standalone process over stdio; coc.nvim launches it via standard \languageserver\ config.
+- Workspace shape: \src/\ for implementation, \	est/\ for automated tests, \xamples/\ for coc.nvim config/examples, dedicated fixture directories for assembly corpora.
+- Built via \
+pm run build\ and tested via \
+pm test\.
