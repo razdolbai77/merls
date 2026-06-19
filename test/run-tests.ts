@@ -20,6 +20,7 @@ import { runSymbolsTest } from "./symbols.test";
 import { runSyntaxShapeTest } from "./syntax-shape.test";
 import { runWorkspaceGraphTest } from "./workspace.test";
 import { runWorkspaceSymbolTest } from "./workspace-symbol.test";
+import { runSemanticTokensTest } from "./semantic-tokens.test";
 
 type TestCase = {
   name: string;
@@ -114,6 +115,10 @@ const tests: TestCase[] = [
   {
     name: "server publishes and clears diagnostics for open Merlin documents",
     run: runPublishDiagnosticsTest
+  },
+  {
+    name: "server returns semantic tokens for highlighting",
+    run: runSemanticTokensTest
   }
 ];
 

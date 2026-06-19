@@ -18,11 +18,10 @@ export function runCocConfigTest(): void {
   const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8")) as CocSettings;
   const serverConfig = settings.languageserver?.merls;
 
-  assert.equal(serverConfig?.command, "node");
+  assert.equal(serverConfig?.command, "merls");
   assert.deepEqual(serverConfig?.args, [
-    "C:/Users/alexe/Projects/merls/dist/src/cli.js",
     "--stdio"
   ]);
   assert.deepEqual(serverConfig?.filetypes, ["asm"]);
-  assert.deepEqual(serverConfig?.rootPatterns, [".git", "package.json"]);
+  assert.deepEqual(serverConfig?.rootPatterns, [".git"]);
 }

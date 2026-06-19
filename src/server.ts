@@ -11,6 +11,7 @@ import { collectDiagnosticsByUri } from "./lsp/diagnostics";
 import { buildHover } from "./lsp/hover";
 import { findDefinition, findReferences } from "./lsp/symbol-navigation";
 import { buildWorkspaceSymbols } from "./lsp/workspace-symbols";
+import { buildSemanticTokens, semanticTokensLegend } from "./lsp/semantic-tokens";
 
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
@@ -34,6 +35,10 @@ export function startServer(
       hoverProvider: true,
       referencesProvider: true,
       workspaceSymbolProvider: true,
+      semanticTokensProvider: {
+        legend: semanticTokensLegend,
+        full: true
+      },
       textDocumentSync: {
         openClose: true,
         change: TextDocumentSyncKind.Full
@@ -102,6 +107,13 @@ export function startServer(
       params.position.line
     )
   );
+  connection.languages.semanticTokens.on((params) => {
+    const source = openDocuments.get(params.textDocument.uri);
+    if (source === undefined) {
+      return { data: [] };
+    }
+    return buildSemanticTokens(source);
+  });
 
   function publishDiagnostics(): void {
     for (const [uri, diagnostics] of collectDiagnosticsByUri(openDocuments).entries()) {
