@@ -6,6 +6,7 @@ import {
 } from "vscode-languageserver/node";
 
 import { buildDocumentSymbols } from "./lsp/document-symbols";
+import { buildWorkspaceSymbols } from "./lsp/workspace-symbols";
 
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
@@ -24,6 +25,7 @@ export function startServer(
   connection.onInitialize(() => ({
     capabilities: {
       documentSymbolProvider: true,
+      workspaceSymbolProvider: true,
       textDocumentSync: TextDocumentSyncKind.None
     }
   }));
@@ -38,6 +40,9 @@ export function startServer(
 
     return buildDocumentSymbols(params.textDocument.uri, source);
   });
+  connection.onWorkspaceSymbol((params) =>
+    buildWorkspaceSymbols(openDocuments, params.query)
+  );
   connection.listen();
   return connection;
 }

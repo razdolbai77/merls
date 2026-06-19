@@ -90,6 +90,7 @@ The bundled example uses `node` plus an absolute path to the compiled server and
 - The current workspace indexer now lives in `src/asm/workspace.ts` and follows `asm`/`put`/`use` directives across the local fixture corpus.
 - The current diagnostics pass now lives in `src/asm/diagnostics.ts` and reports duplicate symbols, unresolved references, malformed lines, and unsupported 65816-only syntax.
 - The current `textDocument/documentSymbol` provider is wired through `src/server.ts` and `src/lsp/document-symbols.ts`.
+- The current `workspace/symbol` provider is wired through `src/server.ts` and `src/lsp/workspace-symbols.ts` over the open-document symbol set.
 - The positive fixture corpus now starts with transcribed Merlin32 material under `test/fixtures/valid/`.
 - Positive fixtures should cover supported 6502 Merlin-style syntax.
 - The negative fixture corpus now starts with explicit 65816-only samples under `test/fixtures/invalid/`.

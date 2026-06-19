@@ -13,6 +13,7 @@ import { runServerEntrypointTest } from "./server-entrypoint.test";
 import { runSymbolsTest } from "./symbols.test";
 import { runSyntaxShapeTest } from "./syntax-shape.test";
 import { runWorkspaceGraphTest } from "./workspace.test";
+import { runWorkspaceSymbolTest } from "./workspace-symbol.test";
 
 type TestCase = {
   name: string;
@@ -79,6 +80,10 @@ const tests: TestCase[] = [
   {
     name: "server returns document symbols for Merlin labels equates and data definitions",
     run: runDocumentSymbolTest
+  },
+  {
+    name: "server returns workspace symbols across open Merlin documents",
+    run: runWorkspaceSymbolTest
   }
 ];
 

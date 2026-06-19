@@ -51,7 +51,7 @@ Build a new standalone language server for Merlin-style 6502 assembly, intended 
 ### Phase 5 - LSP MVP
 
 - [x] Implement `textDocument/documentSymbol` on top of the parsed document model.
-- [ ] Implement `workspace/symbol` on top of the workspace symbol index.
+- [x] Implement `workspace/symbol` on top of the workspace symbol index.
 - [ ] Implement `textDocument/definition` and `textDocument/references` for labels and equates.
 - [ ] Implement `textDocument/hover` for opcodes, directives, and resolved symbols.
 - [ ] Implement `textDocument/completion` for opcodes, directives, and in-scope symbols.
