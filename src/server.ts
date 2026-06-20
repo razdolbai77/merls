@@ -16,7 +16,7 @@ import { buildHover } from "./lsp/hover";
 import { findDefinition, findReferences } from "./lsp/symbol-navigation";
 import { buildWorkspaceSymbols } from "./lsp/workspace-symbols";
 import { buildSemanticTokens, semanticTokensLegend } from "./lsp/semantic-tokens";
-import { formatDocument } from "./lsp/formatting";
+import { formatDocument, formatRange, formatOnType } from "./lsp/formatting";
 import { buildRenameEdits } from "./lsp/rename";
 import { buildFoldingRanges } from "./lsp/folding";
 import { buildDocumentLinks } from "./lsp/document-links";
@@ -61,6 +61,10 @@ export function startServer(
       workspaceSymbolProvider: true,
       renameProvider: true,
       documentFormattingProvider: true,
+      documentRangeFormattingProvider: true,
+      documentOnTypeFormattingProvider: {
+        firstTriggerCharacter: "\n"
+      },
       foldingRangeProvider: true,
       documentHighlightProvider: true,
       inlayHintProvider: true,
@@ -158,10 +162,15 @@ export function startServer(
   });
   connection.onDocumentFormatting((params) => {
     const cached = openDocuments.get(params.textDocument.uri);
-    if (cached === undefined) {
-      return null;
-    }
-    return formatDocument(cached, params.options);
+    return cached ? formatDocument(cached, params.options) : null;
+  });
+  connection.onDocumentRangeFormatting((params) => {
+    const cached = openDocuments.get(params.textDocument.uri);
+    return cached ? formatRange(cached, params.options, params.range) : null;
+  });
+  connection.onDocumentOnTypeFormatting((params) => {
+    const cached = openDocuments.get(params.textDocument.uri);
+    return cached ? formatOnType(cached, params.options, params.position, params.ch) : null;
   });
   connection.onRenameRequest((params) =>
     buildRenameEdits(

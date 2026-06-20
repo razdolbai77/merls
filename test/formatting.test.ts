@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { buildCachedDocument } from "../src/asm/document";
-import { formatDocument } from "../src/lsp/formatting";
+import { formatDocument, formatRange, formatOnType } from "../src/lsp/formatting";
 
 export function runFormattingTest(): void {
   // aligns instruction fields using spaces
@@ -53,5 +53,28 @@ export function runFormattingTest(): void {
     assert.equal(edits[0].newText, "label   adc     #0");
     assert.equal(edits[1].newText, "label2  rts");
   }
-}
 
+  // formats specific range
+  {
+    const source = "label1 adc #1\nlabel2 adc #2\nlabel3 adc #3";
+    const cached = buildCachedDocument(source);
+    const edits = formatRange(cached, { insertSpaces: true, tabSize: 8 }, {
+      start: { line: 1, character: 0 },
+      end: { line: 1, character: 10 }
+    });
+
+    assert.equal(edits.length, 1);
+    assert.equal(edits[0].newText, "label2  adc     #2");
+  }
+
+  // formats on type enter
+  {
+    const source = "label1 adc #1\n";
+    const cached = buildCachedDocument(source);
+    // User typed enter at the end of line 0, so position is line 1, character 0
+    const edits = formatOnType(cached, { insertSpaces: true, tabSize: 8 }, { line: 1, character: 0 }, "\n");
+
+    assert.equal(edits.length, 1);
+    assert.equal(edits[0].newText, "label1  adc     #1");
+  }
+}

@@ -1,10 +1,39 @@
-import { TextEdit, FormattingOptions } from "vscode-languageserver/node";
+import { TextEdit, FormattingOptions, Range, Position } from "vscode-languageserver/node";
 import { CachedDocument } from "../asm/document";
 import { Token } from "../asm/lexer";
 
 export function formatDocument(
   cached: CachedDocument,
   options: FormattingOptions
+): TextEdit[] {
+  return formatLines(cached, options, 0, cached.parsed.lines.length - 1);
+}
+
+export function formatRange(
+  cached: CachedDocument,
+  options: FormattingOptions,
+  range: Range
+): TextEdit[] {
+  return formatLines(cached, options, range.start.line, range.end.line);
+}
+
+export function formatOnType(
+  cached: CachedDocument,
+  options: FormattingOptions,
+  position: Position,
+  ch: string
+): TextEdit[] {
+  if (ch === "\n" && position.line > 0) {
+    return formatLines(cached, options, position.line - 1, position.line - 1);
+  }
+  return [];
+}
+
+function formatLines(
+  cached: CachedDocument,
+  options: FormattingOptions,
+  startLine: number,
+  endLine: number
 ): TextEdit[] {
   const edits: TextEdit[] = [];
   const { insertSpaces, tabSize } = options;
@@ -13,14 +42,15 @@ export function formatDocument(
   const col2 = col1 * 2;
   const col3 = col1 * 3;
 
-  cached.parsed.lines.forEach((line, lineIndex) => {
-    if (line.node.shape === "malformed") {
-      return;
+  for (let lineIndex = startLine; lineIndex <= endLine; lineIndex++) {
+    const line = cached.parsed.lines[lineIndex];
+    if (line === undefined || line.node.shape === "malformed") {
+      continue;
     }
 
     const lexedLine = cached.lexed.lines[lineIndex];
     if (!lexedLine) {
-      return;
+      continue;
     }
 
     const newText = formatLine(
@@ -44,7 +74,7 @@ export function formatDocument(
         )
       );
     }
-  });
+  }
 
   return edits;
 }
