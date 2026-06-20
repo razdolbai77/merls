@@ -35,8 +35,20 @@ export function buildSemanticTokens(cached: CachedDocument): SemanticTokens {
   const builder = new SemanticTokensBuilder();
 
   for (const line of cached.lexed.lines) {
+    const parsedLine = cached.parsed.lines[line.line]?.node;
+
     for (const token of line.tokens) {
-      const typeIndex = tokenTypeMap[token.kind];
+      let typeIndex = tokenTypeMap[token.kind];
+
+      if (
+        parsedLine?.shape === "data" &&
+        parsedLine.directive.lexeme.toLowerCase() === "hex" &&
+        token.start > parsedLine.directive.end &&
+        token.kind !== "comment"
+      ) {
+        typeIndex = tokenTypeMap["numericLiteral"];
+      }
+
       const length = token.end - token.start;
       builder.push(
         line.line,
