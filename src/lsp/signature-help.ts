@@ -47,7 +47,7 @@ export function buildSignatureHelp(
           break;
         }
         // look for ]1, ]2, etc.
-        const matches = l.node.text.match(/\][1-9]/g);
+        const matches = l.node.text.match(/][1-9]/g);
         if (matches) {
           for (const m of matches) {
             const p = parseInt(m.slice(1), 10);

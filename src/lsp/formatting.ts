@@ -125,7 +125,6 @@ function formatLine(
       return null;
     }
     // Convert mnemonics and directives to lowercase for standard formatting? 
-    // Wait, the user didn't ask to change case, only align. So keep original case!
     const operation = operationToken.lexeme;
     index += 1;
 
@@ -171,9 +170,8 @@ function padTo(currentText: string, targetCol: number, insertSpaces: boolean): s
   if (!insertSpaces) {
     // A simple tab-based padding strategy.
     // Assuming each tab advances to the next multiple of targetCol / col_units?
-    // Wait, typical tabSize is 8.
-    // If we want to reach col1 (8), and currentText length is 4, we need 1 tab.
-    // If length is 8, we need 1 tab to reach 16.
+    // If we want to reach col1 (8), and the currentText length is 4, we need 1 tab.
+    // If the length is 8, we need 1 tab to reach 16.
     // Let's just use a simple heuristic for tabs:
     // If targetCol > currentText.length, we insert enough tabs.
     // But the requirements are mostly around spaces. Let's assume standard spaces first.

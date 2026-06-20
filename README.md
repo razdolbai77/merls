@@ -98,7 +98,7 @@ An example configuration lives in `examples/coc-settings.json`.
 ## Development Notes
 
 - TDD is mandatory for implementation work in this repository.
-- Core syntax, parsing, and document model logic is located in `src/asm/`.
+- Core syntax, parsing, and document model logic are located in `src/asm/`.
 - LSP handlers (hover, completion, diagnostics, etc.) are located in `src/lsp/`.
 - The CLI entry point lives in `src/cli.ts` and compiles to `dist/src/cli.js`.
 - The `test/fixtures/valid/` directory contains supported 6502 Merlin-style syntax samples.

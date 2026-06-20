@@ -105,7 +105,7 @@ export function startServer(
   });
   connection.onDidCloseTextDocument((params) => {
     openDocuments.delete(params.textDocument.uri);
-    connection.sendDiagnostics({
+    void connection.sendDiagnostics({
       uri: params.textDocument.uri,
       diagnostics: []
     });
@@ -257,7 +257,7 @@ export function startServer(
 
   function publishDiagnostics(): void {
     for (const [uri, diagnostics] of collectDiagnosticsByUri(openDocuments).entries()) {
-      connection.sendDiagnostics({
+      void connection.sendDiagnostics({
         uri,
         diagnostics: [...diagnostics]
       });

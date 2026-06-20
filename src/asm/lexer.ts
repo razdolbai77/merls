@@ -161,7 +161,7 @@ function consumeWord(text: string, start: number): number {
 function classifyWord(
   text: string,
   lexeme: string,
-  start: number,
+  _start: number,
   end: number,
   isFirstToken: boolean,
   sawOperation: boolean,
