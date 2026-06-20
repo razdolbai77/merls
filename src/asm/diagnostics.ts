@@ -248,6 +248,8 @@ function findReferencesInExpression(expression: Expression): readonly string[] {
       return [expression.value];
     case "modifier":
       return findReferencesInExpression(expression.expression);
+    case "unary":
+      return findReferencesInExpression(expression.expression);
     case "binary":
       return [
         ...findReferencesInExpression(expression.left),

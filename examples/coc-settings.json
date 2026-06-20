@@ -7,10 +7,11 @@
         "--stdio"
       ],
       "rootPatterns": [
-        ".git"
+        ".git",
+        "package.json"
       ],
       "filetypes": [
-        "6502"
+        "asm"
       ]
     }
   }

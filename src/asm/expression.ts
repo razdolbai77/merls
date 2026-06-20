@@ -21,6 +21,12 @@ export type ModifierExpression = {
   expression: Expression;
 };
 
+export type UnaryExpression = {
+  kind: "unary";
+  operator: "+" | "-";
+  expression: Expression;
+};
+
 export type BinaryExpression = {
   kind: "binary";
   operator: "+" | "-" | "*" | "/";
@@ -33,6 +39,7 @@ export type Expression =
   | IdentifierExpression
   | StringExpression
   | ModifierExpression
+  | UnaryExpression
   | BinaryExpression;
 
 export type ParsedExpression = {
@@ -216,6 +223,18 @@ function parsePrefix(tokens: readonly Token[], startIndex: number): ParsedExpres
     return {
       expression: parsedInner.expression,
       nextTokenIndex: parsedInner.nextTokenIndex + 1
+    };
+  }
+
+  if (token.kind === "expressionOperator" && (token.lexeme === "+" || token.lexeme === "-")) {
+    const parsedInner = parsePrefix(tokens, startIndex + 1);
+    return {
+      expression: {
+        kind: "unary",
+        operator: token.lexeme as UnaryExpression["operator"],
+        expression: parsedInner.expression
+      },
+      nextTokenIndex: parsedInner.nextTokenIndex
     };
   }
 

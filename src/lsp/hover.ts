@@ -49,7 +49,7 @@ export function buildHover(
       };
     }
 
-    const definition = findDefinition(openDocuments, uri, line);
+    const definition = findDefinition(openDocuments, uri, line, token.start);
     if (definition !== null) {
       return {
         contents: `Symbol ${token.lexeme} defined at line ${definition.range.start.line}`

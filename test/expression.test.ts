@@ -22,6 +22,12 @@ function summarizeExpression(expression: Expression): unknown {
         operator: expression.operator,
         expression: summarizeExpression(expression.expression)
       };
+    case "unary":
+      return {
+        kind: expression.kind,
+        operator: expression.operator,
+        expression: summarizeExpression(expression.expression)
+      };
     default:
       return {
         kind: expression.kind,
@@ -61,6 +67,23 @@ export function runExpressionTest(): void {
       value: numericForm
     });
   }
+
+  const unaryTokens = lexSource("-$10 + +42").lines[0]?.tokens ?? [];
+  const unaryParsed = parseExpression(unaryTokens);
+  assert.deepEqual(summarizeExpression(unaryParsed.expression), {
+    kind: "binary",
+    operator: "+",
+    left: {
+      kind: "unary",
+      operator: "-",
+      expression: { kind: "numericLiteral", value: "$10" }
+    },
+    right: {
+      kind: "unary",
+      operator: "+",
+      expression: { kind: "numericLiteral", value: "42" }
+    }
+  });
 
   const modifierTokens = lexSource("<value+1").lines[0]?.tokens ?? [];
   const modifier = parseExpression(modifierTokens);

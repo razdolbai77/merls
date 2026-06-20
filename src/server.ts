@@ -81,7 +81,8 @@ export function startServer(
     findDefinition(
       openDocuments,
       params.textDocument.uri,
-      params.position.line
+      params.position.line,
+      params.position.character
     )
   );
   connection.onReferences((params) =>
@@ -89,6 +90,7 @@ export function startServer(
       openDocuments,
       params.textDocument.uri,
       params.position.line,
+      params.position.character,
       params.context.includeDeclaration
     )
   );

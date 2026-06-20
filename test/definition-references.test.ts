@@ -125,18 +125,20 @@ export async function runDefinitionReferencesTest(): Promise<void> {
       }
     });
 
+    const bplPos = positionOf(text, "bpl GetKey");
     const definitionResponse = await sendRequest("textDocument/definition", {
       textDocument: { uri: mainUri },
-      position: positionOf(text, "bpl GetKey")
+      position: { line: bplPos.line, character: bplPos.character + 4 }
     });
 
     const definition = definitionResponse.result as { uri: string; range: { start: { line: number } } };
     assert.equal(definition.uri, mainUri);
     assert.equal(definition.range.start.line, 70);
 
+    const getKPos = positionOf(text, "GetKey  ldx");
     const referencesResponse = await sendRequest("textDocument/references", {
       textDocument: { uri: mainUri },
-      position: positionOf(text, "GetKey  ldx"),
+      position: { line: getKPos.line, character: getKPos.character },
       context: {
         includeDeclaration: true
       }

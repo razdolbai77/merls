@@ -1,8 +1,9 @@
 import { type Location } from "vscode-languageserver/node";
 
 import { parseDocument } from "../asm/document";
-import { type Expression, type Operand } from "../asm/expression";
+import { type Expression } from "../asm/expression";
 import { type ParsedLine } from "../asm/parser";
+import { lexSource, type Token } from "../asm/lexer";
 
 type SymbolDefinition = {
   name: string;
@@ -17,9 +18,10 @@ type SymbolReference = {
 export function findDefinition(
   openDocuments: ReadonlyMap<string, string>,
   uri: string,
-  line: number
+  line: number,
+  character: number
 ): Location | null {
-  const targetName = getSymbolAtLine(openDocuments.get(uri), line);
+  const targetName = getSymbolAtPosition(openDocuments.get(uri), line, character);
   if (targetName === null) {
     return null;
   }
@@ -39,9 +41,10 @@ export function findReferences(
   openDocuments: ReadonlyMap<string, string>,
   uri: string,
   line: number,
+  character: number,
   includeDeclaration: boolean
 ): Location[] {
-  const targetName = getSymbolAtLine(openDocuments.get(uri), line);
+  const targetName = getSymbolAtPosition(openDocuments.get(uri), line, character);
   if (targetName === null) {
     return [];
   }
@@ -67,42 +70,29 @@ export function findReferences(
   return locations;
 }
 
-function getSymbolAtLine(source: string | undefined, line: number): string | null {
+function getSymbolAtPosition(source: string | undefined, line: number, character: number): string | null {
   if (source === undefined) {
     return null;
   }
 
-  const node = parseDocument(source).lines[line]?.node;
-  if (node === undefined) {
+  const lexedLine = lexSource(source).lines[line];
+  if (lexedLine === undefined) {
     return null;
   }
 
-  if (node.shape === "labelOnly") {
-    return node.label;
+  const token = tokenAtCharacter(lexedLine.tokens, character);
+  if (token?.kind === "identifier" || token?.kind === "label" || token?.kind === "localLabel") {
+    return token.lexeme;
   }
 
-  if (node.shape === "instruction") {
-    if (node.label !== null) {
-      return node.label;
+  return null;
+}
+
+function tokenAtCharacter(tokens: readonly Token[], character: number): Token | null {
+  for (const token of tokens) {
+    if (character >= token.start && character < token.end) {
+      return token;
     }
-
-    return readOperandIdentifier(node.operand);
-  }
-
-  if (node.shape === "directive") {
-    if (node.label !== null) {
-      return node.label;
-    }
-
-    return readExpressionIdentifier(node.operand);
-  }
-
-  if (node.shape === "equate") {
-    return node.label;
-  }
-
-  if (node.shape === "data" && node.label !== null) {
-    return node.label;
   }
 
   return null;
@@ -183,39 +173,15 @@ function getReferencedNames(node: ParsedLine): readonly string[] {
   return [];
 }
 
-function readOperandIdentifier(operand: Operand | null): string | null {
-  if (operand === null) {
-    return null;
-  }
 
-  return readExpressionIdentifier(operand.expression);
-}
-
-function readExpressionIdentifier(expression: Expression | null): string | null {
-  if (expression === null) {
-    return null;
-  }
-
-  if (expression.kind === "identifier") {
-    return expression.value;
-  }
-
-  if (expression.kind === "modifier") {
-    return readExpressionIdentifier(expression.expression);
-  }
-
-  if (expression.kind === "binary") {
-    return readExpressionIdentifier(expression.left);
-  }
-
-  return null;
-}
 
 function collectExpressionIdentifiers(expression: Expression): readonly string[] {
   switch (expression.kind) {
     case "identifier":
       return [expression.value];
     case "modifier":
+      return collectExpressionIdentifiers(expression.expression);
+    case "unary":
       return collectExpressionIdentifiers(expression.expression);
     case "binary":
       return [
