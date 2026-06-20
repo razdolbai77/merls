@@ -20,6 +20,7 @@ import { buildDocumentLinks } from "./lsp/document-links";
 import { buildDocumentHighlights } from "./lsp/document-highlights";
 import { buildInlayHints } from "./lsp/inlay-hints";
 import { buildSignatureHelp } from "./lsp/signature-help";
+import { prepareCallHierarchy, provideCallHierarchyIncomingCalls, provideCallHierarchyOutgoingCalls } from "./lsp/call-hierarchy";
 
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
@@ -51,6 +52,7 @@ export function startServer(
       signatureHelpProvider: {
         triggerCharacters: [" ", ","]
       },
+      callHierarchyProvider: true,
       documentLinkProvider: {
         resolveProvider: false
       },
@@ -182,6 +184,16 @@ export function startServer(
       params.position.line,
       params.position.character
     )
+  );
+
+  connection.languages.callHierarchy.onPrepare((params) =>
+    prepareCallHierarchy(openDocuments, params.textDocument.uri, params.position.line, params.position.character)
+  );
+  connection.languages.callHierarchy.onIncomingCalls((params) =>
+    provideCallHierarchyIncomingCalls(openDocuments, params.item)
+  );
+  connection.languages.callHierarchy.onOutgoingCalls((params) =>
+    provideCallHierarchyOutgoingCalls(openDocuments, params.item)
   );
 
   function publishDiagnostics(): void {

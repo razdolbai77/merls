@@ -28,6 +28,7 @@ import { runDocumentLinksTest } from "./document-links.test";
 import { runDocumentHighlightsTest } from "./document-highlights.test";
 import { runInlayHintsTest } from "./inlay-hints.test";
 import { runSignatureHelpTest } from "./signature-help.test";
+import { runCallHierarchyTest } from "./call-hierarchy.test";
 
 type TestCase = {
   name: string;
@@ -154,6 +155,10 @@ const tests: TestCase[] = [
   {
     name: "server provides signature help for macros",
     run: runSignatureHelpTest
+  },
+  {
+    name: "server computes call hierarchy",
+    run: runCallHierarchyTest
   }
 ];
 
