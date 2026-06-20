@@ -59,7 +59,7 @@ export function buildHover(
 
   const node = documentLine.node;
   if (node.shape === "instruction") {
-    const definition = opcodeTable.get(node.mnemonic);
+    const definition = opcodeTable.get(node.mnemonic.lexeme.toLowerCase());
     if (definition !== undefined) {
       return {
         contents: `Opcode ${definition.mnemonic}: ${definition.modes.join(", ")}`
@@ -68,7 +68,7 @@ export function buildHover(
   }
 
   if (node.shape === "directive") {
-    const definition = directiveTable.get(node.directive);
+    const definition = directiveTable.get(node.directive.lexeme.toLowerCase());
     if (definition !== undefined) {
       return {
         contents: `Directive ${definition.name}: ${definition.summary}`

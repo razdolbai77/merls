@@ -16,30 +16,30 @@ export function collectSymbols(document: ParsedDocument): Map<string, SymbolDefi
     const node = line.node;
 
     if (node.shape === "equate") {
-      symbols.set(node.label, defineSymbol(node.label, "equate", line.line));
+      symbols.set(node.label.lexeme, defineSymbol(node.label.lexeme, "equate", line.line));
       continue;
     }
 
     if (node.shape === "labelOnly") {
-      symbols.set(node.label, defineSymbol(node.label, "label", line.line));
+      symbols.set(node.label.lexeme, defineSymbol(node.label.lexeme, "label", line.line));
       continue;
     }
 
     if (node.shape === "instruction" && node.label !== null) {
-      symbols.set(node.label, defineSymbol(node.label, "label", line.line));
+      symbols.set(node.label.lexeme, defineSymbol(node.label.lexeme, "label", line.line));
       continue;
     }
 
     if (node.shape === "directive" && node.label !== null) {
-      const directive = directiveTable.get(node.directive);
+      const directive = directiveTable.get(node.directive.lexeme);
       if (directive?.kind === "data" || directive?.kind === "storage") {
-        symbols.set(node.label, defineSymbol(node.label, "data", line.line));
+        symbols.set(node.label.lexeme, defineSymbol(node.label.lexeme, "data", line.line));
       }
       continue;
     }
 
     if (node.shape === "data" && node.label !== null) {
-      symbols.set(node.label, defineSymbol(node.label, "data", line.line));
+      symbols.set(node.label.lexeme, defineSymbol(node.label.lexeme, "data", line.line));
     }
   }
 

@@ -185,24 +185,24 @@ function collectGlobalDefinitions(
 }
 
 function getGlobalDefinitionName(node: ParsedLine): string | null {
-  if (node.shape === "equate" && !isLocalLabel(node.label)) {
-    return node.label;
+  if (node.shape === "equate" && !isLocalLabel(node.label.lexeme)) {
+    return node.label.lexeme;
   }
 
-  if (node.shape === "labelOnly" && !isLocalLabel(node.label)) {
-    return node.label;
+  if (node.shape === "labelOnly" && !isLocalLabel(node.label.lexeme)) {
+    return node.label.lexeme;
   }
 
-  if (node.shape === "instruction" && node.label !== null && !isLocalLabel(node.label)) {
-    return node.label;
+  if (node.shape === "instruction" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
+    return node.label.lexeme;
   }
 
-  if (node.shape === "directive" && node.label !== null && !isLocalLabel(node.label)) {
-    return node.label;
+  if (node.shape === "directive" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
+    return node.label.lexeme;
   }
 
-  if (node.shape === "data" && node.label !== null && !isLocalLabel(node.label)) {
-    return node.label;
+  if (node.shape === "data" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
+    return node.label.lexeme;
   }
 
   return null;
@@ -214,9 +214,9 @@ function findExpressionReferences(node: ParsedLine): readonly string[] {
   }
 
   if (node.shape === "directive" && node.operand !== null) {
-    const directive = directiveTable.get(node.directive);
+    const directive = directiveTable.get(node.directive.lexeme);
     if (directive?.kind === "include" || directive?.kind === "build") {
-      if (node.directive === "typ") {
+      if (node.directive.lexeme === "typ") {
         const knownAliases = new Set([
           "txt", "bin", "sys", "bas", "var", "rel",
           "lib", "s16", "rtl", "exe", "pif", "tif",
@@ -265,9 +265,9 @@ function getUnsupportedDirective(node: ParsedLine): string | null {
     return null;
   }
 
-  const directive = directiveTable.get(node.directive);
+  const directive = directiveTable.get(node.directive.lexeme);
   if (directive?.supported === false) {
-    return node.directive;
+    return node.directive.lexeme;
   }
 
   return null;

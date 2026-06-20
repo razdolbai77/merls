@@ -7,6 +7,7 @@ import {
 
 import { type CachedDocument } from "../asm/document";
 import { type ParsedLine } from "../asm/parser";
+import { type Token } from "../asm/lexer";
 
 export function buildDocumentSymbols(
   uri: string,
@@ -29,21 +30,27 @@ function toSymbolInformation(
   node: ParsedLine,
   line: number
 ): SymbolInformation | null {
-  const name = getNodeName(node);
+  const labelToken = getNodeLabelToken(node);
   const kind = getNodeKind(node);
 
-  if (name === null || kind === null) {
+  if (labelToken === null || kind === null) {
     return null;
   }
 
   return {
-    name,
+    name: labelToken.lexeme,
     kind,
-    location: createLocation(uri, line, name, node.text)
+    location: {
+      uri,
+      range: {
+        start: { line, character: labelToken.start },
+        end: { line, character: labelToken.end }
+      }
+    }
   };
 }
 
-function getNodeName(node: ParsedLine): string | null {
+function getNodeLabelToken(node: ParsedLine): Token | null {
   if (node.shape === "equate") {
     return node.label;
   }
@@ -89,25 +96,4 @@ function getNodeKind(node: ParsedLine): SymbolKind | null {
   }
 
   return null;
-}
-
-function createLocation(uri: string, line: number, name: string, text: string): Location {
-  const startIndex = text.indexOf(name);
-  const startChar = startIndex !== -1 ? startIndex : 0;
-
-  const range: Range = {
-    start: {
-      line,
-      character: startChar
-    },
-    end: {
-      line,
-      character: startChar + name.length
-    }
-  };
-
-  return {
-    uri,
-    range
-  };
 }

@@ -8,6 +8,7 @@ export type NumericLiteralExpression = {
 export type IdentifierExpression = {
   kind: "identifier";
   value: string;
+  token: Token;
 };
 
 export type StringExpression = {
@@ -189,7 +190,8 @@ function parsePrefix(tokens: readonly Token[], startIndex: number): ParsedExpres
     return {
       expression: {
         kind: "identifier",
-        value: token.lexeme
+        value: token.lexeme,
+        token
       },
       nextTokenIndex: startIndex + 1
     };

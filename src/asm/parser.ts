@@ -20,43 +20,43 @@ export type EmptyLine = {
 export type CommentLine = {
   shape: "commentOnly";
   text: string;
-  comment: string;
+  comment: Token;
 };
 
 export type LabelOnlyLine = {
   shape: "labelOnly";
   text: string;
-  label: string;
+  label: Token;
 };
 
 export type EquateLine = {
   shape: "equate";
   text: string;
-  label: string;
+  label: Token;
   expression: Expression;
 };
 
 export type InstructionLine = {
   shape: "instruction";
   text: string;
-  label: string | null;
-  mnemonic: string;
+  label: Token | null;
+  mnemonic: Token;
   operand: Operand | null;
 };
 
 export type DirectiveLine = {
   shape: "directive";
   text: string;
-  label: string | null;
-  directive: string;
+  label: Token | null;
+  directive: Token;
   operand: Expression | null;
 };
 
 export type DataLine = {
   shape: "data";
   text: string;
-  label: string | null;
-  directive: string;
+  label: Token | null;
+  directive: Token;
   payload: string;
 };
 
@@ -82,7 +82,7 @@ export function parseLexedLine(line: LexedLine): ParsedLine {
       return {
         shape: "commentOnly",
         text: line.text,
-        comment: commentToken.lexeme
+        comment: commentToken
       };
     }
 
@@ -105,10 +105,10 @@ export function parseLexedLine(line: LexedLine): ParsedLine {
 
 function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine {
   let index = 0;
-  let label: string | null = null;
+  let label: Token | null = null;
 
   if (tokens[index]?.kind === "label" || tokens[index]?.kind === "localLabel") {
-    label = tokens[index]?.lexeme ?? null;
+    label = tokens[index] ?? null;
     index += 1;
   }
 
@@ -152,7 +152,7 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
       shape: "instruction",
       text,
       label,
-      mnemonic: token.lexeme.toLowerCase(),
+      mnemonic: token,
       operand
     };
   }
@@ -164,7 +164,7 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
         shape: "data",
         text,
         label,
-        directive: token.lexeme.toLowerCase(),
+        directive: token,
         payload: tokens.slice(index + 1).map((current) => current.lexeme).join("")
       };
     }
@@ -183,7 +183,7 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
       shape: "directive",
       text,
       label,
-      directive: directiveName,
+      directive: token,
       operand
     };
   }

@@ -75,7 +75,7 @@ function visitFile(
   const resolvedDependencies = document.lines
     .flatMap((line) => {
       const node = line.node;
-      if (node.shape !== "directive" || !includeDirectives.has(node.directive)) {
+      if (node.shape !== "directive" || !includeDirectives.has(node.directive.lexeme)) {
         return [];
       }
 

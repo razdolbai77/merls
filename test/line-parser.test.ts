@@ -16,7 +16,7 @@ export function runLineParserTest(): void {
   assert.deepEqual(lines[0], {
     shape: "equate",
     text: "TEXT    =   $FB39",
-    label: "TEXT",
+    label: { kind: "label", lexeme: "TEXT", start: 0, end: 4 },
     expression: {
       kind: "numericLiteral",
       value: "$FB39"
@@ -27,7 +27,7 @@ export function runLineParserTest(): void {
     shape: "instruction",
     text: "        adc (_tmp+dum1+1,x)",
     label: null,
-    mnemonic: "adc",
+    mnemonic: { kind: "mnemonic", lexeme: "adc", start: 8, end: 11 },
     operand: {
       immediate: false,
       indirect: true,
@@ -38,8 +38,8 @@ export function runLineParserTest(): void {
         left: {
           kind: "binary",
           operator: "+",
-          left: { kind: "identifier", value: "_tmp" },
-          right: { kind: "identifier", value: "dum1" }
+          left: { kind: "identifier", value: "_tmp", token: { kind: "identifier", lexeme: "_tmp", start: 13, end: 17 } },
+          right: { kind: "identifier", value: "dum1", token: { kind: "identifier", lexeme: "dum1", start: 18, end: 22 } }
         },
         right: { kind: "numericLiteral", value: "1" }
       }
@@ -49,8 +49,8 @@ export function runLineParserTest(): void {
   assert.deepEqual(lines[2], {
     shape: "directive",
     text: "dum0    ds  1",
-    label: "dum0",
-    directive: "ds",
+    label: { kind: "label", lexeme: "dum0", start: 0, end: 4 },
+    directive: { kind: "directive", lexeme: "ds", start: 8, end: 10 },
     operand: {
       kind: "numericLiteral",
       value: "1"
@@ -61,7 +61,7 @@ export function runLineParserTest(): void {
     shape: "data",
     text: "        hex 2C",
     label: null,
-    directive: "hex",
+    directive: { kind: "directive", lexeme: "hex", start: 8, end: 11 },
     payload: "2C"
   });
 

@@ -92,17 +92,20 @@ function collectDefinitions(uri: string, cached: CachedDocument): readonly Symbo
   const definitions: SymbolDefinition[] = [];
 
   for (const line of cached.parsed.lines) {
-    const name = getDefinedName(line.node);
-    if (name === null) {
+    const token = getDefinedLabelToken(line.node);
+    if (token === null) {
       continue;
     }
 
-    const tokens = cached.lexed.lines[line.line]?.tokens ?? [];
-    const token = tokens.find((t) => t.lexeme === name) ?? null;
-
     definitions.push({
-      name,
-      location: createLocation(uri, line.line, token, name)
+      name: token.lexeme,
+      location: {
+        uri,
+        range: {
+          start: { line: line.line, character: token.start },
+          end: { line: line.line, character: token.end }
+        }
+      }
     });
   }
 
@@ -113,27 +116,18 @@ function collectReferences(uri: string, cached: CachedDocument): readonly Symbol
   const references: SymbolReference[] = [];
 
   for (const line of cached.parsed.lines) {
-    const names = getReferencedNames(line.node);
-    if (names.length === 0) {
-      continue;
-    }
+    const tokens = getReferencedTokens(line.node);
 
-    const tokens = cached.lexed.lines[line.line]?.tokens ?? [];
-    let tokenIndex = 0;
-
-    for (const name of names) {
-      while (tokenIndex < tokens.length && tokens[tokenIndex].lexeme !== name) {
-        tokenIndex++;
-      }
-
-      const token = tokenIndex < tokens.length ? tokens[tokenIndex] : null;
-      if (token !== null) {
-        tokenIndex++;
-      }
-
+    for (const token of tokens) {
       references.push({
-        name,
-        location: createLocation(uri, line.line, token, name)
+        name: token.lexeme,
+        location: {
+          uri,
+          range: {
+            start: { line: line.line, character: token.start },
+            end: { line: line.line, character: token.end }
+          }
+        }
       });
     }
   }
@@ -141,7 +135,7 @@ function collectReferences(uri: string, cached: CachedDocument): readonly Symbol
   return references;
 }
 
-function getDefinedName(node: ParsedLine): string | null {
+function getDefinedLabelToken(node: ParsedLine): Token | null {
   if (node.shape === "equate") {
     return node.label;
   }
@@ -165,7 +159,7 @@ function getDefinedName(node: ParsedLine): string | null {
   return null;
 }
 
-function getReferencedNames(node: ParsedLine): readonly string[] {
+function getReferencedTokens(node: ParsedLine): readonly Token[] {
   if (node.shape === "instruction" && node.operand !== null) {
     return collectExpressionIdentifiers(node.operand.expression);
   }
@@ -181,10 +175,10 @@ function getReferencedNames(node: ParsedLine): readonly string[] {
   return [];
 }
 
-function collectExpressionIdentifiers(expression: Expression): readonly string[] {
+function collectExpressionIdentifiers(expression: Expression): readonly Token[] {
   switch (expression.kind) {
     case "identifier":
-      return [expression.value];
+      return [expression.token];
     case "modifier":
       return collectExpressionIdentifiers(expression.expression);
     case "unary":
@@ -197,30 +191,4 @@ function collectExpressionIdentifiers(expression: Expression): readonly string[]
     default:
       return [];
   }
-}
-
-function createLocation(uri: string, line: number, token: Token | null, fallbackName: string): Location {
-  if (token !== null) {
-    return {
-      uri,
-      range: {
-        start: { line, character: token.start },
-        end: { line, character: token.end }
-      }
-    };
-  }
-
-  return {
-    uri,
-    range: {
-      start: {
-        line,
-        character: 0
-      },
-      end: {
-        line,
-        character: fallbackName.length
-      }
-    }
-  };
 }
