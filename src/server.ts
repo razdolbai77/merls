@@ -16,6 +16,7 @@ import { buildSemanticTokens, semanticTokensLegend } from "./lsp/semantic-tokens
 import { formatDocument } from "./lsp/formatting";
 import { buildRenameEdits } from "./lsp/rename";
 import { buildFoldingRanges } from "./lsp/folding";
+import { buildDocumentLinks } from "./lsp/document-links";
 
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
@@ -42,6 +43,9 @@ export function startServer(
       renameProvider: true,
       documentFormattingProvider: true,
       foldingRangeProvider: true,
+      documentLinkProvider: {
+        resolveProvider: false
+      },
       semanticTokensProvider: {
         legend: semanticTokensLegend,
         full: true
@@ -144,6 +148,13 @@ export function startServer(
       return [];
     }
     return buildFoldingRanges(cached);
+  });
+  connection.onDocumentLinks((params) => {
+    const cached = openDocuments.get(params.textDocument.uri);
+    if (cached === undefined) {
+      return [];
+    }
+    return buildDocumentLinks(params.textDocument.uri, cached);
   });
 
   function publishDiagnostics(): void {

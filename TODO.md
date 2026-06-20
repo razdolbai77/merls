@@ -4,7 +4,7 @@
 - [x] **Formatting (`documentFormattingProvider`)**: Auto-format assembly code (aligning labels, mnemonics, operands).
 - [x] **Rename (`renameProvider`)**: Safely rename global labels, local labels, or equates across the workspace.
 - [x] **Folding Ranges (`foldingRangeProvider`)**: Collapse macro definitions, large data blocks, or multiline comments.
-- [ ] **Document Links (`documentLinkProvider`)**: Make `put` and `use` file references directly clickable.
+- [x] **Document Links (`documentLinkProvider`)**: Make `put` and `use` file references directly clickable.
 
 ## Nice-to-Have / Advanced
 - [ ] **Document Highlights (`documentHighlightProvider`)**: Highlight all read/write occurrences of a symbol in the current document.

@@ -14,6 +14,7 @@ export type IdentifierExpression = {
 export type StringExpression = {
   kind: "string";
   value: string;
+  token: Token;
 };
 
 export type ModifierExpression = {
@@ -201,7 +202,8 @@ function parsePrefix(tokens: readonly Token[], startIndex: number): ParsedExpres
     return {
       expression: {
         kind: "string",
-        value: token.lexeme.slice(1, -1)
+        value: token.lexeme.slice(1, -1),
+        token
       },
       nextTokenIndex: startIndex + 1
     };

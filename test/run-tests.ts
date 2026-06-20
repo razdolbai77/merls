@@ -24,6 +24,7 @@ import { runSemanticTokensTest } from "./semantic-tokens.test";
 import { runFormattingTest } from "./formatting.test";
 import { runRenameTest } from "./rename.test";
 import { runFoldingTest } from "./folding.test";
+import { runDocumentLinksTest } from "./document-links.test";
 
 type TestCase = {
   name: string;
@@ -134,6 +135,10 @@ const tests: TestCase[] = [
   {
     name: "server computes folding ranges for comments, macros, and data",
     run: runFoldingTest
+  },
+  {
+    name: "server resolves document links for include directives",
+    run: runDocumentLinksTest
   }
 ];
 
