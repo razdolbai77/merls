@@ -22,6 +22,7 @@ import { buildInlayHints } from "./lsp/inlay-hints";
 import { buildSignatureHelp } from "./lsp/signature-help";
 import { prepareCallHierarchy, provideCallHierarchyIncomingCalls, provideCallHierarchyOutgoingCalls } from "./lsp/call-hierarchy";
 import { provideCodeActions } from "./lsp/code-actions";
+import { buildCodeLenses } from "./lsp/code-lens";
 
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
@@ -55,6 +56,9 @@ export function startServer(
       },
       callHierarchyProvider: true,
       codeActionProvider: true,
+      codeLensProvider: {
+        resolveProvider: false
+      },
       documentLinkProvider: {
         resolveProvider: false
       },
@@ -200,6 +204,9 @@ export function startServer(
 
   connection.onCodeAction((params) =>
     provideCodeActions(openDocuments, params.textDocument.uri, params.context.diagnostics)
+  );
+  connection.onCodeLens((params) =>
+    buildCodeLenses(openDocuments, params.textDocument.uri)
   );
 
   function publishDiagnostics(): void {

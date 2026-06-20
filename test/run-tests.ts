@@ -30,6 +30,7 @@ import { runInlayHintsTest } from "./inlay-hints.test";
 import { runSignatureHelpTest } from "./signature-help.test";
 import { runCallHierarchyTest } from "./call-hierarchy.test";
 import { runCodeActionsTest } from "./code-actions.test";
+import { runCodeLensTest } from "./code-lens.test";
 
 type TestCase = {
   name: string;
@@ -164,6 +165,10 @@ const tests: TestCase[] = [
   {
     name: "server provides code actions for quick fixes",
     run: runCodeActionsTest
+  },
+  {
+    name: "server computes code lenses for reference counts",
+    run: runCodeLensTest
   }
 ];
 
