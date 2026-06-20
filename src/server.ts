@@ -6,7 +6,7 @@ import {
   FileChangeType
 } from "vscode-languageserver/node";
 import fs from "node:fs";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { buildCachedDocument, type CachedDocument } from "./asm/document";
 import { buildDocumentSymbols } from "./lsp/document-symbols";
@@ -27,6 +27,7 @@ import { prepareCallHierarchy, provideCallHierarchyIncomingCalls, provideCallHie
 import { provideCodeActions } from "./lsp/code-actions";
 import { buildCodeLenses } from "./lsp/code-lens";
 import { buildSelectionRanges } from "./lsp/selection-range";
+import { indexWorkspace } from "./asm/workspace";
 
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
@@ -119,12 +120,41 @@ export function startServer(
 
     return buildDocumentSymbols(params.textDocument.uri, cached);
   });
+
+  function getIndexedDocuments(): Map<string, CachedDocument> {
+    const all = getAllDocuments();
+    const overrides = new Map<string, CachedDocument>();
+    for (const [uri, doc] of all.entries()) {
+      let filePath = uri;
+      if (filePath.startsWith("file://")) {
+        filePath = fileURLToPath(filePath);
+      }
+      overrides.set(filePath, doc);
+    }
+
+    const combined = new Map(all);
+    for (const uri of openDocuments.keys()) {
+      let filePath = uri;
+      if (filePath.startsWith("file://")) {
+        filePath = fileURLToPath(filePath);
+      }
+      const workspace = indexWorkspace(filePath, overrides);
+      for (const [docPath, cached] of workspace.documents.entries()) {
+        const docUri = pathToFileURL(docPath).href;
+        if (!combined.has(docUri)) {
+          combined.set(docUri, cached);
+        }
+      }
+    }
+    return combined;
+  }
+
   connection.onWorkspaceSymbol((params) =>
-    buildWorkspaceSymbols(getAllDocuments(), params.query)
+    buildWorkspaceSymbols(getIndexedDocuments(), params.query)
   );
   connection.onDefinition((params) =>
     findDefinition(
-      getAllDocuments(),
+      getIndexedDocuments(),
       params.textDocument.uri,
       params.position.line,
       params.position.character
@@ -132,7 +162,7 @@ export function startServer(
   );
   connection.onReferences((params) =>
     findReferences(
-      getAllDocuments(),
+      getIndexedDocuments(),
       params.textDocument.uri,
       params.position.line,
       params.position.character,
@@ -141,7 +171,7 @@ export function startServer(
   );
   connection.onHover((params) =>
     buildHover(
-      openDocuments,
+      getIndexedDocuments(),
       params.textDocument.uri,
       params.position.line,
       params.position.character
@@ -149,7 +179,7 @@ export function startServer(
   );
   connection.onCompletion((params) =>
     buildCompletionItems(
-      openDocuments,
+      getIndexedDocuments(),
       params.textDocument.uri
     )
   );
@@ -174,7 +204,7 @@ export function startServer(
   });
   connection.onRenameRequest((params) =>
     buildRenameEdits(
-      getAllDocuments(),
+      getIndexedDocuments(),
       params.textDocument.uri,
       params.position.line,
       params.position.character,
@@ -204,11 +234,11 @@ export function startServer(
     )
   );
   connection.languages.inlayHint.on((params) =>
-    buildInlayHints(getAllDocuments(), params.textDocument.uri)
+    buildInlayHints(getIndexedDocuments(), params.textDocument.uri)
   );
   connection.onSignatureHelp((params) =>
     buildSignatureHelp(
-      getAllDocuments(),
+      getIndexedDocuments(),
       params.textDocument.uri,
       params.position.line,
       params.position.character
@@ -222,17 +252,17 @@ export function startServer(
     provideCallHierarchyIncomingCalls(openDocuments, params.item)
   );
   connection.languages.callHierarchy.onOutgoingCalls((params) =>
-    provideCallHierarchyOutgoingCalls(getAllDocuments(), params.item)
+    provideCallHierarchyOutgoingCalls(getIndexedDocuments(), params.item)
   );
 
   connection.onCodeAction((params) =>
-    provideCodeActions(getAllDocuments(), params.textDocument.uri, params.context.diagnostics)
+    provideCodeActions(getIndexedDocuments(), params.textDocument.uri, params.context.diagnostics)
   );
   connection.onCodeLens((params) =>
-    buildCodeLenses(getAllDocuments(), params.textDocument.uri)
+    buildCodeLenses(getIndexedDocuments(), params.textDocument.uri)
   );
   connection.onSelectionRanges((params) =>
-    buildSelectionRanges(getAllDocuments(), params.textDocument.uri, params.positions)
+    buildSelectionRanges(getIndexedDocuments(), params.textDocument.uri, params.positions)
   );
 
   connection.onDidChangeWatchedFiles((params) => {

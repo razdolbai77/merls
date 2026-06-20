@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { parseDocument, type ParsedDocument } from "./document";
+import { type CachedDocument, buildCachedDocument } from "./document";
 import { type Expression } from "./expression";
 import { collectSymbols } from "./symbols";
 
@@ -13,19 +13,19 @@ export type WorkspaceSymbol = {
 };
 
 export type IndexedWorkspace = {
-  documents: Map<string, ParsedDocument>;
-  dependencies: Map<string, readonly string[]>;
+  documents: ReadonlyMap<string, CachedDocument>;
+  dependencies: ReadonlyMap<string, readonly string[]>;
   loadOrder: readonly string[];
-  symbols: Map<string, WorkspaceSymbol>;
+  symbols: ReadonlyMap<string, WorkspaceSymbol>;
 };
 
 const includeDirectives = new Set(["asm", "put", "use"]);
 
 export function indexWorkspace(
   entryPath: string,
-  overrides?: ReadonlyMap<string, ParsedDocument>
+  overrides?: ReadonlyMap<string, CachedDocument>
 ): IndexedWorkspace {
-  const documents = new Map<string, ParsedDocument>();
+  const documents = new Map<string, CachedDocument>();
   const dependencies = new Map<string, readonly string[]>();
   const loadOrder: string[] = [];
   const symbols = new Map<string, WorkspaceSymbol>();
@@ -38,7 +38,7 @@ export function indexWorkspace(
       continue;
     }
 
-    for (const symbol of collectSymbols(document).values()) {
+    for (const symbol of collectSymbols(document.parsed).values()) {
       symbols.set(symbol.name, {
         ...symbol,
         filePath
@@ -56,16 +56,16 @@ export function indexWorkspace(
 
 function visitFile(
   filePath: string,
-  documents: Map<string, ParsedDocument>,
+  documents: Map<string, CachedDocument>,
   dependencies: Map<string, readonly string[]>,
   loadOrder: string[],
-  overrides?: ReadonlyMap<string, ParsedDocument>
+  overrides?: ReadonlyMap<string, CachedDocument>
 ): void {
   if (documents.has(filePath)) {
     return;
   }
 
-  let document: ParsedDocument;
+  let document: CachedDocument;
   const override = overrides?.get(filePath);
   if (override !== undefined) {
     document = override;
@@ -76,13 +76,13 @@ function visitFile(
     } catch {
       return;
     }
-    document = parseDocument(source);
+    document = buildCachedDocument(source);
   }
 
   documents.set(filePath, document);
   loadOrder.push(filePath);
 
-  const resolvedDependencies = document.lines
+  const resolvedDependencies = document.parsed.lines
     .flatMap((line) => {
       const node = line.node;
       if (node.shape !== "directive" || !includeDirectives.has(node.directive.lexeme.toLowerCase())) {
