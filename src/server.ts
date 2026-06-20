@@ -18,6 +18,7 @@ import { buildRenameEdits } from "./lsp/rename";
 import { buildFoldingRanges } from "./lsp/folding";
 import { buildDocumentLinks } from "./lsp/document-links";
 import { buildDocumentHighlights } from "./lsp/document-highlights";
+import { buildInlayHints } from "./lsp/inlay-hints";
 
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
@@ -45,6 +46,7 @@ export function startServer(
       documentFormattingProvider: true,
       foldingRangeProvider: true,
       documentHighlightProvider: true,
+      inlayHintProvider: true,
       documentLinkProvider: {
         resolveProvider: false
       },
@@ -165,6 +167,9 @@ export function startServer(
       params.position.line,
       params.position.character
     )
+  );
+  connection.languages.inlayHint.on((params) =>
+    buildInlayHints(openDocuments, params.textDocument.uri)
   );
 
   function publishDiagnostics(): void {

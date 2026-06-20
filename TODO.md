@@ -8,7 +8,7 @@
 
 ## Nice-to-Have / Advanced
 - [x] **Document Highlights (`documentHighlightProvider`)**: Highlight all read/write occurrences of a symbol in the current document.
-- [ ] **Inlay Hints (`inlayHintProvider`)**: Render computed values of equates or CPU cycle counts for instructions inline.
+- [x] **Inlay Hints (`inlayHintProvider`)**: Render computed values of equates or CPU cycle counts for instructions inline.
 - [ ] **Signature Help (`signatureHelpProvider`)**: Show parameter hints when invoking macros.
 - [ ] **Call Hierarchy (`callHierarchyProvider`)**: Build a call tree by analyzing `JSR` and `JMP` instructions.
 - [ ] **Code Actions (`codeActionProvider`)**: Provide Quick Fixes, such as suggesting 6502 alternatives for 65816 instructions.

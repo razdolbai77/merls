@@ -26,6 +26,7 @@ import { runRenameTest } from "./rename.test";
 import { runFoldingTest } from "./folding.test";
 import { runDocumentLinksTest } from "./document-links.test";
 import { runDocumentHighlightsTest } from "./document-highlights.test";
+import { runInlayHintsTest } from "./inlay-hints.test";
 
 type TestCase = {
   name: string;
@@ -144,6 +145,10 @@ const tests: TestCase[] = [
   {
     name: "server computes document highlights for symbols",
     run: runDocumentHighlightsTest
+  },
+  {
+    name: "server computes inlay hints for equates",
+    run: runInlayHintsTest
   }
 ];
 
