@@ -13,6 +13,7 @@ import { buildHover } from "./lsp/hover";
 import { findDefinition, findReferences } from "./lsp/symbol-navigation";
 import { buildWorkspaceSymbols } from "./lsp/workspace-symbols";
 import { buildSemanticTokens, semanticTokensLegend } from "./lsp/semantic-tokens";
+import { formatDocument } from "./lsp/formatting";
 
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
@@ -36,6 +37,8 @@ export function startServer(
       hoverProvider: true,
       referencesProvider: true,
       workspaceSymbolProvider: true,
+      renameProvider: true,
+      documentFormattingProvider: true,
       semanticTokensProvider: {
         legend: semanticTokensLegend,
         full: true
@@ -115,6 +118,13 @@ export function startServer(
       return { data: [] };
     }
     return buildSemanticTokens(cached);
+  });
+  connection.onDocumentFormatting((params) => {
+    const cached = openDocuments.get(params.textDocument.uri);
+    if (cached === undefined) {
+      return null;
+    }
+    return formatDocument(cached, params.options);
   });
 
   function publishDiagnostics(): void {

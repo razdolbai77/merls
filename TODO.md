@@ -1,0 +1,14 @@
+# Future LSP Features Plan
+
+## Highly Valuable for Assembly
+- [x] **Formatting (`documentFormattingProvider`)**: Auto-format assembly code (aligning labels, mnemonics, operands).
+- [ ] **Rename (`renameProvider`)**: Safely rename global labels, local labels, or equates across the workspace.
+- [ ] **Folding Ranges (`foldingRangeProvider`)**: Collapse macro definitions, large data blocks, or multiline comments.
+- [ ] **Document Links (`documentLinkProvider`)**: Make `put` and `use` file references directly clickable.
+
+## Nice-to-Have / Advanced
+- [ ] **Document Highlights (`documentHighlightProvider`)**: Highlight all read/write occurrences of a symbol in the current document.
+- [ ] **Inlay Hints (`inlayHintProvider`)**: Render computed values of equates or CPU cycle counts for instructions inline.
+- [ ] **Signature Help (`signatureHelpProvider`)**: Show parameter hints when invoking macros.
+- [ ] **Call Hierarchy (`callHierarchyProvider`)**: Build a call tree by analyzing `JSR` and `JMP` instructions.
+- [ ] **Code Actions (`codeActionProvider`)**: Provide Quick Fixes, such as suggesting 6502 alternatives for 65816 instructions.

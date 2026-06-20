@@ -21,6 +21,7 @@ import { runSyntaxShapeTest } from "./syntax-shape.test";
 import { runWorkspaceGraphTest } from "./workspace.test";
 import { runWorkspaceSymbolTest } from "./workspace-symbol.test";
 import { runSemanticTokensTest } from "./semantic-tokens.test";
+import { runFormattingTest } from "./formatting.test";
 
 type TestCase = {
   name: string;
@@ -119,6 +120,10 @@ const tests: TestCase[] = [
   {
     name: "server returns semantic tokens for highlighting",
     run: runSemanticTokensTest
+  },
+  {
+    name: "server formats assembly code aligning fields",
+    run: runFormattingTest
   }
 ];
 
