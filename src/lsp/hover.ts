@@ -1,23 +1,23 @@
 import { type Hover } from "vscode-languageserver/node";
 
 import { directiveTable, opcodeTable } from "../asm/metadata";
-import { parseDocument } from "../asm/document";
+import { type CachedDocument } from "../asm/document";
 import { lexSource, type Token } from "../asm/lexer";
 import { findDefinition } from "./symbol-navigation";
 
 export function buildHover(
-  openDocuments: ReadonlyMap<string, string>,
+  openDocuments: ReadonlyMap<string, CachedDocument>,
   uri: string,
   line: number,
   character: number
 ): Hover | null {
-  const source = openDocuments.get(uri);
-  if (source === undefined) {
+  const cached = openDocuments.get(uri);
+  if (cached === undefined) {
     return null;
   }
 
-  const documentLine = parseDocument(source).lines[line];
-  const lexedLine = lexSource(source).lines[line];
+  const documentLine = cached.parsed.lines[line];
+  const lexedLine = cached.lexed.lines[line];
   if (documentLine === undefined || lexedLine === undefined) {
     return null;
   }

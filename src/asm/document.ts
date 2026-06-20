@@ -1,3 +1,4 @@
+import { type LexedSource, lexSource } from "./lexer";
 import { parseSourceLines, type ParsedLine } from "./parser";
 
 export type DocumentLine = {
@@ -16,7 +17,19 @@ export type ParsedDocument = {
   errors: readonly DocumentError[];
 };
 
-export function parseDocument(source: string): ParsedDocument {
+export type CachedDocument = {
+  source: string;
+  lexed: LexedSource;
+  parsed: ParsedDocument;
+};
+
+export function buildCachedDocument(source: string): CachedDocument {
+  const lexed = lexSource(source);
+  const parsed = parseDocument(lexed);
+  return { source, lexed, parsed };
+}
+
+export function parseDocument(source: string | LexedSource): ParsedDocument {
   const parsedLines = parseSourceLines(source);
   const lines: DocumentLine[] = [];
   const errors: DocumentError[] = [];

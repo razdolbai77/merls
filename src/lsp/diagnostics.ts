@@ -5,7 +5,7 @@ import {
   type Diagnostic as LspDiagnostic
 } from "vscode-languageserver/node";
 
-import { parseDocument } from "../asm/document";
+import { type CachedDocument } from "../asm/document";
 import {
   collectWorkspaceDiagnostics,
   type Diagnostic as AsmDiagnostic,
@@ -13,19 +13,19 @@ import {
 } from "../asm/diagnostics";
 
 export function collectDiagnosticsByUri(
-  openDocuments: ReadonlyMap<string, string>
+  openDocuments: ReadonlyMap<string, CachedDocument>
 ): Map<string, readonly LspDiagnostic[]> {
   const sourcesByFilePath = new Map<string, string>();
   const uriByFilePath = new Map<string, string>();
   const entries: DocumentEntry[] = [];
 
-  for (const [uri, source] of openDocuments.entries()) {
+  for (const [uri, cached] of openDocuments.entries()) {
     const filePath = uriToFilePath(uri);
-    sourcesByFilePath.set(filePath, source);
+    sourcesByFilePath.set(filePath, cached.source);
     uriByFilePath.set(filePath, uri);
     entries.push({
       filePath,
-      document: parseDocument(source)
+      document: cached.parsed
     });
   }
 

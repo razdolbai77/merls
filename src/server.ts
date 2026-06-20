@@ -5,6 +5,7 @@ import {
   createConnection
 } from "vscode-languageserver/node";
 
+import { buildCachedDocument, type CachedDocument } from "./asm/document";
 import { buildDocumentSymbols } from "./lsp/document-symbols";
 import { buildCompletionItems } from "./lsp/completion";
 import { collectDiagnosticsByUri } from "./lsp/diagnostics";
@@ -25,7 +26,7 @@ export function startServer(
   outputStream: NodeJS.WritableStream = process.stdout
 ): Connection {
   const connection = createServerConnection(inputStream, outputStream);
-  const openDocuments = new Map<string, string>();
+  const openDocuments = new Map<string, CachedDocument>();
 
   connection.onInitialize(() => ({
     capabilities: {
@@ -46,7 +47,7 @@ export function startServer(
     }
   }));
   connection.onDidOpenTextDocument((params) => {
-    openDocuments.set(params.textDocument.uri, params.textDocument.text);
+    openDocuments.set(params.textDocument.uri, buildCachedDocument(params.textDocument.text));
     publishDiagnostics();
   });
   connection.onDidChangeTextDocument((params) => {
@@ -55,7 +56,7 @@ export function startServer(
       return;
     }
 
-    openDocuments.set(params.textDocument.uri, nextText);
+    openDocuments.set(params.textDocument.uri, buildCachedDocument(nextText));
     publishDiagnostics();
   });
   connection.onDidCloseTextDocument((params) => {
@@ -67,12 +68,12 @@ export function startServer(
     publishDiagnostics();
   });
   connection.onDocumentSymbol((params) => {
-    const source = openDocuments.get(params.textDocument.uri);
-    if (source === undefined) {
+    const cached = openDocuments.get(params.textDocument.uri);
+    if (cached === undefined) {
       return [];
     }
 
-    return buildDocumentSymbols(params.textDocument.uri, source);
+    return buildDocumentSymbols(params.textDocument.uri, cached);
   });
   connection.onWorkspaceSymbol((params) =>
     buildWorkspaceSymbols(openDocuments, params.query)
@@ -110,11 +111,11 @@ export function startServer(
     )
   );
   connection.languages.semanticTokens.on((params) => {
-    const source = openDocuments.get(params.textDocument.uri);
-    if (source === undefined) {
+    const cached = openDocuments.get(params.textDocument.uri);
+    if (cached === undefined) {
       return { data: [] };
     }
-    return buildSemanticTokens(source);
+    return buildSemanticTokens(cached);
   });
 
   function publishDiagnostics(): void {

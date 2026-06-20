@@ -1,24 +1,29 @@
 import {
-  CompletionItemKind,
-  type CompletionItem
+  CompletionItem,
+  CompletionItemKind
 } from "vscode-languageserver/node";
 
+import { type CachedDocument } from "../asm/document";
 import { directiveDefinitions, opcodeDefinitions } from "../asm/metadata";
-import { parseDocument } from "../asm/document";
 import { collectSymbols } from "../asm/symbols";
 
 export function buildCompletionItems(
-  openDocuments: ReadonlyMap<string, string>,
+  openDocuments: ReadonlyMap<string, CachedDocument>,
   uri: string,
   line: number
 ): CompletionItem[] {
-  const source = openDocuments.get(uri);
-  if (source === undefined) {
-    return [];
-  }
-
-  const document = parseDocument(source);
+  const cached = openDocuments.get(uri);
   const completions: CompletionItem[] = [];
+
+  if (cached !== undefined) {
+    const symbols = collectSymbols(cached.parsed);
+    for (const symbol of symbols.values()) {
+      completions.push({
+        label: symbol.name,
+        kind: CompletionItemKind.Variable
+      });
+    }
+  }
 
   for (const opcode of opcodeDefinitions) {
     completions.push({
@@ -34,13 +39,7 @@ export function buildCompletionItems(
     });
   }
 
-  const symbols = collectSymbols(document);
-  for (const symbol of symbols.values()) {
-    completions.push({
-      label: symbol.name,
-      kind: CompletionItemKind.Variable
-    });
-  }
+
 
   return completions;
 }

@@ -5,17 +5,16 @@ import {
   SymbolKind
 } from "vscode-languageserver/node";
 
-import { parseDocument } from "../asm/document";
+import { type CachedDocument } from "../asm/document";
 import { type ParsedLine } from "../asm/parser";
 
 export function buildDocumentSymbols(
   uri: string,
-  source: string
+  cached: CachedDocument
 ): SymbolInformation[] {
-  const document = parseDocument(source);
   const symbols: SymbolInformation[] = [];
 
-  for (const line of document.lines) {
+  for (const line of cached.parsed.lines) {
     const symbol = toSymbolInformation(uri, line.node, line.line);
     if (symbol !== null) {
       symbols.push(symbol);

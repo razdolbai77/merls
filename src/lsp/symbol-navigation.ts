@@ -1,9 +1,9 @@
 import { type Location } from "vscode-languageserver/node";
 
-import { parseDocument } from "../asm/document";
+import { type CachedDocument } from "../asm/document";
 import { type Expression } from "../asm/expression";
 import { type ParsedLine } from "../asm/parser";
-import { lexSource, type Token } from "../asm/lexer";
+import { type Token } from "../asm/lexer";
 
 type SymbolDefinition = {
   name: string;
@@ -16,7 +16,7 @@ type SymbolReference = {
 };
 
 export function findDefinition(
-  openDocuments: ReadonlyMap<string, string>,
+  openDocuments: ReadonlyMap<string, CachedDocument>,
   uri: string,
   line: number,
   character: number
@@ -26,8 +26,8 @@ export function findDefinition(
     return null;
   }
 
-  for (const [documentUri, source] of openDocuments.entries()) {
-    for (const definition of collectDefinitions(documentUri, source)) {
+  for (const [documentUri, cached] of openDocuments.entries()) {
+    for (const definition of collectDefinitions(documentUri, cached)) {
       if (definition.name === targetName) {
         return definition.location;
       }
@@ -38,7 +38,7 @@ export function findDefinition(
 }
 
 export function findReferences(
-  openDocuments: ReadonlyMap<string, string>,
+  openDocuments: ReadonlyMap<string, CachedDocument>,
   uri: string,
   line: number,
   character: number,
@@ -51,16 +51,16 @@ export function findReferences(
 
   const locations: Location[] = [];
 
-  for (const [documentUri, source] of openDocuments.entries()) {
+  for (const [documentUri, cached] of openDocuments.entries()) {
     if (includeDeclaration) {
-      for (const definition of collectDefinitions(documentUri, source)) {
+      for (const definition of collectDefinitions(documentUri, cached)) {
         if (definition.name === targetName) {
           locations.push(definition.location);
         }
       }
     }
 
-    for (const reference of collectReferences(documentUri, source)) {
+    for (const reference of collectReferences(documentUri, cached)) {
       if (reference.name === targetName) {
         locations.push(reference.location);
       }
@@ -70,12 +70,12 @@ export function findReferences(
   return locations;
 }
 
-function getSymbolAtPosition(source: string | undefined, line: number, character: number): string | null {
-  if (source === undefined) {
+function getSymbolAtPosition(cached: CachedDocument | undefined, line: number, character: number): string | null {
+  if (cached === undefined) {
     return null;
   }
 
-  const lexedLine = lexSource(source).lines[line];
+  const lexedLine = cached.lexed.lines[line];
   if (lexedLine === undefined) {
     return null;
   }
@@ -98,18 +98,16 @@ function tokenAtCharacter(tokens: readonly Token[], character: number): Token | 
   return null;
 }
 
-function collectDefinitions(uri: string, source: string): readonly SymbolDefinition[] {
-  const document = parseDocument(source);
-  const lexedSource = lexSource(source);
+function collectDefinitions(uri: string, cached: CachedDocument): readonly SymbolDefinition[] {
   const definitions: SymbolDefinition[] = [];
 
-  for (const line of document.lines) {
+  for (const line of cached.parsed.lines) {
     const name = getDefinedName(line.node);
     if (name === null) {
       continue;
     }
 
-    const tokens = lexedSource.lines[line.line]?.tokens ?? [];
+    const tokens = cached.lexed.lines[line.line]?.tokens ?? [];
     const token = tokens.find((t) => t.lexeme === name) ?? null;
 
     definitions.push({
@@ -121,18 +119,16 @@ function collectDefinitions(uri: string, source: string): readonly SymbolDefinit
   return definitions;
 }
 
-function collectReferences(uri: string, source: string): readonly SymbolReference[] {
-  const document = parseDocument(source);
-  const lexedSource = lexSource(source);
+function collectReferences(uri: string, cached: CachedDocument): readonly SymbolReference[] {
   const references: SymbolReference[] = [];
 
-  for (const line of document.lines) {
+  for (const line of cached.parsed.lines) {
     const names = getReferencedNames(line.node);
     if (names.length === 0) {
       continue;
     }
 
-    const tokens = lexedSource.lines[line.line]?.tokens ?? [];
+    const tokens = cached.lexed.lines[line.line]?.tokens ?? [];
     let tokenIndex = 0;
 
     for (const name of names) {

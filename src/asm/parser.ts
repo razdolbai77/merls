@@ -1,6 +1,6 @@
 import { directiveTable } from "./metadata";
 import { type Expression, type Operand, parseExpression, parseOperand } from "./expression";
-import { type LexedLine, lexSource, type Token } from "./lexer";
+import { lexSource, type LexedLine, type LexedSource, type Token } from "./lexer";
 
 export type ParsedLine =
   | EmptyLine
@@ -68,8 +68,9 @@ export type MalformedLine = {
 
 const dataDirectiveKinds = new Set(["data"]);
 
-export function parseSourceLines(source: string): readonly ParsedLine[] {
-  return lexSource(source).lines.map(parseLexedLine);
+export function parseSourceLines(source: string | LexedSource): readonly ParsedLine[] {
+  const lexed = typeof source === "string" ? lexSource(source) : source;
+  return lexed.lines.map(parseLexedLine);
 }
 
 export function parseLexedLine(line: LexedLine): ParsedLine {

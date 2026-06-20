@@ -1,5 +1,6 @@
 import { SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokenTypes } from "vscode-languageserver";
-import { lexSource, type TokenKind } from "../asm/lexer";
+import { type TokenKind } from "../asm/lexer";
+import { type CachedDocument } from "../asm/document";
 
 const tokenTypesList = [
   SemanticTokenTypes.comment,
@@ -30,11 +31,10 @@ const tokenTypeMap: Record<TokenKind, number> = {
   identifier: tokenTypesList.indexOf(SemanticTokenTypes.variable)
 };
 
-export function buildSemanticTokens(source: string): SemanticTokens {
-  const lexedSource = lexSource(source);
+export function buildSemanticTokens(cached: CachedDocument): SemanticTokens {
   const builder = new SemanticTokensBuilder();
 
-  for (const line of lexedSource.lines) {
+  for (const line of cached.lexed.lines) {
     for (const token of line.tokens) {
       const typeIndex = tokenTypeMap[token.kind];
       const length = token.end - token.start;

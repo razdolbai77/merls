@@ -1,24 +1,38 @@
-import { type SymbolInformation } from "vscode-languageserver/node";
+import {
+  SymbolKind,
+  type SymbolInformation,
+  type WorkspaceSymbol
+} from "vscode-languageserver/node";
 
+import { type CachedDocument } from "../asm/document";
 import { buildDocumentSymbols } from "./document-symbols";
 
 export function buildWorkspaceSymbols(
-  openDocuments: ReadonlyMap<string, string>,
+  openDocuments: ReadonlyMap<string, CachedDocument>,
   query: string
-): SymbolInformation[] {
-  const normalizedQuery = query.trim().toLowerCase();
-  const symbols: SymbolInformation[] = [];
+): WorkspaceSymbol[] {
+  const symbols: WorkspaceSymbol[] = [];
 
-  for (const [uri, source] of openDocuments.entries()) {
-    for (const symbol of buildDocumentSymbols(uri, source)) {
-      if (
-        normalizedQuery.length === 0 ||
-        symbol.name.toLowerCase().includes(normalizedQuery)
-      ) {
-        symbols.push(symbol);
+  for (const [uri, cached] of openDocuments.entries()) {
+    const documentSymbols = buildDocumentSymbols(uri, cached);
+    for (const symbol of documentSymbols) {
+      if (matchesQuery(symbol, query)) {
+        symbols.push({
+          name: symbol.name,
+          kind: symbol.kind,
+          location: symbol.location
+        });
       }
     }
   }
 
   return symbols;
+}
+
+function matchesQuery(symbol: SymbolInformation, query: string): boolean {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (normalizedQuery.length === 0) {
+    return true;
+  }
+  return symbol.name.toLowerCase().includes(normalizedQuery);
 }
