@@ -4,3 +4,4 @@ coverage/
 *.tsbuildinfo
 test/smoke/tmp/
 test/smoke/check.vim
+/.harper-dictionary.txt
