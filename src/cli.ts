@@ -15,6 +15,13 @@ export function runCli(argv: readonly string[]): number {
     return 0;
   }
 
+  if (argv.length === 1 && (argv[0] === "--version" || argv[0] === "-v")) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { version } = require("../../package.json");
+    process.stdout.write(`${version}\n`);
+    return 0;
+  }
+
   process.stderr.write(`${usage}\n`);
   return 1;
 }

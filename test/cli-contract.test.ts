@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 
 type JsonRpcMessage = {
   id?: number;
@@ -20,11 +20,21 @@ export async function runCliContractTest(): Promise<void> {
   const packageJsonPath = path.resolve(process.cwd(), "package.json");
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
     bin?: Record<string, string>;
+    version?: string;
   };
 
   assert.equal(packageJson.bin?.merls, "dist/src/cli.js");
 
   const cliPath = path.resolve(__dirname, "../src/cli.js");
+
+  const versionResult = spawnSync(process.execPath, [cliPath, "--version"], { encoding: "utf8" });
+  assert.equal(versionResult.stdout.trim(), packageJson.version);
+  assert.equal(versionResult.status, 0);
+
+  const helpResult = spawnSync(process.execPath, [cliPath, "--help"], { encoding: "utf8" });
+  assert.match(helpResult.stdout, /Usage: merls --stdio/);
+  assert.equal(helpResult.status, 0);
+
   const child = spawn(process.execPath, [cliPath, "--stdio"], {
     stdio: ["pipe", "pipe", "pipe"]
   });
