@@ -21,13 +21,16 @@ export type IndexedWorkspace = {
 
 const includeDirectives = new Set(["asm", "put", "use"]);
 
-export function indexWorkspace(entryPath: string): IndexedWorkspace {
+export function indexWorkspace(
+  entryPath: string,
+  overrides?: ReadonlyMap<string, ParsedDocument>
+): IndexedWorkspace {
   const documents = new Map<string, ParsedDocument>();
   const dependencies = new Map<string, readonly string[]>();
   const loadOrder: string[] = [];
   const symbols = new Map<string, WorkspaceSymbol>();
 
-  visitFile(path.resolve(entryPath), documents, dependencies, loadOrder);
+  visitFile(path.resolve(entryPath), documents, dependencies, loadOrder, overrides);
 
   for (const filePath of loadOrder) {
     const document = documents.get(filePath);
@@ -55,20 +58,27 @@ function visitFile(
   filePath: string,
   documents: Map<string, ParsedDocument>,
   dependencies: Map<string, readonly string[]>,
-  loadOrder: string[]
+  loadOrder: string[],
+  overrides?: ReadonlyMap<string, ParsedDocument>
 ): void {
   if (documents.has(filePath)) {
     return;
   }
 
-  let source: string;
-  try {
-    source = fs.readFileSync(filePath, "utf8");
-  } catch {
-    return;
+  let document: ParsedDocument;
+  const override = overrides?.get(filePath);
+  if (override !== undefined) {
+    document = override;
+  } else {
+    let source: string;
+    try {
+      source = fs.readFileSync(filePath, "utf8");
+    } catch {
+      return;
+    }
+    document = parseDocument(source);
   }
 
-  const document = parseDocument(source);
   documents.set(filePath, document);
   loadOrder.push(filePath);
 
@@ -90,7 +100,7 @@ function visitFile(
   dependencies.set(filePath, resolvedDependencies);
 
   for (const dependencyPath of resolvedDependencies) {
-    visitFile(dependencyPath, documents, dependencies, loadOrder);
+    visitFile(dependencyPath, documents, dependencies, loadOrder, overrides);
   }
 }
 
