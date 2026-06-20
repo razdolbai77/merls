@@ -100,6 +100,7 @@ function tokenAtCharacter(tokens: readonly Token[], character: number): Token | 
 
 function collectDefinitions(uri: string, source: string): readonly SymbolDefinition[] {
   const document = parseDocument(source);
+  const lexedSource = lexSource(source);
   const definitions: SymbolDefinition[] = [];
 
   for (const line of document.lines) {
@@ -108,9 +109,12 @@ function collectDefinitions(uri: string, source: string): readonly SymbolDefinit
       continue;
     }
 
+    const tokens = lexedSource.lines[line.line]?.tokens ?? [];
+    const token = tokens.find((t) => t.lexeme === name) ?? null;
+
     definitions.push({
       name,
-      location: createLocation(uri, line.line, name)
+      location: createLocation(uri, line.line, token, name)
     });
   }
 
@@ -119,13 +123,31 @@ function collectDefinitions(uri: string, source: string): readonly SymbolDefinit
 
 function collectReferences(uri: string, source: string): readonly SymbolReference[] {
   const document = parseDocument(source);
+  const lexedSource = lexSource(source);
   const references: SymbolReference[] = [];
 
   for (const line of document.lines) {
-    for (const name of getReferencedNames(line.node)) {
+    const names = getReferencedNames(line.node);
+    if (names.length === 0) {
+      continue;
+    }
+
+    const tokens = lexedSource.lines[line.line]?.tokens ?? [];
+    let tokenIndex = 0;
+
+    for (const name of names) {
+      while (tokenIndex < tokens.length && tokens[tokenIndex].lexeme !== name) {
+        tokenIndex++;
+      }
+
+      const token = tokenIndex < tokens.length ? tokens[tokenIndex] : null;
+      if (token !== null) {
+        tokenIndex++;
+      }
+
       references.push({
         name,
-        location: createLocation(uri, line.line, name)
+        location: createLocation(uri, line.line, token, name)
       });
     }
   }
@@ -173,8 +195,6 @@ function getReferencedNames(node: ParsedLine): readonly string[] {
   return [];
 }
 
-
-
 function collectExpressionIdentifiers(expression: Expression): readonly string[] {
   switch (expression.kind) {
     case "identifier":
@@ -193,7 +213,17 @@ function collectExpressionIdentifiers(expression: Expression): readonly string[]
   }
 }
 
-function createLocation(uri: string, line: number, name: string): Location {
+function createLocation(uri: string, line: number, token: Token | null, fallbackName: string): Location {
+  if (token !== null) {
+    return {
+      uri,
+      range: {
+        start: { line, character: token.start },
+        end: { line, character: token.end }
+      }
+    };
+  }
+
   return {
     uri,
     range: {
@@ -203,7 +233,7 @@ function createLocation(uri: string, line: number, name: string): Location {
       },
       end: {
         line,
-        character: name.length
+        character: fallbackName.length
       }
     }
   };

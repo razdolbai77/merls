@@ -131,9 +131,11 @@ export async function runDefinitionReferencesTest(): Promise<void> {
       position: { line: bplPos.line, character: bplPos.character + 4 }
     });
 
-    const definition = definitionResponse.result as { uri: string; range: { start: { line: number } } };
+    const definition = definitionResponse.result as { uri: string; range: { start: { line: number; character: number }; end: { line: number; character: number } } };
     assert.equal(definition.uri, mainUri);
     assert.equal(definition.range.start.line, 70);
+    assert.equal(definition.range.start.character, 0); // "GetKey" label
+    assert.equal(definition.range.end.character, 6);
 
     const getKPos = positionOf(text, "GetKey  ldx");
     const referencesResponse = await sendRequest("textDocument/references", {
@@ -144,10 +146,19 @@ export async function runDefinitionReferencesTest(): Promise<void> {
       }
     });
 
-    const references = referencesResponse.result as Array<{ uri: string; range: { start: { line: number } } }>;
+    const references = referencesResponse.result as Array<{ uri: string; range: { start: { line: number; character: number }; end: { line: number; character: number } } }>;
     assert.equal(Array.isArray(references), true);
-    assert.equal(references.some((reference) => reference.uri === mainUri && reference.range.start.line === 70), true);
-    assert.equal(references.some((reference) => reference.uri === mainUri && reference.range.start.line === 71), true);
+    
+    const defRef = references.find((reference) => reference.uri === mainUri && reference.range.start.line === 70);
+    assert.equal(defRef !== undefined, true);
+    assert.equal(defRef?.range.start.character, 0); // "GetKey" label
+    assert.equal(defRef?.range.end.character, 6);
+
+    const usageRef = references.find((reference) => reference.uri === mainUri && reference.range.start.line === 71);
+    assert.equal(usageRef !== undefined, true);
+    const expectedUsageChar = text.split("\n")[71].indexOf("GetKey");
+    assert.equal(usageRef?.range.start.character, expectedUsageChar);
+    assert.equal(usageRef?.range.end.character, expectedUsageChar + 6);
   } finally {
     child.kill();
   }

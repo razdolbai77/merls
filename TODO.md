@@ -3,7 +3,7 @@
 ## High Priority - Bug Fixes
 
 - [x] Fix incorrect `Location` ranges in `src/lsp/document-symbols.ts`'s `createLocation`. It currently hardcodes `start.character: 0` instead of using the actual token offset.
-- [ ] Fix incorrect `Location` ranges in `src/lsp/symbol-navigation.ts`'s `createLocation` to use the actual character start and end index from the lexed token instead of just `name.length` from index 0.
+- [x] Fix incorrect `Location` ranges in `src/lsp/symbol-navigation.ts`'s `createLocation` to use the actual character start and end index from the lexed token instead of just `name.length` from index 0.
 
 ## Medium Priority - Performance Optimization
 
