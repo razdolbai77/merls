@@ -177,9 +177,12 @@ export function startServer(
       params.position.character
     )
   );
-  connection.onCompletion(() =>
+  connection.onCompletion((params) =>
     buildCompletionItems(
-      getIndexedDocuments()
+      getIndexedDocuments(),
+      params.textDocument.uri,
+      params.position.line,
+      params.position.character
     )
   );
   connection.languages.semanticTokens.on((params) => {
