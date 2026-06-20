@@ -135,29 +135,6 @@ function getGlobalLabel(node: ParsedLine): string | null {
   return null;
 }
 
-function getDefinitionName(node: ParsedLine): string | null {
-  if (node.shape === "equate") {
-    return node.label.lexeme;
-  }
-
-  if (node.shape === "labelOnly") {
-    return node.label.lexeme;
-  }
-
-  if (node.shape === "instruction" && node.label !== null) {
-    return node.label.lexeme;
-  }
-
-  if (node.shape === "directive" && node.label !== null) {
-    return node.label.lexeme;
-  }
-
-  if (node.shape === "data" && node.label !== null) {
-    return node.label.lexeme;
-  }
-
-  return null;
-}
 
 function getLocalDefinition(node: ParsedLine): string | null {
   if (node.shape === "labelOnly" && isLocalLabel(node.label.lexeme)) {

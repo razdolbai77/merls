@@ -2,7 +2,7 @@ import { type Hover } from "vscode-languageserver/node";
 
 import { directiveTable, opcodeTable } from "../asm/metadata";
 import { type CachedDocument } from "../asm/document";
-import { type Token, tokenAtCharacter } from "../asm/lexer";
+import { tokenAtCharacter } from "../asm/lexer";
 import { findDefinition } from "./symbol-navigation";
 
 export function buildHover(

@@ -106,8 +106,7 @@ export function startServer(
   connection.onCompletion((params) =>
     buildCompletionItems(
       openDocuments,
-      params.textDocument.uri,
-      params.position.line
+      params.textDocument.uri
     )
   );
   connection.languages.semanticTokens.on((params) => {

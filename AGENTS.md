@@ -35,8 +35,9 @@ The coc.nvim smoke test now lives under `test/smoke/` with a headless Vim runner
 The repository now includes the initial Node/TypeScript workspace scaffold:
 
 - `npm install`: install project dependencies.
+- `npm run lint`: run ESLint on the project to check for linting errors and warnings.
 - `npm run build`: compile TypeScript sources to `dist/`.
-- `npm test`: build the project and run the current test suite.
+- `npm test`: run linting, build the project, and run the current test suite.
 - `npm run dev`: run the TypeScript compiler in watch mode during bootstrap work.
 
 The supported stdio launch contract is now `merls --stdio`, with `node dist/src/cli.js --stdio` as the equivalent local-development invocation.
@@ -47,9 +48,11 @@ Use TypeScript throughout the implementation. Prefer small modules with explicit
 
 Keep parser, symbol, and LSP layers separate. Name tests and fixtures after the behavior they cover, for example `parser.labels.test.ts` or `fixtures/invalid/65816-long-a.S`.
 
-## Testing Guidelines
+## Testing and Linting Guidelines
 
 TDD is mandatory in this repository: add or extend a failing test or fixture before implementation. Positive fixtures must cover supported Merlin-style 6502 syntax. Negative fixtures must explicitly cover unsupported 65816 syntax and expected diagnostics.
+
+Linting is enforced using ESLint. No task can be called complete unless both linting (`npm run lint`) and tests (`npm test`) pass 100% with no warnings. Disabling linting rules (e.g. using `// eslint-disable`) is absolutely forbidden.
 
 Prefer focused unit tests for lexer/parser behavior and integration tests for LSP requests such as `initialize`, hover, and definition.
 

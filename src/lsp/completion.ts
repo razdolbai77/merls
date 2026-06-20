@@ -9,8 +9,7 @@ import { collectSymbols } from "../asm/symbols";
 
 export function buildCompletionItems(
   openDocuments: ReadonlyMap<string, CachedDocument>,
-  uri: string,
-  line: number
+  uri: string
 ): CompletionItem[] {
   const cached = openDocuments.get(uri);
   const completions: CompletionItem[] = [];

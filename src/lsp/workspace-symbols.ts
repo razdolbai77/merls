@@ -1,5 +1,4 @@
 import {
-  SymbolKind,
   type SymbolInformation,
   type WorkspaceSymbol
 } from "vscode-languageserver/node";

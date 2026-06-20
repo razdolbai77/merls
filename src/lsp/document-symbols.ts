@@ -1,6 +1,4 @@
 import {
-  type Location,
-  type Range,
   type SymbolInformation,
   SymbolKind
 } from "vscode-languageserver/node";
