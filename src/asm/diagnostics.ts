@@ -215,9 +215,9 @@ function findExpressionReferences(node: ParsedLine): readonly string[] {
   }
 
   if (node.shape === "directive" && node.operand !== null) {
-    const directive = directiveTable.get(node.directive.lexeme);
+    const directive = directiveTable.get(node.directive.lexeme.toLowerCase());
     if (directive?.kind === "include" || directive?.kind === "build") {
-      if (node.directive.lexeme === "typ") {
+      if (node.directive.lexeme.toLowerCase() === "typ") {
         const knownAliases = new Set([
           "txt", "bin", "sys", "bas", "var", "rel",
           "lib", "s16", "rtl", "exe", "pif", "tif",
@@ -266,7 +266,7 @@ function getUnsupportedDirective(node: ParsedLine): string | null {
     return null;
   }
 
-  const directive = directiveTable.get(node.directive.lexeme);
+  const directive = directiveTable.get(node.directive.lexeme.toLowerCase());
   if (directive?.supported === false) {
     return node.directive.lexeme;
   }

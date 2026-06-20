@@ -31,7 +31,7 @@ export function collectSymbols(document: ParsedDocument): Map<string, SymbolDefi
     }
 
     if (node.shape === "directive" && node.label !== null) {
-      const directive = directiveTable.get(node.directive.lexeme);
+      const directive = directiveTable.get(node.directive.lexeme.toLowerCase());
       if (directive?.kind === "data" || directive?.kind === "storage") {
         symbols.set(node.label.lexeme, defineSymbol(node.label.lexeme, "data", line.line));
       } else if (directive?.name === "mac") {
