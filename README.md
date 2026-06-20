@@ -19,6 +19,7 @@ The MVP LSP feature set for Merlin-style 6502 assembly is complete and published
 
 - 6502-only Merlin-style assembly
 - Parser-based diagnostics for the MVP
+- Cross-file symbol resolution via `USE`, `PUT`, and `ASM`
 - Core LSP features such as:
   - diagnostics
   - hover

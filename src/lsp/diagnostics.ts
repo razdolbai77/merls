@@ -13,13 +13,15 @@ import {
 } from "../asm/diagnostics";
 
 export function collectDiagnosticsByUri(
-  openDocuments: ReadonlyMap<string, CachedDocument>
+  openDocuments: ReadonlyMap<string, CachedDocument>,
+  allDocuments: ReadonlyMap<string, CachedDocument>
 ): Map<string, readonly LspDiagnostic[]> {
   const sourcesByFilePath = new Map<string, string>();
   const uriByFilePath = new Map<string, string>();
   const entries: DocumentEntry[] = [];
+  const openEntries = new Set<string>();
 
-  for (const [uri, cached] of openDocuments.entries()) {
+  for (const [uri, cached] of allDocuments.entries()) {
     const filePath = uriToFilePath(uri);
     sourcesByFilePath.set(filePath, cached.source);
     uriByFilePath.set(filePath, uri);
@@ -27,14 +29,21 @@ export function collectDiagnosticsByUri(
       filePath,
       document: cached.parsed
     });
+    if (openDocuments.has(uri)) {
+      openEntries.add(filePath);
+    }
   }
 
   const diagnosticsByFilePath = new Map<string, LspDiagnostic[]>();
-  for (const entry of entries) {
-    diagnosticsByFilePath.set(entry.filePath, []);
+  for (const filePath of openEntries) {
+    diagnosticsByFilePath.set(filePath, []);
   }
 
   for (const diagnostic of collectWorkspaceDiagnostics(entries)) {
+    if (!openEntries.has(diagnostic.filePath)) {
+      continue;
+    }
+
     const source = sourcesByFilePath.get(diagnostic.filePath);
     const diagnostics = diagnosticsByFilePath.get(diagnostic.filePath);
     if (source === undefined || diagnostics === undefined) {
@@ -45,8 +54,11 @@ export function collectDiagnosticsByUri(
   }
 
   const diagnosticsByUri = new Map<string, readonly LspDiagnostic[]>();
-  for (const [filePath, uri] of uriByFilePath.entries()) {
-    diagnosticsByUri.set(uri, diagnosticsByFilePath.get(filePath) ?? []);
+  for (const filePath of openEntries) {
+    const uri = uriByFilePath.get(filePath);
+    if (uri !== undefined) {
+      diagnosticsByUri.set(uri, diagnosticsByFilePath.get(filePath) ?? []);
+    }
   }
 
   return diagnosticsByUri;

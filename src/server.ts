@@ -256,7 +256,7 @@ export function startServer(
   });
 
   function publishDiagnostics(): void {
-    for (const [uri, diagnostics] of collectDiagnosticsByUri(openDocuments).entries()) {
+    for (const [uri, diagnostics] of collectDiagnosticsByUri(openDocuments, getAllDocuments()).entries()) {
       void connection.sendDiagnostics({
         uri,
         diagnostics: [...diagnostics]
