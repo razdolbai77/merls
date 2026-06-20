@@ -14,6 +14,7 @@ import { findDefinition, findReferences } from "./lsp/symbol-navigation";
 import { buildWorkspaceSymbols } from "./lsp/workspace-symbols";
 import { buildSemanticTokens, semanticTokensLegend } from "./lsp/semantic-tokens";
 import { formatDocument } from "./lsp/formatting";
+import { buildRenameEdits } from "./lsp/rename";
 
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
@@ -126,6 +127,15 @@ export function startServer(
     }
     return formatDocument(cached, params.options);
   });
+  connection.onRenameRequest((params) =>
+    buildRenameEdits(
+      openDocuments,
+      params.textDocument.uri,
+      params.position.line,
+      params.position.character,
+      params.newName
+    )
+  );
 
   function publishDiagnostics(): void {
     for (const [uri, diagnostics] of collectDiagnosticsByUri(openDocuments).entries()) {
