@@ -1,7 +1,7 @@
 import { directiveTable } from "./metadata";
 import { type ParsedDocument } from "./document";
 
-export type SymbolKind = "label" | "equate" | "data";
+export type SymbolKind = "label" | "equate" | "data" | "macro";
 
 export type SymbolDefinition = {
   name: string;
@@ -34,6 +34,8 @@ export function collectSymbols(document: ParsedDocument): Map<string, SymbolDefi
       const directive = directiveTable.get(node.directive.lexeme);
       if (directive?.kind === "data" || directive?.kind === "storage") {
         symbols.set(node.label.lexeme, defineSymbol(node.label.lexeme, "data", line.line));
+      } else if (directive?.name === "mac") {
+        symbols.set(node.label.lexeme, defineSymbol(node.label.lexeme, "macro", line.line));
       }
       continue;
     }

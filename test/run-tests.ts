@@ -27,6 +27,7 @@ import { runFoldingTest } from "./folding.test";
 import { runDocumentLinksTest } from "./document-links.test";
 import { runDocumentHighlightsTest } from "./document-highlights.test";
 import { runInlayHintsTest } from "./inlay-hints.test";
+import { runSignatureHelpTest } from "./signature-help.test";
 
 type TestCase = {
   name: string;
@@ -149,6 +150,10 @@ const tests: TestCase[] = [
   {
     name: "server computes inlay hints for equates",
     run: runInlayHintsTest
+  },
+  {
+    name: "server provides signature help for macros",
+    run: runSignatureHelpTest
   }
 ];
 

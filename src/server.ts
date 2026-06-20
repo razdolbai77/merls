@@ -19,6 +19,7 @@ import { buildFoldingRanges } from "./lsp/folding";
 import { buildDocumentLinks } from "./lsp/document-links";
 import { buildDocumentHighlights } from "./lsp/document-highlights";
 import { buildInlayHints } from "./lsp/inlay-hints";
+import { buildSignatureHelp } from "./lsp/signature-help";
 
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
@@ -47,6 +48,9 @@ export function startServer(
       foldingRangeProvider: true,
       documentHighlightProvider: true,
       inlayHintProvider: true,
+      signatureHelpProvider: {
+        triggerCharacters: [" ", ","]
+      },
       documentLinkProvider: {
         resolveProvider: false
       },
@@ -170,6 +174,14 @@ export function startServer(
   );
   connection.languages.inlayHint.on((params) =>
     buildInlayHints(openDocuments, params.textDocument.uri)
+  );
+  connection.onSignatureHelp((params) =>
+    buildSignatureHelp(
+      openDocuments,
+      params.textDocument.uri,
+      params.position.line,
+      params.position.character
+    )
   );
 
   function publishDiagnostics(): void {

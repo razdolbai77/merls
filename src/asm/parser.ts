@@ -8,6 +8,7 @@ export type ParsedLine =
   | LabelOnlyLine
   | EquateLine
   | InstructionLine
+  | MacroCallLine
   | DirectiveLine
   | DataLine
   | MalformedLine;
@@ -42,6 +43,14 @@ export type InstructionLine = {
   label: Token | null;
   mnemonic: Token;
   operand: Operand | null;
+};
+
+export type MacroCallLine = {
+  shape: "macroCall";
+  text: string;
+  label: Token | null;
+  macro: Token;
+  args: readonly Token[];
 };
 
 export type DirectiveLine = {
@@ -185,6 +194,16 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
       label,
       directive: token,
       operand
+    };
+  }
+
+  if (token.kind === "identifier") {
+    return {
+      shape: "macroCall",
+      text,
+      label,
+      macro: token,
+      args: tokens.slice(index + 1)
     };
   }
 

@@ -172,6 +172,10 @@ function getReferencedTokens(node: ParsedLine): readonly Token[] {
     return collectExpressionIdentifiers(node.expression);
   }
 
+  if (node.shape === "macroCall") {
+    return [node.macro];
+  }
+
   return [];
 }
 
