@@ -25,6 +25,7 @@ import { runFormattingTest } from "./formatting.test";
 import { runRenameTest } from "./rename.test";
 import { runFoldingTest } from "./folding.test";
 import { runDocumentLinksTest } from "./document-links.test";
+import { runDocumentHighlightsTest } from "./document-highlights.test";
 
 type TestCase = {
   name: string;
@@ -139,6 +140,10 @@ const tests: TestCase[] = [
   {
     name: "server resolves document links for include directives",
     run: runDocumentLinksTest
+  },
+  {
+    name: "server computes document highlights for symbols",
+    run: runDocumentHighlightsTest
   }
 ];
 

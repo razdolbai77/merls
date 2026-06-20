@@ -7,7 +7,7 @@
 - [x] **Document Links (`documentLinkProvider`)**: Make `put` and `use` file references directly clickable.
 
 ## Nice-to-Have / Advanced
-- [ ] **Document Highlights (`documentHighlightProvider`)**: Highlight all read/write occurrences of a symbol in the current document.
+- [x] **Document Highlights (`documentHighlightProvider`)**: Highlight all read/write occurrences of a symbol in the current document.
 - [ ] **Inlay Hints (`inlayHintProvider`)**: Render computed values of equates or CPU cycle counts for instructions inline.
 - [ ] **Signature Help (`signatureHelpProvider`)**: Show parameter hints when invoking macros.
 - [ ] **Call Hierarchy (`callHierarchyProvider`)**: Build a call tree by analyzing `JSR` and `JMP` instructions.

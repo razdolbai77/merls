@@ -70,7 +70,7 @@ export function findReferences(
   return locations;
 }
 
-function getSymbolAtPosition(cached: CachedDocument | undefined, line: number, character: number): string | null {
+export function getSymbolAtPosition(cached: CachedDocument | undefined, line: number, character: number): string | null {
   if (cached === undefined) {
     return null;
   }
@@ -88,7 +88,7 @@ function getSymbolAtPosition(cached: CachedDocument | undefined, line: number, c
   return null;
 }
 
-function collectDefinitions(uri: string, cached: CachedDocument): readonly SymbolDefinition[] {
+export function collectDefinitions(uri: string, cached: CachedDocument): readonly SymbolDefinition[] {
   const definitions: SymbolDefinition[] = [];
 
   for (const line of cached.parsed.lines) {
@@ -112,7 +112,7 @@ function collectDefinitions(uri: string, cached: CachedDocument): readonly Symbo
   return definitions;
 }
 
-function collectReferences(uri: string, cached: CachedDocument): readonly SymbolReference[] {
+export function collectReferences(uri: string, cached: CachedDocument): readonly SymbolReference[] {
   const references: SymbolReference[] = [];
 
   for (const line of cached.parsed.lines) {

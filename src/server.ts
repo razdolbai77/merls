@@ -17,6 +17,7 @@ import { formatDocument } from "./lsp/formatting";
 import { buildRenameEdits } from "./lsp/rename";
 import { buildFoldingRanges } from "./lsp/folding";
 import { buildDocumentLinks } from "./lsp/document-links";
+import { buildDocumentHighlights } from "./lsp/document-highlights";
 
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
@@ -43,6 +44,7 @@ export function startServer(
       renameProvider: true,
       documentFormattingProvider: true,
       foldingRangeProvider: true,
+      documentHighlightProvider: true,
       documentLinkProvider: {
         resolveProvider: false
       },
@@ -156,6 +158,14 @@ export function startServer(
     }
     return buildDocumentLinks(params.textDocument.uri, cached);
   });
+  connection.onDocumentHighlight((params) =>
+    buildDocumentHighlights(
+      openDocuments.get(params.textDocument.uri),
+      params.textDocument.uri,
+      params.position.line,
+      params.position.character
+    )
+  );
 
   function publishDiagnostics(): void {
     for (const [uri, diagnostics] of collectDiagnosticsByUri(openDocuments).entries()) {
