@@ -14,9 +14,9 @@ export function runDiagnosticsTest(): void {
     "        lda missing",
     "dup     equ 2",
     "        adc (",
-    "        dsk ../build/WORLD",
-    "        typ BIN",
-    "        typ BLAH",
+    "        DSK ../build/WORLD",
+    "        TYP BIN",
+    "        TYP BLAH",
     "        end BLAH"
   ].join("\n");
 
