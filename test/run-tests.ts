@@ -31,6 +31,7 @@ import { runSignatureHelpTest } from "./signature-help.test";
 import { runCallHierarchyTest } from "./call-hierarchy.test";
 import { runCodeActionsTest } from "./code-actions.test";
 import { runCodeLensTest } from "./code-lens.test";
+import { runSelectionRangeTest } from "./selection-range.test";
 
 type TestCase = {
   name: string;
@@ -169,6 +170,10 @@ const tests: TestCase[] = [
   {
     name: "server computes code lenses for reference counts",
     run: runCodeLensTest
+  },
+  {
+    name: "server provides smart selection ranges",
+    run: runSelectionRangeTest
   }
 ];
 

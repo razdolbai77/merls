@@ -1,4 +1,4 @@
 - [x] 1: **Code Lens (`codeLensProvider`)**: Display reference counts (e.g., "3 references") above global labels or macros.
-- [ ] 2: **Smart Selection (`selectionRangeProvider`)**: Semantically expand/shrink selection (operand -> instruction -> local scope -> file).
+- [x] 2: **Smart Selection (`selectionRangeProvider`)**: Semantically expand/shrink selection (operand -> instruction -> local scope -> file).
 - [ ] 3: **Workspace File Watchers (`workspace/didChangeWatchedFiles`)**: Dynamically update references and workspace symbols when an included file changes on disk.
 - [ ] 4: **Range Formatting / On-Type Formatting**: Format only a selected snippet (`documentRangeFormattingProvider`), or automatically format a line as soon as the user presses Enter (`documentOnTypeFormattingProvider`).

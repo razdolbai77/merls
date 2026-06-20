@@ -23,6 +23,7 @@ import { buildSignatureHelp } from "./lsp/signature-help";
 import { prepareCallHierarchy, provideCallHierarchyIncomingCalls, provideCallHierarchyOutgoingCalls } from "./lsp/call-hierarchy";
 import { provideCodeActions } from "./lsp/code-actions";
 import { buildCodeLenses } from "./lsp/code-lens";
+import { buildSelectionRanges } from "./lsp/selection-range";
 
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
@@ -56,6 +57,7 @@ export function startServer(
       },
       callHierarchyProvider: true,
       codeActionProvider: true,
+      selectionRangeProvider: true,
       codeLensProvider: {
         resolveProvider: false
       },
@@ -207,6 +209,9 @@ export function startServer(
   );
   connection.onCodeLens((params) =>
     buildCodeLenses(openDocuments, params.textDocument.uri)
+  );
+  connection.onSelectionRanges((params) =>
+    buildSelectionRanges(openDocuments, params.textDocument.uri, params.positions)
   );
 
   function publishDiagnostics(): void {
