@@ -35,8 +35,29 @@ export function buildCompletionItems(
     }
   }
 
+  let exclusiveCompletions: readonly string[] | null = null;
+  if (operandToken !== null && operandToken.kind === "directive") {
+    const directive = directiveTable.get(operandToken.lexeme.toLowerCase());
+    if (directive?.completions) {
+      exclusiveCompletions = directive.completions;
+    }
+  }
+
   const completions: CompletionItem[] = [];
   const seenSymbols = new Set<string>();
+
+  if (exclusiveCompletions !== null) {
+    for (const completion of exclusiveCompletions) {
+      if (!seenSymbols.has(completion)) {
+        seenSymbols.add(completion);
+        completions.push({
+          label: completion,
+          kind: CompletionItemKind.Value
+        });
+      }
+    }
+    return completions;
+  }
 
   for (const doc of openDocuments.values()) {
     const symbols = collectSymbols(doc.parsed);
@@ -47,21 +68,6 @@ export function buildCompletionItems(
           label: symbol.name,
           kind: CompletionItemKind.Variable
         });
-      }
-    }
-  }
-
-  if (operandToken !== null && operandToken.kind === "directive") {
-    const directive = directiveTable.get(operandToken.lexeme.toLowerCase());
-    if (directive?.completions) {
-      for (const completion of directive.completions) {
-        if (!seenSymbols.has(completion)) {
-          seenSymbols.add(completion);
-          completions.push({
-            label: completion,
-            kind: CompletionItemKind.Value
-          });
-        }
       }
     }
   }
