@@ -75,7 +75,7 @@ function visitFile(
   const resolvedDependencies = document.lines
     .flatMap((line) => {
       const node = line.node;
-      if (node.shape !== "directive" || !includeDirectives.has(node.directive.lexeme)) {
+      if (node.shape !== "directive" || !includeDirectives.has(node.directive.lexeme.toLowerCase())) {
         return [];
       }
 
@@ -105,6 +105,25 @@ function readIncludePath(expression: Expression | null): string | null {
 
   if (expression.kind === "string") {
     return expression.value;
+  }
+
+  if (expression.kind === "numericLiteral") {
+    return expression.value;
+  }
+
+  if (expression.kind === "binary") {
+    const left = readIncludePath(expression.left);
+    const right = readIncludePath(expression.right);
+    if (left !== null && right !== null) {
+      return `${left}${expression.operator}${right}`;
+    }
+  }
+
+  if (expression.kind === "unary") {
+    const inner = readIncludePath(expression.expression);
+    if (inner !== null) {
+      return `${expression.operator}${inner}`;
+    }
   }
 
   return null;
