@@ -32,6 +32,7 @@ import { runCallHierarchyTest } from "./call-hierarchy.test";
 import { runCodeActionsTest } from "./code-actions.test";
 import { runCodeLensTest } from "./code-lens.test";
 import { runSelectionRangeTest } from "./selection-range.test";
+import { runWatchedFilesTest } from "./watched-files.test";
 
 type TestCase = {
   name: string;
@@ -174,6 +175,10 @@ const tests: TestCase[] = [
   {
     name: "server provides smart selection ranges",
     run: runSelectionRangeTest
+  },
+  {
+    name: "server handles watched files changes",
+    run: runWatchedFilesTest
   }
 ];
 

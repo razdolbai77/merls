@@ -2,8 +2,11 @@ import {
   Connection,
   ProposedFeatures,
   TextDocumentSyncKind,
-  createConnection
+  createConnection,
+  FileChangeType
 } from "vscode-languageserver/node";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 
 import { buildCachedDocument, type CachedDocument } from "./asm/document";
 import { buildDocumentSymbols } from "./lsp/document-symbols";
@@ -38,6 +41,15 @@ export function startServer(
 ): Connection {
   const connection = createServerConnection(inputStream, outputStream);
   const openDocuments = new Map<string, CachedDocument>();
+  const watchedDocuments = new Map<string, CachedDocument>();
+
+  function getAllDocuments(): Map<string, CachedDocument> {
+    const all = new Map(watchedDocuments);
+    for (const [uri, doc] of openDocuments.entries()) {
+      all.set(uri, doc);
+    }
+    return all;
+  }
 
   connection.onInitialize(() => ({
     capabilities: {
@@ -104,11 +116,11 @@ export function startServer(
     return buildDocumentSymbols(params.textDocument.uri, cached);
   });
   connection.onWorkspaceSymbol((params) =>
-    buildWorkspaceSymbols(openDocuments, params.query)
+    buildWorkspaceSymbols(getAllDocuments(), params.query)
   );
   connection.onDefinition((params) =>
     findDefinition(
-      openDocuments,
+      getAllDocuments(),
       params.textDocument.uri,
       params.position.line,
       params.position.character
@@ -116,7 +128,7 @@ export function startServer(
   );
   connection.onReferences((params) =>
     findReferences(
-      openDocuments,
+      getAllDocuments(),
       params.textDocument.uri,
       params.position.line,
       params.position.character,
@@ -153,7 +165,7 @@ export function startServer(
   });
   connection.onRenameRequest((params) =>
     buildRenameEdits(
-      openDocuments,
+      getAllDocuments(),
       params.textDocument.uri,
       params.position.line,
       params.position.character,
@@ -183,11 +195,11 @@ export function startServer(
     )
   );
   connection.languages.inlayHint.on((params) =>
-    buildInlayHints(openDocuments, params.textDocument.uri)
+    buildInlayHints(getAllDocuments(), params.textDocument.uri)
   );
   connection.onSignatureHelp((params) =>
     buildSignatureHelp(
-      openDocuments,
+      getAllDocuments(),
       params.textDocument.uri,
       params.position.line,
       params.position.character
@@ -201,18 +213,38 @@ export function startServer(
     provideCallHierarchyIncomingCalls(openDocuments, params.item)
   );
   connection.languages.callHierarchy.onOutgoingCalls((params) =>
-    provideCallHierarchyOutgoingCalls(openDocuments, params.item)
+    provideCallHierarchyOutgoingCalls(getAllDocuments(), params.item)
   );
 
   connection.onCodeAction((params) =>
-    provideCodeActions(openDocuments, params.textDocument.uri, params.context.diagnostics)
+    provideCodeActions(getAllDocuments(), params.textDocument.uri, params.context.diagnostics)
   );
   connection.onCodeLens((params) =>
-    buildCodeLenses(openDocuments, params.textDocument.uri)
+    buildCodeLenses(getAllDocuments(), params.textDocument.uri)
   );
   connection.onSelectionRanges((params) =>
-    buildSelectionRanges(openDocuments, params.textDocument.uri, params.positions)
+    buildSelectionRanges(getAllDocuments(), params.textDocument.uri, params.positions)
   );
+
+  connection.onDidChangeWatchedFiles((params) => {
+    for (const change of params.changes) {
+      if (change.type === FileChangeType.Deleted) {
+        watchedDocuments.delete(change.uri);
+      } else {
+        try {
+          let filePath = change.uri;
+          if (filePath.startsWith("file://")) {
+            filePath = fileURLToPath(filePath);
+          }
+          const source = fs.readFileSync(filePath, "utf8");
+          watchedDocuments.set(change.uri, buildCachedDocument(source));
+        } catch {
+          watchedDocuments.delete(change.uri);
+        }
+      }
+    }
+    publishDiagnostics();
+  });
 
   function publishDiagnostics(): void {
     for (const [uri, diagnostics] of collectDiagnosticsByUri(openDocuments).entries()) {
