@@ -40,7 +40,7 @@ function toSymbolInformation(
   return {
     name,
     kind,
-    location: createLocation(uri, line, name)
+    location: createLocation(uri, line, name, node.text)
   };
 }
 
@@ -92,15 +92,18 @@ function getNodeKind(node: ParsedLine): SymbolKind | null {
   return null;
 }
 
-function createLocation(uri: string, line: number, name: string): Location {
+function createLocation(uri: string, line: number, name: string, text: string): Location {
+  const startIndex = text.indexOf(name);
+  const startChar = startIndex !== -1 ? startIndex : 0;
+
   const range: Range = {
     start: {
       line,
-      character: 0
+      character: startChar
     },
     end: {
       line,
-      character: name.length
+      character: startChar + name.length
     }
   };
 

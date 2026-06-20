@@ -106,13 +106,15 @@ export async function runDocumentSymbolTest(): Promise<void> {
     });
     assert.equal(initialize.id, 1);
 
+    const testText = text + "\n  ]INDENTED ds 1\n";
+
     sendNotification("initialized", {});
     sendNotification("textDocument/didOpen", {
       textDocument: {
         uri,
         languageId: "asm",
         version: 1,
-        text
+        text: testText
       }
     });
 
@@ -120,11 +122,25 @@ export async function runDocumentSymbolTest(): Promise<void> {
       textDocument: { uri }
     });
 
-    const symbols = response.result as Array<{ name: string; kind: number }>;
+    const symbols = response.result as Array<{
+      name: string;
+      kind: number;
+      location: {
+        range: {
+          start: { line: number; character: number };
+          end: { line: number; character: number };
+        };
+      };
+    }>;
     assert.equal(Array.isArray(symbols), true);
     assert.equal(symbols.some((symbol) => symbol.name === "TEXT" && symbol.kind === 13), true);
     assert.equal(symbols.some((symbol) => symbol.name === "TEST_START" && symbol.kind === 6), true);
     assert.equal(symbols.some((symbol) => symbol.name === "dum0" && symbol.kind === 8), true);
+
+    const indentedSymbol = symbols.find((symbol) => symbol.name === "]INDENTED");
+    assert.equal(indentedSymbol !== undefined, true);
+    assert.equal(indentedSymbol?.location.range.start.character, 2);
+    assert.equal(indentedSymbol?.location.range.end.character, 11);
   } finally {
     child.kill();
   }
