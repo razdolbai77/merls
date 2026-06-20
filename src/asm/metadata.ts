@@ -134,6 +134,8 @@ export const directiveDefinitions: readonly DirectiveDefinition[] = [
   defineDirective("err", "assembler", true, "Force an assembly error."),
   defineDirective("hex", "data", true, "Emit raw hexadecimal bytes."),
   defineDirective("mac", "assembler", true, "Begin a macro definition."),
+  defineDirective("eom", "assembler", false, "End a macro definition."),
+  defineDirective("<<<", "assembler", false, "End a macro definition."),
   defineDirective("mx", "mode", false, "65816-only accumulator and index width control."),
   defineDirective("org", "assembler", true, "Set or restore the assembly origin."),
   defineDirective("put", "include", true, "Include another source file."),

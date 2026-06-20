@@ -15,6 +15,7 @@ import { buildWorkspaceSymbols } from "./lsp/workspace-symbols";
 import { buildSemanticTokens, semanticTokensLegend } from "./lsp/semantic-tokens";
 import { formatDocument } from "./lsp/formatting";
 import { buildRenameEdits } from "./lsp/rename";
+import { buildFoldingRanges } from "./lsp/folding";
 
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
@@ -40,6 +41,7 @@ export function startServer(
       workspaceSymbolProvider: true,
       renameProvider: true,
       documentFormattingProvider: true,
+      foldingRangeProvider: true,
       semanticTokensProvider: {
         legend: semanticTokensLegend,
         full: true
@@ -136,6 +138,13 @@ export function startServer(
       params.newName
     )
   );
+  connection.onFoldingRanges((params) => {
+    const cached = openDocuments.get(params.textDocument.uri);
+    if (cached === undefined) {
+      return [];
+    }
+    return buildFoldingRanges(cached);
+  });
 
   function publishDiagnostics(): void {
     for (const [uri, diagnostics] of collectDiagnosticsByUri(openDocuments).entries()) {

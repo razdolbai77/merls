@@ -23,6 +23,7 @@ import { runWorkspaceSymbolTest } from "./workspace-symbol.test";
 import { runSemanticTokensTest } from "./semantic-tokens.test";
 import { runFormattingTest } from "./formatting.test";
 import { runRenameTest } from "./rename.test";
+import { runFoldingTest } from "./folding.test";
 
 type TestCase = {
   name: string;
@@ -129,6 +130,10 @@ const tests: TestCase[] = [
   {
     name: "server builds workspace edits for symbol renames",
     run: runRenameTest
+  },
+  {
+    name: "server computes folding ranges for comments, macros, and data",
+    run: runFoldingTest
   }
 ];
 
