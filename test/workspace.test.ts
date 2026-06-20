@@ -26,4 +26,12 @@ export function runWorkspaceGraphTest(): void {
     line: 11,
     filePath: mainPath
   });
+
+  const missingPath = path.resolve(
+    process.cwd(),
+    "test/fixtures/valid/non-existent.S"
+  );
+  const emptyWorkspace = indexWorkspace(missingPath);
+  assert.deepEqual(emptyWorkspace.loadOrder, []);
+  assert.equal(emptyWorkspace.documents.has(missingPath), false);
 }

@@ -61,7 +61,13 @@ function visitFile(
     return;
   }
 
-  const source = fs.readFileSync(filePath, "utf8");
+  let source: string;
+  try {
+    source = fs.readFileSync(filePath, "utf8");
+  } catch {
+    return;
+  }
+
   const document = parseDocument(source);
   documents.set(filePath, document);
   loadOrder.push(filePath);
