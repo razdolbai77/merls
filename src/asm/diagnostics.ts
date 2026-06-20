@@ -114,7 +114,8 @@ function collectUnsupportedDiagnostics(
         filePath,
         line: line.line,
         code: "unsupported-65816",
-        message: `Unsupported 65816 syntax: ${unsupportedText}`
+        message: `Unsupported 65816 syntax: ${unsupportedText}`,
+        // Provide a range spanning the entire text or at least first char
       });
     }
   }
@@ -276,7 +277,7 @@ function getUnsupportedDirective(node: ParsedLine): string | null {
 function getUnsupportedTextPattern(text: string): string | null {
   const trimmed = text.trim().toLowerCase();
 
-  if (/^(pea|mvn|mvp)\b/.test(trimmed)) {
+  if (/^(pea|mvn|mvp|bra|stz)\b/.test(trimmed)) {
     return trimmed.split(/\s+/, 1)[0] ?? trimmed;
   }
 

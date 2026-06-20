@@ -29,6 +29,7 @@ import { runDocumentHighlightsTest } from "./document-highlights.test";
 import { runInlayHintsTest } from "./inlay-hints.test";
 import { runSignatureHelpTest } from "./signature-help.test";
 import { runCallHierarchyTest } from "./call-hierarchy.test";
+import { runCodeActionsTest } from "./code-actions.test";
 
 type TestCase = {
   name: string;
@@ -159,6 +160,10 @@ const tests: TestCase[] = [
   {
     name: "server computes call hierarchy",
     run: runCallHierarchyTest
+  },
+  {
+    name: "server provides code actions for quick fixes",
+    run: runCodeActionsTest
   }
 ];
 

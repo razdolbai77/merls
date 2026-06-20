@@ -21,6 +21,7 @@ import { buildDocumentHighlights } from "./lsp/document-highlights";
 import { buildInlayHints } from "./lsp/inlay-hints";
 import { buildSignatureHelp } from "./lsp/signature-help";
 import { prepareCallHierarchy, provideCallHierarchyIncomingCalls, provideCallHierarchyOutgoingCalls } from "./lsp/call-hierarchy";
+import { provideCodeActions } from "./lsp/code-actions";
 
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
@@ -53,6 +54,7 @@ export function startServer(
         triggerCharacters: [" ", ","]
       },
       callHierarchyProvider: true,
+      codeActionProvider: true,
       documentLinkProvider: {
         resolveProvider: false
       },
@@ -194,6 +196,10 @@ export function startServer(
   );
   connection.languages.callHierarchy.onOutgoingCalls((params) =>
     provideCallHierarchyOutgoingCalls(openDocuments, params.item)
+  );
+
+  connection.onCodeAction((params) =>
+    provideCodeActions(openDocuments, params.textDocument.uri, params.context.diagnostics)
   );
 
   function publishDiagnostics(): void {
