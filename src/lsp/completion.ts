@@ -8,19 +8,21 @@ import { directiveDefinitions, opcodeDefinitions } from "../asm/metadata";
 import { collectSymbols } from "../asm/symbols";
 
 export function buildCompletionItems(
-  openDocuments: ReadonlyMap<string, CachedDocument>,
-  uri: string
+  openDocuments: ReadonlyMap<string, CachedDocument>
 ): CompletionItem[] {
-  const cached = openDocuments.get(uri);
   const completions: CompletionItem[] = [];
+  const seenSymbols = new Set<string>();
 
-  if (cached !== undefined) {
-    const symbols = collectSymbols(cached.parsed);
+  for (const doc of openDocuments.values()) {
+    const symbols = collectSymbols(doc.parsed);
     for (const symbol of symbols.values()) {
-      completions.push({
-        label: symbol.name,
-        kind: CompletionItemKind.Variable
-      });
+      if (!seenSymbols.has(symbol.name)) {
+        seenSymbols.add(symbol.name);
+        completions.push({
+          label: symbol.name,
+          kind: CompletionItemKind.Variable
+        });
+      }
     }
   }
 
