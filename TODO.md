@@ -13,5 +13,5 @@
 
 ## Low Priority - Refactoring
 
-- [ ] Extract the duplicated `tokenAtCharacter` function found in `src/lsp/hover.ts:82` and `src/lsp/symbol-navigation.ts:91` into a shared utility file (e.g., `src/lsp/utils.ts` or `src/asm/lexer.ts`).
+- [x] Extract the duplicated `tokenAtCharacter` function found in `src/lsp/hover.ts:82` and `src/lsp/symbol-navigation.ts:91` into a shared utility file (e.g., `src/lsp/utils.ts` or `src/asm/lexer.ts`).
 - [ ] Enrich the `ParsedLine` AST nodes in `src/asm/parser.ts` to carry token positional information (`start` and `end` indices) so LSP features can construct accurate ranges without needing to fall back to the lexer.

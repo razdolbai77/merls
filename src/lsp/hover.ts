@@ -2,7 +2,7 @@ import { type Hover } from "vscode-languageserver/node";
 
 import { directiveTable, opcodeTable } from "../asm/metadata";
 import { type CachedDocument } from "../asm/document";
-import { lexSource, type Token } from "../asm/lexer";
+import { type Token, tokenAtCharacter } from "../asm/lexer";
 import { findDefinition } from "./symbol-navigation";
 
 export function buildHover(
@@ -73,16 +73,6 @@ export function buildHover(
       return {
         contents: `Directive ${definition.name}: ${definition.summary}`
       };
-    }
-  }
-
-  return null;
-}
-
-function tokenAtCharacter(tokens: readonly Token[], character: number): Token | null {
-  for (const token of tokens) {
-    if (character >= token.start && character < token.end) {
-      return token;
     }
   }
 

@@ -195,3 +195,13 @@ function classifyWord(
 
   return "identifier";
 }
+
+export function tokenAtCharacter(tokens: readonly Token[], character: number): Token | null {
+  for (const token of tokens) {
+    if (character >= token.start && character < token.end) {
+      return token;
+    }
+  }
+
+  return null;
+}

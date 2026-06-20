@@ -3,7 +3,7 @@ import { type Location } from "vscode-languageserver/node";
 import { type CachedDocument } from "../asm/document";
 import { type Expression } from "../asm/expression";
 import { type ParsedLine } from "../asm/parser";
-import { type Token } from "../asm/lexer";
+import { type Token, tokenAtCharacter } from "../asm/lexer";
 
 type SymbolDefinition = {
   name: string;
@@ -83,16 +83,6 @@ function getSymbolAtPosition(cached: CachedDocument | undefined, line: number, c
   const token = tokenAtCharacter(lexedLine.tokens, character);
   if (token?.kind === "identifier" || token?.kind === "label" || token?.kind === "localLabel") {
     return token.lexeme;
-  }
-
-  return null;
-}
-
-function tokenAtCharacter(tokens: readonly Token[], character: number): Token | null {
-  for (const token of tokens) {
-    if (character >= token.start && character < token.end) {
-      return token;
-    }
   }
 
   return null;
