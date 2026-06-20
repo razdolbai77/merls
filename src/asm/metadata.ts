@@ -31,6 +31,7 @@ export type DirectiveDefinition = {
   kind: DirectiveKind;
   supported: boolean;
   summary: string;
+  completions?: readonly string[];
 };
 
 function defineOpcode(
@@ -47,13 +48,15 @@ function defineDirective(
   name: string,
   kind: DirectiveKind,
   supported: boolean,
-  summary: string
+  summary: string,
+  completions?: readonly string[]
 ): DirectiveDefinition {
   return {
     name,
     kind,
     supported,
-    summary
+    summary,
+    completions
   };
 }
 
@@ -136,15 +139,15 @@ export const directiveDefinitions: readonly DirectiveDefinition[] = [
   defineDirective("mac", "assembler", true, "Begin a macro definition."),
   defineDirective("eom", "assembler", false, "End a macro definition."),
   defineDirective("<<<", "assembler", false, "End a macro definition."),
-  defineDirective("mx", "mode", false, "65816-only accumulator and index width control."),
+  defineDirective("mx", "mode", false, "65816-only accumulator and index width control.", ["%00", "%01", "%10", "%11"]),
   defineDirective("org", "assembler", true, "Set or restore the assembly origin."),
   defineDirective("put", "include", true, "Include another source file."),
   defineDirective("sav", "build", true, "Save an output file."),
   defineDirective("sna", "build", true, "Set the output file name."),
   defineDirective("str", "data", true, "Emit a Merlin string."),
-  defineDirective("typ", "build", true, "Set the output file type."),
+  defineDirective("typ", "build", true, "Set the output file type.", ["$00", "$04", "$06", "$F1", "$F9", "$FA", "$FC", "$FD", "$FE", "$FF", "NON", "TXT", "BIN", "OBJ", "OS", "INT", "BAS", "VAR", "REL", "SYS"]),
   defineDirective("use", "include", true, "Include a library-style source file."),
-  defineDirective("xc", "mode", false, "65816-only extended instruction mode control.")
+  defineDirective("xc", "mode", false, "65816-only extended instruction mode control.", ["off"])
 ];
 
 export const directiveTable = new Map(

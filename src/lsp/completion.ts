@@ -4,7 +4,7 @@ import {
 } from "vscode-languageserver/node";
 
 import { type CachedDocument } from "../asm/document";
-import { directiveDefinitions, opcodeDefinitions } from "../asm/metadata";
+import { directiveDefinitions, opcodeDefinitions, directiveTable } from "../asm/metadata";
 import { collectSymbols } from "../asm/symbols";
 
 export function buildCompletionItems(
@@ -13,7 +13,7 @@ export function buildCompletionItems(
   line: number,
   character: number
 ): CompletionItem[] {
-  let inOperand = false;
+  let operandToken: { lexeme: string; kind: string } | null = null;
   const cached = openDocuments.get(uri);
   if (cached !== undefined) {
     const lexedLine = cached.lexed.lines[line];
@@ -28,7 +28,7 @@ export function buildCompletionItems(
         }
         if (token.end < character) {
           if (token.kind === "mnemonic" || token.kind === "directive") {
-            inOperand = true;
+            operandToken = token;
           }
         }
       }
@@ -51,7 +51,22 @@ export function buildCompletionItems(
     }
   }
 
-  if (!inOperand) {
+  if (operandToken !== null && operandToken.kind === "directive") {
+    const directive = directiveTable.get(operandToken.lexeme.toLowerCase());
+    if (directive?.completions) {
+      for (const completion of directive.completions) {
+        if (!seenSymbols.has(completion)) {
+          seenSymbols.add(completion);
+          completions.push({
+            label: completion,
+            kind: CompletionItemKind.Value
+          });
+        }
+      }
+    }
+  }
+
+  if (operandToken === null) {
     for (const opcode of opcodeDefinitions) {
       completions.push({
         label: opcode.mnemonic,
