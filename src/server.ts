@@ -124,10 +124,14 @@ export function startServer(
   function getIndexedDocuments(): Map<string, CachedDocument> {
     const all = getAllDocuments();
     const overrides = new Map<string, CachedDocument>();
+    
+    // Normalize paths to prevent duplicate entries (e.g. file:///c:/ vs file:///C:/)
+    const addedPaths = new Set<string>();
     for (const [uri, doc] of all.entries()) {
       let filePath = uri;
       if (filePath.startsWith("file://")) {
         filePath = fileURLToPath(filePath);
+        addedPaths.add(filePath.toLowerCase());
       }
       overrides.set(filePath, doc);
     }
@@ -140,9 +144,11 @@ export function startServer(
       }
       const workspace = indexWorkspace(filePath, overrides);
       for (const [docPath, cached] of workspace.documents.entries()) {
-        const docUri = pathToFileURL(docPath).href;
-        if (!combined.has(docUri)) {
+        const normalizedDocPath = docPath.toLowerCase();
+        if (!addedPaths.has(normalizedDocPath)) {
+          const docUri = pathToFileURL(docPath).href;
           combined.set(docUri, cached);
+          addedPaths.add(normalizedDocPath);
         }
       }
     }
@@ -190,7 +196,7 @@ export function startServer(
     if (cached === undefined) {
       return { data: [] };
     }
-    return buildSemanticTokens(cached);
+    return buildSemanticTokens(cached, getIndexedDocuments());
   });
   connection.onDocumentFormatting((params) => {
     const cached = openDocuments.get(params.textDocument.uri);
