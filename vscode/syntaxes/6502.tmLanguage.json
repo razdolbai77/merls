@@ -9,7 +9,19 @@
       "include": "#strings"
     },
     {
+      "include": "#directives"
+    },
+    {
+      "include": "#labels"
+    },
+    {
       "include": "#instructions"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#operands"
     }
   ],
   "repository": {
@@ -35,11 +47,63 @@
         }
       ]
     },
+    "directives": {
+      "patterns": [
+        {
+          "match": "(?i)\\b(ORG|EQU|HEX|DB|DW|DS|MAC|ENDMAC|USE|PUT|ASM|END|LST|MX|XC|DO|FIN|IF|ELSE|ASC|DA|DEND|DSK|DUM|ERR|EOM|SAV|SNA|STR|TYP)\\b",
+          "name": "support.function.directive.6502"
+        },
+        {
+          "match": "<<<",
+          "name": "support.function.directive.6502"
+        }
+      ]
+    },
+    "labels": {
+      "patterns": [
+        {
+          "match": "^[A-Za-z_][A-Za-z0-9_]*",
+          "name": "entity.name.type.class.6502"
+        },
+        {
+          "match": "(:|\\])[A-Za-z0-9_]*",
+          "name": "entity.name.type.class.6502"
+        }
+      ]
+    },
     "instructions": {
       "patterns": [
         {
           "match": "(?i)\\b(ADC|AND|ASL|BCC|BCS|BEQ|BIT|BMI|BNE|BPL|BRK|BVC|BVS|CLC|CLD|CLI|CLV|CMP|CPX|CPY|DEC|DEX|DEY|EOR|INC|INX|INY|JMP|JSR|LDA|LDX|LDY|LSR|NOP|ORA|PHA|PHP|PLA|PLP|ROL|ROR|RTI|RTS|SBC|SEC|SED|SEI|STA|STX|STY|TAX|TAY|TSX|TXA|TXS|TYA)\\b",
           "name": "keyword.control.6502"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "match": "\\$[0-9A-Fa-f]+",
+          "name": "constant.numeric.hex.6502"
+        },
+        {
+          "match": "#\\$[0-9A-Fa-f]+",
+          "name": "constant.numeric.hex.6502"
+        },
+        {
+          "match": "#[0-9]+",
+          "name": "constant.numeric.decimal.6502"
+        },
+        {
+          "match": "%[01]+",
+          "name": "constant.numeric.binary.6502"
+        }
+      ]
+    },
+    "operands": {
+      "patterns": [
+        {
+          "match": "[A-Za-z_][A-Za-z0-9_]*",
+          "name": "variable.other.constant.6502"
         }
       ]
     }

@@ -147,7 +147,12 @@ export const directiveDefinitions: readonly DirectiveDefinition[] = [
   defineDirective("str", "data", true, "Emit a Merlin string."),
   defineDirective("typ", "build", true, "Set the output file type.", ["$00", "$04", "$06", "$F1", "$F9", "$FA", "$FC", "$FD", "$FE", "$FF", "NON", "TXT", "BIN", "OBJ", "OS", "INT", "BAS", "VAR", "REL", "SYS"]),
   defineDirective("use", "include", true, "Include a library-style source file."),
-  defineDirective("xc", "mode", false, "65816-only extended instruction mode control.", ["off"])
+  defineDirective("xc", "mode", false, "65816-only extended instruction mode control.", ["off"]),
+  defineDirective("lst", "assembler", true, "Control listing output."),
+  defineDirective("do", "assembler", true, "Begin conditional assembly block."),
+  defineDirective("fin", "assembler", true, "End conditional assembly block."),
+  defineDirective("if", "assembler", true, "Begin conditional assembly."),
+  defineDirective("else", "assembler", true, "Else branch for conditional assembly.")
 ];
 
 export const directiveTable = new Map(

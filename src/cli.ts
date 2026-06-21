@@ -7,7 +7,7 @@ import { startServer } from "./server";
 const usage = "Usage: merls --stdio";
 
 export function runCli(argv: readonly string[]): number {
-  if (argv.length === 1 && argv[0] === "--stdio") {
+  if (argv.includes("--stdio")) {
     startServer();
     return 0;
   }
