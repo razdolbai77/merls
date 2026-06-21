@@ -4,6 +4,10 @@
   "description": "Language server for Merlin32-style 6502 assembly.",
   "license": "MIT",
   "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "https://codeberg.org/razdolbai/merls.git"
+  },
   "bin": {
     "merls": "dist/src/cli.js"
   },
