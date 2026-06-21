@@ -1,6 +1,6 @@
-# Pearls (VS Code Extension)
+# Pearls Development Guide
 
-This is the official Visual Studio Code extension for the `merls` Merlin-style 6502 assembly language server. It brings standard language features like syntax highlighting, hover documentation, definition navigation, and semantic tokens directly to VS Code.
+This is the official Visual Studio Code extension for the `merls` Merlin32-style 6502 assembly language server. It brings standard language features like syntax highlighting, hover documentation, definition navigation, and semantic tokens directly to VS Code.
 
 ## Development
 
@@ -28,7 +28,7 @@ To package the extension into a standalone `.vsix` file that can be distributed:
    ```bash
    npx @vscode/vsce package
    ```
-2. This command will compile the extension and generate a file named `pearls-1.0.0.vsix` in the same directory. The `.vscodeignore` file automatically ensures development and source files aren't included in this bundle.
+2. This command will compile the extension and generate a file named `pearls-2.0.0.vsix` in the same directory. The `.vscodeignore` file automatically ensures development and source files aren't included in this bundle.
 
 ## Installing Locally
 

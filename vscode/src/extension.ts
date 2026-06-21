@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { workspace, ExtensionContext } from 'vscode';
+import { workspace, window, ExtensionContext } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -23,30 +23,41 @@ export function activate(context: ExtensionContext) {
     serverOptions = {
       run: {
         module: localServerPath,
+        args: ['--stdio'],
         transport: TransportKind.stdio
       },
       debug: {
         module: localServerPath,
+        args: ['--stdio'],
         transport: TransportKind.stdio,
         // allow attaching debugger to the language server
         options: { execArgv: ['--nolazy', '--inspect=6009'] }
       }
     };
   } else {
+    const packagedServerPath = context.asAbsolutePath(
+      path.join('node_modules', '@razdolbai', 'merls', 'dist', 'src', 'cli.js')
+    );
+
     serverOptions = {
       run: {
-        command: 'merls',
-        args: ['--stdio']
+        module: packagedServerPath,
+        args: ['--stdio'],
+        transport: TransportKind.stdio
       },
       debug: {
-        command: 'merls',
-        args: ['--stdio']
+        module: packagedServerPath,
+        args: ['--stdio'],
+        transport: TransportKind.stdio
       }
     };
   }
 
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ scheme: 'file', language: '6502' }],
+    documentSelector: [
+      { scheme: 'file', language: '6502' },
+      { scheme: 'file', pattern: '**/*.{s,S,asm}' }
+    ],
     synchronize: {
       fileEvents: workspace.createFileSystemWatcher('**/*.{s,S,asm}')
     }
@@ -59,7 +70,9 @@ export function activate(context: ExtensionContext) {
     clientOptions
   );
 
-  client.start();
+  client.start().catch(err => {
+    window.showErrorMessage('Pearls LSP failed to start: ' + err);
+  });
 }
 
 export function deactivate(): Thenable<void> | undefined {
