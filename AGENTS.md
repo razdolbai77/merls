@@ -10,14 +10,14 @@ The current bootstrap server entrypoint is `src/server.ts`, and the packaged CLI
 The repository now includes `examples/coc-settings.json` as the baseline coc.nvim launch example, targeting `dist/src/cli.js --stdio` with `.git` and `package.json` root markers.
 The initial positive fixture corpus now lives under `test/fixtures/valid/` and is transcribed from upstream Merlin32 sources.
 The initial negative fixture corpus now lives under `test/fixtures/invalid/` and captures unsupported 65816-only syntax.
-Shared 6502 opcode and Merlin directive metadata now lives under `src/asm/metadata.ts`.
+Shared 6502 opcode and Merlin32 directive metadata now lives under `src/asm/metadata.ts`.
 Shared token-kind and line-shape metadata now lives under `src/asm/syntax.ts`.
 The current lexer implementation now lives under `src/asm/lexer.ts` and is covered by fixture-driven unit tests.
 The current expression parser now lives under `src/asm/expression.ts` and is covered by unit tests for numeric forms, modifiers, arithmetic, and indexed operands.
 The current line parser now lives under `src/asm/parser.ts` and classifies equates, instructions, directives, data lines, and malformed input.
 The current document model now lives under `src/asm/document.ts` and preserves line-by-line structure while collecting malformed-line errors.
 The current symbol collector now lives under `src/asm/symbols.ts` and indexes labels, equates, and named storage/data definitions.
-The current local-label resolver now lives under `src/asm/local-labels.ts` and resolves Merlin `]local` and `:local` labels within the nearest global-label scope.
+The current local-label resolver now lives under `src/asm/local-labels.ts` and resolves Merlin32 `]local` and `:local` labels within the nearest global-label scope.
 The current workspace indexer now lives under `src/asm/workspace.ts` and follows `asm`/`put`/`use` directives across the local fixture corpus.
 The current diagnostics pass now lives under `src/asm/diagnostics.ts` and reports duplicate symbols, unresolved references, malformed lines, and unsupported 65816-only syntax.
 The current `textDocument/documentSymbol` provider is wired through `src/server.ts` and `src/lsp/document-symbols.ts`.
@@ -30,6 +30,9 @@ The current `textDocument/publishDiagnostics` path is wired through `src/server.
 Additional advanced LSP handlers for rename, formatting, folding, document highlights, inlay hints, signature help, call hierarchy, code actions, code lenses, document links, and selection ranges are also fully wired through `src/server.ts` to their respective modules in `src/lsp/`.
 The current packaged CLI entrypoint lives under `src/cli.ts` and is covered by a compiled stdio launch-contract integration test.
 The coc.nvim smoke test now lives under `test/smoke/` with a headless Vim runner (`run-smoke.ps1`) and a minimal vimrc that isolates the test from the user's real Vim configuration.
+A fully standalone Visual Studio Code extension is located under the `vscode/` directory, which relies on the bundled server codebase and TextMate fallbacks.
+Cross-file symbol and macro resolution for semantic tokens ensures robust syntax highlighting without relying purely on TextMate scopes.
+URI normalization is strictly enforced inside `getIndexedDocuments()` to prevent duplicate workspace index entries on Windows due to case mismatches.
 
 ## Build, Test, and Development Commands
 
@@ -51,7 +54,7 @@ Keep parser, symbol, and LSP layers separate. Name tests and fixtures after the 
 
 ## Testing and Linting Guidelines
 
-TDD is mandatory in this repository: add or extend a failing test or fixture before implementation. Positive fixtures must cover supported Merlin-style 6502 syntax. Negative fixtures must explicitly cover unsupported 65816 syntax and expected diagnostics.
+TDD is mandatory in this repository: add or extend a failing test or fixture before implementation. Positive fixtures must cover supported Merlin32-style 6502 syntax. Negative fixtures must explicitly cover unsupported 65816 syntax and expected diagnostics.
 
 Linting is enforced using ESLint. No task can be called complete unless both linting (`npm run lint`) and tests (`npm test`) pass 100% with no warnings. Disabling linting rules (e.g. using `// eslint-disable`) is absolutely forbidden.
 

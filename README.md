@@ -1,23 +1,26 @@
 # merls
 
-`merls` is a language server for **Merlin-style 6502 assembly** with **coc.nvim** as the primary editor target.
+`merls` is a powerful Language Server for **Merlin32-style 6502 assembly**. It provides a rich set of intelligent IDE features and includes a fully-fledged **Visual Studio Code extension** as well as a standalone server published to npm (e.g., for **coc.nvim**).
 
 ## Status
 
-The MVP LSP feature set for Merlin-style 6502 assembly is complete and published to npm as `@razdolbai/merls`. It provides core language server features and is ready to be used with editors like `coc.nvim`.
+The MVP LSP feature set for Merlin32-style 6502 assembly is complete. The repository now includes:
+1. A standalone Language Server (`@razdolbai/merls`) published to npm for use with Neovim/Vim.
+2. A bundled VS Code Extension (in the `vscode/` directory) for a plug-and-play graphical editor experience.
 
 ## Goals
 
 - Provide a standalone LSP server over stdio
+- Provide a seamless out-of-the-box experience in VS Code via the native extension
 - Work cleanly with coc.nvim through standard language-server configuration
-- support Merlin-style 6502 source structure, symbols, directives, and expressions
+- Support Merlin32-style 6502 source structure, symbols, directives, and expressions
 - Deliver useful editing features before deeper assembler integration
 
 ## Scope
 
 ### In Scope
 
-- 6502-only Merlin-style assembly
+- 6502-only Merlin32-style assembly
 - Parser-based diagnostics for the MVP
 - Cross-file symbol resolution via `USE`, `PUT`, and `ASM`
 - Extensive LSP features including:
@@ -56,7 +59,19 @@ The MVP LSP feature set for Merlin-style 6502 assembly is complete and published
 
 ## Installation
 
-Install globally via npm:
+### VS Code (Primary)
+The VS Code extension lives in the `vscode/` folder. It bundles the Language Server automatically.
+To package and install it locally:
+```sh
+cd vscode
+npm install
+npm run compile
+npx vsce package
+code --install-extension pearls-1.0.0.vsix
+```
+
+### Standalone Server (coc.nvim / Neovim)
+If you are using Vim/Neovim or another LSP client, you can install the standalone server globally via npm:
 
 ```sh
 npm install -g @razdolbai/merls
@@ -70,12 +85,11 @@ npm install -g @razdolbai/merls
 - `npm run dev`: run the TypeScript compiler in watch mode during bootstrap work
 - `pwsh test/smoke/run-smoke.ps1`: run the headless Vim + coc.nvim smoke test (requires Vim with coc.nvim installed via vim-plug)
 
-The packaged CLI entry point now lives at `dist/src/cli.js`.
+The packaged CLI entry point now lives at `dist/src/cli.js`. For VS Code specific development, refer to `vscode/DEVELOPMENT.md`.
 
 ## CLI Contract
 
 The supported stdio launch contract is `merls --stdio`.
-
 
 ## coc.nvim Target
 
@@ -113,6 +127,6 @@ An example configuration lives in `examples/coc-settings.json`.
 - Core syntax, parsing, and document model logic are located in `src/asm/`.
 - LSP handlers (hover, completion, diagnostics, etc.) are located in `src/lsp/`.
 - The CLI entry point lives in `src/cli.ts` and compiles to `dist/src/cli.js`.
-- The `test/fixtures/valid/` directory contains supported 6502 Merlin-style syntax samples.
+- The `test/fixtures/valid/` directory contains supported 6502 Merlin32-style syntax samples.
 - The `test/fixtures/invalid/` directory contains unsupported 65816-only syntax samples for negative testing.
 - The integration test suite covers stdio `initialize`, the CLI contract, and core LSP features.
