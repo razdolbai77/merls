@@ -28,7 +28,7 @@ To package the extension into a standalone `.vsix` file that can be distributed:
    ```bash
    npx @vscode/vsce package
    ```
-2. This command will compile the extension and generate a file named `pearls-2.0.0.vsix` in the same directory. The `.vscodeignore` file automatically ensures development and source files aren't included in this bundle.
+2. This command will compile the extension and generate a file named `pearls-a.b.c.vsix` in the same directory. The `.vscodeignore` file automatically ensures development and source files aren't included in this bundle.
 
 ## Installing Locally
 
