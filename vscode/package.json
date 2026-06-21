@@ -3,6 +3,7 @@
   "displayName": "Pearls",
   "description": "VS Code extension for 6502 assembly, powered by merls",
   "version": "1.0.0",
+  "publisher": "razdolbai",
   "engines": {
     "vscode": "^1.80.0"
   },
