@@ -1,0 +1,48 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "6502 Assembly",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#instructions"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "match": "(^\\*|;).*$",
+          "name": "comment.line.6502"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "begin": "\"",
+          "end": "\"",
+          "name": "string.quoted.double.6502"
+        },
+        {
+          "begin": "'",
+          "end": "'",
+          "name": "string.quoted.single.6502"
+        }
+      ]
+    },
+    "instructions": {
+      "patterns": [
+        {
+          "match": "(?i)\\b(ADC|AND|ASL|BCC|BCS|BEQ|BIT|BMI|BNE|BPL|BRK|BVC|BVS|CLC|CLD|CLI|CLV|CMP|CPX|CPY|DEC|DEX|DEY|EOR|INC|INX|INY|JMP|JSR|LDA|LDX|LDY|LSR|NOP|ORA|PHA|PHP|PLA|PLP|ROL|ROR|RTI|RTS|SBC|SEC|SED|SEI|STA|STX|STY|TAX|TAY|TSX|TXA|TXS|TYA)\\b",
+          "name": "keyword.control.6502"
+        }
+      ]
+    }
+  },
+  "scopeName": "source.6502"
+}

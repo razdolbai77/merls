@@ -1,0 +1,54 @@
+{
+  "name": "pearls",
+  "displayName": "Pearls",
+  "description": "VS Code extension for 6502 assembly, powered by merls",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:6502"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "6502",
+        "aliases": [
+          "6502 Assembly",
+          "merlin",
+          "merlin32"
+        ],
+        "extensions": [
+          ".s",
+          ".S",
+          ".asm"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "6502",
+        "scopeName": "source.6502",
+        "path": "./syntaxes/6502.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.0.0"
+  }
+}
