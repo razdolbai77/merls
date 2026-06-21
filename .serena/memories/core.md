@@ -1,4 +1,4 @@
-- Completed MVP repo; current durable docs are \README.md\, \AGENTS.md\, and \vscode/DEVELOPMENT.md\.
+- Comprehensive LSP feature set implemented; current durable docs are `README.md`, `AGENTS.md`, and `vscode/DEVELOPMENT.md`.
 - Purpose: standalone LSP server for Merlin32-style 6502 assembly, with primary editor targets including Visual Studio Code (via the newly bundled extension in `vscode/`) and coc.nvim (via the standalone CLI). Published to npm as `@razdolbai/merls`.
 - Scope invariant: 6502-only. 65816 syntax is out of scope and should be diagnosed as unsupported.
 - Contributor rules and doc-maintenance requirement live in \AGENTS.md\.

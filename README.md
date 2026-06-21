@@ -4,7 +4,7 @@
 
 ## Status
 
-The MVP LSP feature set for Merlin32-style 6502 assembly is complete. The repository now includes:
+The LSP feature set for Merlin32-style 6502 assembly is comprehensive and fully implemented. The repository now includes:
 1. A standalone Language Server (`@razdolbai/merls`) published to npm for use with Neovim/Vim.
 2. A bundled VS Code Extension (in the `vscode/` directory) for a plug-and-play graphical editor experience.
 
@@ -21,7 +21,7 @@ The MVP LSP feature set for Merlin32-style 6502 assembly is complete. The reposi
 ### In Scope
 
 - 6502-only Merlin32-style assembly
-- Parser-based diagnostics for the MVP
+- Parser-based diagnostics
 - Cross-file symbol resolution via `USE`, `PUT`, and `ASM`
 - Extensive LSP features including:
   - diagnostics
