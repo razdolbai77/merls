@@ -44,4 +44,46 @@ export function runLocalLabelScopeTest(): void {
     qualifiedName: ":good@70",
     targetLine: 85
   });
+
+  const macroDocument = parseDocument([
+    "Wrap mac",
+    "        ]loop lda ]1",
+    "        bne ]loop",
+    "        eom",
+    "TargetA",
+    "        Wrap TargetA",
+    "TargetB",
+    "        Wrap TargetB"
+  ].join("\n"));
+  const macroScope = resolveLocalLabels(macroDocument);
+
+  assert.deepEqual(macroScope.definitions.get("]loop@5"), {
+    name: "]loop",
+    line: 1,
+    anchor: "TargetA",
+    qualifiedName: "]loop@5"
+  });
+
+  assert.deepEqual(macroScope.definitions.get("]loop@7"), {
+    name: "]loop",
+    line: 1,
+    anchor: "TargetB",
+    qualifiedName: "]loop@7"
+  });
+
+  assert.deepEqual(macroScope.references.get("]loop@5:2"), {
+    name: "]loop",
+    line: 2,
+    anchor: "TargetA",
+    qualifiedName: "]loop@5",
+    targetLine: 1
+  });
+
+  assert.deepEqual(macroScope.references.get("]loop@7:2"), {
+    name: "]loop",
+    line: 2,
+    anchor: "TargetB",
+    qualifiedName: "]loop@7",
+    targetLine: 1
+  });
 }

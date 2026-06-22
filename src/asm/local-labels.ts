@@ -89,6 +89,8 @@ export function resolveLocalLabels(document: ParsedDocument): LocalLabelScope {
     }
   }
 
+  synthesizeMacroLocalLabels(document, definitions, references);
+
   return {
     definitions,
     references
@@ -202,4 +204,61 @@ function isLocalLabel(name: string): boolean {
 
 function qualifyName(name: string, line: number): string {
   return `${name}@${line}`;
+}
+
+function synthesizeMacroLocalLabels(
+  document: ParsedDocument,
+  definitions: Map<string, LocalLabelDefinition>,
+  references: Map<string, LocalLabelReference>
+): void {
+  let currentAnchor: AnchorState | null = null;
+
+  for (const line of document.lines) {
+    currentAnchor = updateAnchor(currentAnchor, line.node, line.line);
+    if (line.node.shape !== "macroCall" || currentAnchor === null) {
+      continue;
+    }
+
+    const macroCallNode = line.node;
+
+    const macroDefinition = document.macroDefinitions.find((definition) => definition.name === macroCallNode.macro.lexeme);
+    if (macroDefinition === undefined) {
+      continue;
+    }
+
+    const expansionDefinitions = new Map<string, LocalLabelDefinition>();
+    for (const bodyLine of macroDefinition.body) {
+      const localDefinition = getLocalDefinition(bodyLine.node);
+      if (localDefinition === null) {
+        continue;
+      }
+
+      const qualifiedName = qualifyName(localDefinition, line.line);
+      const definition: LocalLabelDefinition = {
+        name: localDefinition,
+        line: bodyLine.line,
+        anchor: currentAnchor.name,
+        qualifiedName
+      };
+      definitions.set(qualifiedName, definition);
+      expansionDefinitions.set(localDefinition, definition);
+    }
+
+    for (const bodyLine of macroDefinition.body) {
+      for (const localName of findLocalReferences(bodyLine.node)) {
+        const target = expansionDefinitions.get(localName);
+        if (target === undefined) {
+          continue;
+        }
+
+        references.set(`${qualifyName(localName, line.line)}:${bodyLine.line}`, {
+          name: localName,
+          line: bodyLine.line,
+          anchor: currentAnchor.name,
+          qualifiedName: target.qualifiedName,
+          targetLine: target.line
+        });
+      }
+    }
+  }
 }
