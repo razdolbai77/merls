@@ -136,4 +136,5 @@ An example configuration lives in `examples/coc-settings.json`.
 - Parser tests now explicitly lock down current macro-call parsing and the existing `mac`/`eom`/`<<<` line behavior before macro-structure refactors.
 - The parser now exposes first-class macro definition regions, including body lines, closing directives, positional parameter placeholders, nested macro calls, symbol references, and macro-local label definitions/references, via `src/asm/parser.ts`.
 - The document model now exposes explicit macro definition and macro call structures, including structured macro body usage metadata for parameter references, nested calls, symbol references, and macro-local labels, via `src/asm/document.ts`.
+- The macro index now lives in `src/asm/macros.ts` and collects per-document and per-workspace macro definitions, body ranges, positional arity, referenced symbols, nested macro calls, and macro-local label usage.
 - The integration test suite covers stdio `initialize`, the CLI contract, and core LSP features.

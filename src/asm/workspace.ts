@@ -3,6 +3,7 @@ import path from "node:path";
 
 import { type CachedDocument, buildCachedDocument } from "./document";
 import { type Expression } from "./expression";
+import { collectWorkspaceMacros, type WorkspaceMacroDefinition } from "./macros";
 import { collectSymbols } from "./symbols";
 
 export type WorkspaceSymbol = {
@@ -17,6 +18,7 @@ export type IndexedWorkspace = {
   dependencies: ReadonlyMap<string, readonly string[]>;
   loadOrder: readonly string[];
   symbols: ReadonlyMap<string, WorkspaceSymbol>;
+  macros: ReadonlyMap<string, readonly WorkspaceMacroDefinition[]>;
 };
 
 const includeDirectives = new Set(["asm", "put", "use"]);
@@ -46,11 +48,14 @@ export function indexWorkspace(
     }
   }
 
+  const macros = collectWorkspaceMacros(documents);
+
   return {
     documents,
     dependencies,
     loadOrder,
-    symbols
+    symbols,
+    macros
   };
 }
 

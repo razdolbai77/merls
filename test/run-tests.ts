@@ -12,6 +12,7 @@ import { runHoverTest } from "./hover.test";
 import { runLexerTest } from "./lexer.test";
 import { runLineParserTest } from "./line-parser.test";
 import { runMacroParserTest } from "./macro-parser.test";
+import { runMacroIndexTest } from "./macro-index.test";
 import { runLocalLabelScopeTest } from "./local-labels.test";
 import { runMetadataTableTest } from "./metadata.test";
 import { runPublishDiagnosticsTest } from "./publish-diagnostics.test";
@@ -88,6 +89,10 @@ const tests: TestCase[] = [
   {
     name: "parser recognizes macro definition regions and parameter placeholders",
     run: runMacroParserTest
+  },
+  {
+    name: "macro index collects macro definitions for documents and workspaces",
+    run: runMacroIndexTest
   },
   {
     name: "document model preserves line structure and tolerates malformed lines",
