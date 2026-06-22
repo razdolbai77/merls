@@ -138,4 +138,5 @@ An example configuration lives in `examples/coc-settings.json`.
 - The document model now exposes explicit macro definition and macro call structures, including structured macro body usage metadata for parameter references, nested calls, symbol references, and macro-local labels, via `src/asm/document.ts`.
 - The macro index now lives in `src/asm/macros.ts` and collects per-document and per-workspace macro definitions, body ranges, positional arity, referenced symbols, nested macro calls, and macro-local label usage.
 - The symbol index in `src/asm/symbols.ts` now uses one shared record shape for labels, equates, data definitions, and macros, including token locations and attached macro-definition metadata for macro symbols.
+- Signature help in `src/lsp/signature-help.ts` now derives macro parameter counts from the parsed macro index rather than rescanning macro body text with regexes.
 - The integration test suite covers stdio `initialize`, the CLI contract, and core LSP features.

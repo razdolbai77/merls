@@ -26,4 +26,18 @@ myMac mac
   const help2 = buildSignatureHelp(map, "file:///test.S", 6, 12); // "  myMac foo,"
   assert.ok(help2);
   assert.equal(help2.activeParameter, 1);
+
+  const indexedSource = `
+bigMac mac
+  lda ]10
+  eom
+
+  bigMac value
+  `;
+  const indexedCached = buildCachedDocument(indexedSource);
+  const indexedMap = new Map([["file:///indexed.S", indexedCached]]);
+  const indexedHelp = buildSignatureHelp(indexedMap, "file:///indexed.S", 5, 8);
+  assert.ok(indexedHelp);
+  assert.equal(indexedHelp.signatures[0].parameters?.length, 10);
+  assert.equal(indexedHelp.signatures[0].parameters?.[9]?.label, "]10");
 }

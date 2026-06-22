@@ -36,33 +36,9 @@ export function buildSignatureHelp(
     return null;
   }
 
-  let maxParam = 0;
-  let inMacro = false;
-  const macroDocument = openDocuments.get(macroMatch.uri);
-  for (const l of macroDocument?.parsed.lines ?? []) {
-    if (l.node.shape === "directive" && l.node.label?.lexeme === macroName && l.node.directive.lexeme.toLowerCase() === "mac") {
-      inMacro = true;
-      continue;
-    }
-    if (inMacro) {
-      if (l.node.shape === "directive" && (l.node.directive.lexeme.toLowerCase() === "eom" || l.node.directive.lexeme === "<<<")) {
-        break;
-      }
-      const matches = l.node.text.match(/][1-9]/g);
-      if (matches) {
-        for (const m of matches) {
-          const p = parseInt(m.slice(1), 10);
-          if (p > maxParam) {
-            maxParam = p;
-          }
-        }
-      }
-    }
-  }
+  const maxParam = macroMatch.symbol.macroDefinition?.maxParameterIndex ?? 0;
 
   const parameters: ParameterInformation[] = [];
-  // Merlin macros use ]1 to ]maxParam. If maxParam is 0, maybe there are 0 params, or we just show a generic signature.
-  // We'll show at least up to activeParameter + 1 if maxParam is smaller.
   const displayMax = Math.max(maxParam, activeParameter + 1);
 
   for (let i = 1; i <= displayMax; i++) {
