@@ -8,6 +8,10 @@ export function runLineParserTest(): void {
     "        adc (_tmp+dum1+1,x)",
     "dum0    ds  1",
     "        hex 2C",
+    "        PrintPair #',' , ]1",
+    "MacroDef mac",
+    "        eom",
+    "        <<<",
     "        adc ("
   ].join("\n");
 
@@ -65,5 +69,40 @@ export function runLineParserTest(): void {
     payload: "2C"
   });
 
-  assert.equal(lines[4]?.shape, "malformed");
+  assert.deepEqual(lines[4], {
+    shape: "macroCall",
+    text: "        PrintPair #',' , ]1",
+    label: null,
+    macro: { kind: "identifier", lexeme: "PrintPair", start: 8, end: 17 },
+    args: [
+      { kind: "expressionOperator", lexeme: "#", start: 18, end: 19 },
+      { kind: "string", lexeme: "','", start: 19, end: 22 },
+      { kind: "expressionOperator", lexeme: ",", start: 23, end: 24 },
+      { kind: "localLabel", lexeme: "]1", start: 25, end: 27 }
+    ]
+  });
+
+  assert.deepEqual(lines[5], {
+    shape: "directive",
+    text: "MacroDef mac",
+    label: { kind: "label", lexeme: "MacroDef", start: 0, end: 8 },
+    directive: { kind: "directive", lexeme: "mac", start: 9, end: 12 },
+    operand: null
+  });
+
+  assert.deepEqual(lines[6], {
+    shape: "directive",
+    text: "        eom",
+    label: null,
+    directive: { kind: "directive", lexeme: "eom", start: 8, end: 11 },
+    operand: null
+  });
+
+  assert.deepEqual(lines[7], {
+    shape: "malformed",
+    text: "        <<<",
+    message: "unsupported line start: <"
+  });
+
+  assert.equal(lines[8]?.shape, "malformed");
 }

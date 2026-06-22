@@ -134,4 +134,5 @@ An example configuration lives in `examples/coc-settings.json`.
 - The `test/fixtures/valid/` directory contains supported 6502 Merlin32-style syntax samples.
 - The `test/fixtures/valid/` directory contains supported 6502 Merlin32-style syntax samples, including dedicated macro-coverage fixtures for nested calls, zero-argument macros, local labels, and conditional assembly forms.
 - The `test/fixtures/invalid/` directory contains unsupported 65816-only syntax samples for negative testing plus negative macro fixtures such as macro-generated unresolved references.
+- Parser tests now explicitly lock down current macro-call parsing and the existing `mac`/`eom`/`<<<` line behavior before macro-structure refactors.
 - The integration test suite covers stdio `initialize`, the CLI contract, and core LSP features.

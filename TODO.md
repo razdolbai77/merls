@@ -1,7 +1,7 @@
 # Macro Expansion Awareness TODO
 
 - [x] Add fixture coverage for Merlin32 macro definitions, macro calls, nested macro calls, zero-argument macros, variadic-like comma-heavy arguments, local labels inside macros, conditional assembly inside macros, and macro-generated unresolved references.
-- [ ] Add parser tests that lock down current macro-call and `mac`/`eom` behavior before refactoring.
+- [x] Add parser tests that lock down current macro-call and `mac`/`eom` behavior before refactoring.
 - [ ] Introduce explicit AST/document-model types for macro definitions, macro bodies, macro parameters, and macro call sites instead of inferring macro structure from raw line text.
 - [ ] Extend the parser to recognize macro-definition regions as first-class structures, including start line, end line, body lines, and parameter placeholders referenced as `]1`, `]2`, etc.
 - [ ] Record macro body token usage in a structured form so parameter references, symbol references, nested macro calls, and local-label definitions/references can be distinguished without regex scans.
