@@ -10,7 +10,8 @@ const tokenTypesList = [
   SemanticTokenTypes.string,
   SemanticTokenTypes.number,
   SemanticTokenTypes.operator,
-  SemanticTokenTypes.variable
+  SemanticTokenTypes.variable,
+  SemanticTokenTypes.parameter
 ];
 
 export const semanticTokensLegend: SemanticTokensLegend = {
@@ -54,6 +55,8 @@ export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Ma
   // (In a real scenario, you'd use resolveLocalLabels, but for simple highlighting, matching the text is often enough)
   const isResolved = (name: string) => allSymbols.has(name) || name.startsWith("]") || name.startsWith(":");
 
+
+
   for (const line of cached.lexed.lines) {
     const parsedLine = cached.parsed.lines[line.line]?.node;
 
@@ -81,15 +84,22 @@ export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Ma
         if (isKnownCompletion) {
           // Color known directive arguments (like BIN for TYP) as numbers/constants
           typeIndex = tokenTypeMap["numericLiteral"];
+        } else if (parsedLine?.shape === "directive" && parsedLine.directive.lexeme.toLowerCase() === "mac" && token.start === parsedLine.label?.start) {
+          typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.macro);
+        } else if (parsedLine?.shape === "macroCall" && token.start === parsedLine.macro.start) {
+          typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.macro);
+        } else if (/^\]\d+$/.test(token.lexeme)) {
+          // Macro parameter placeholder
+          typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.parameter);
         } else if (isResolved(token.lexeme)) {
           if (allMacros.has(token.lexeme)) {
-            typeIndex = tokenTypeMap["directive"];
+            typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.macro);
           } else {
-            typeIndex = tokenTypeMap["label"];
+            typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.function); // label
           }
         } else {
           // Unresolved! Let's color it as variable
-          typeIndex = tokenTypeMap["identifier"];
+          typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.variable);
         }
       }
 
