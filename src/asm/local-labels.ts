@@ -260,5 +260,32 @@ function synthesizeMacroLocalLabels(
         });
       }
     }
+
+    for (let nextLineIndex = line.line + 1; nextLineIndex < document.lines.length; nextLineIndex += 1) {
+      const nextLine = document.lines[nextLineIndex];
+      if (nextLine === undefined) {
+        continue;
+      }
+
+      const nextGlobalLabel = getGlobalLabel(nextLine.node);
+      if (nextGlobalLabel !== null) {
+        break;
+      }
+
+      for (const localName of findLocalReferences(nextLine.node)) {
+        const target = expansionDefinitions.get(localName);
+        if (target === undefined) {
+          continue;
+        }
+
+        references.set(qualifyName(localName, nextLine.line), {
+          name: localName,
+          line: nextLine.line,
+          anchor: currentAnchor.name,
+          qualifiedName: target.qualifiedName,
+          targetLine: target.line
+        });
+      }
+    }
   }
 }

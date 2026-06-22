@@ -86,4 +86,39 @@ export function runLocalLabelScopeTest(): void {
     qualifiedName: "]loop@7",
     targetLine: 1
   });
+
+  const mixedScopeDocument = parseDocument([
+    "HostLabel",
+    "        ]loop nop",
+    "Wrap mac",
+    "        ]loop lda ]1",
+    "        bne ]loop",
+    "        eom",
+    "TargetC",
+    "        Wrap TargetC",
+    "        bne ]loop"
+  ].join("\n"));
+  const mixedScope = resolveLocalLabels(mixedScopeDocument);
+
+  assert.deepEqual(mixedScope.definitions.get("]loop@0"), {
+    name: "]loop",
+    line: 1,
+    anchor: "HostLabel",
+    qualifiedName: "]loop@0"
+  });
+
+  assert.deepEqual(mixedScope.definitions.get("]loop@7"), {
+    name: "]loop",
+    line: 3,
+    anchor: "TargetC",
+    qualifiedName: "]loop@7"
+  });
+
+  assert.deepEqual(mixedScope.references.get("]loop@8"), {
+    name: "]loop",
+    line: 8,
+    anchor: "TargetC",
+    qualifiedName: "]loop@7",
+    targetLine: 3
+  });
 }
