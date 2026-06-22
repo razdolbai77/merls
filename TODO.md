@@ -8,7 +8,7 @@
 - [x] Add a macro index module in `src/asm/` that collects macro definitions per document and workspace, including definition location, body range, max positional parameter, referenced symbols, nested calls, and local-label usage.
 - [x] Refactor existing symbol collection so macro definitions and normal symbols share a consistent indexed representation rather than being partially split across `symbols.ts`, `signature-help.ts`, and `symbol-navigation.ts`.
 - [x] Replace the current signature-help implementation with one driven by the macro index so parameter counts and documentation come from parsed macro structure instead of line-text regex matching.
-- [ ] Add signature-help tests for macro arity, active-parameter selection, zero-argument macros, nested expressions as arguments, and commas inside more complex argument forms.
+- [x] Add signature-help tests for macro arity, active-parameter selection, zero-argument macros, nested expressions as arguments, and commas inside more complex argument forms.
 - [ ] Implement macro-call diagnostics for unresolved macro names, missing `eom`/`<<<`, duplicate macro definitions, invalid macro re-entry/nesting rules, and obvious arity mismatches.
 - [ ] Add diagnostics tests that verify macro-definition and macro-call failures report stable ranges and messages.
 - [ ] Build a parameter-substitution model that maps each macro call argument to the parameter placeholders used inside the referenced macro body.

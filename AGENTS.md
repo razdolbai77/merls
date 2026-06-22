@@ -23,6 +23,7 @@ The current document model also exposes explicit macro definition, macro body, p
 The current macro index now lives under `src/asm/macros.ts` and summarizes per-document and per-workspace macro definitions, body ranges, positional parameter counts, referenced symbols, nested macro calls, and macro-local label usage.
 The current symbol collector now lives under `src/asm/symbols.ts` and indexes labels, equates, named storage/data definitions, and macros through one shared symbol-record shape that carries token locations plus attached macro-definition metadata for macro symbols.
 The current signature-help implementation now resolves macro arity from indexed parsed macro definitions instead of rescanning macro body text ad hoc.
+The current signature-help test coverage explicitly includes zero-argument macros, multi-digit positional parameters, nested expressions, and top-level comma tracking for active-parameter selection.
 The current local-label resolver now lives under `src/asm/local-labels.ts` and resolves Merlin32 `]local` and `:local` labels within the nearest global-label scope.
 The current workspace indexer now lives under `src/asm/workspace.ts` and follows `asm`/`put`/`use` directives across the local fixture corpus.
 The current diagnostics pass now lives under `src/asm/diagnostics.ts` and reports duplicate symbols, unresolved references, malformed lines, and unsupported 65816-only syntax.
