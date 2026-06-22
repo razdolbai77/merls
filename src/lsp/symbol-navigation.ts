@@ -4,6 +4,7 @@ import { type CachedDocument } from "../asm/document";
 import { type Expression } from "../asm/expression";
 import { type ParsedLine } from "../asm/parser";
 import { type Token, tokenAtCharacter } from "../asm/lexer";
+import { collectSymbols } from "../asm/symbols";
 
 type SymbolDefinition = {
   name: string;
@@ -89,27 +90,16 @@ export function getSymbolAtPosition(cached: CachedDocument | undefined, line: nu
 }
 
 export function collectDefinitions(uri: string, cached: CachedDocument): readonly SymbolDefinition[] {
-  const definitions: SymbolDefinition[] = [];
-
-  for (const line of cached.parsed.lines) {
-    const token = getDefinedLabelToken(line.node);
-    if (token === null) {
-      continue;
-    }
-
-    definitions.push({
-      name: token.lexeme,
-      location: {
-        uri,
-        range: {
-          start: { line: line.line, character: token.start },
-          end: { line: line.line, character: token.end }
-        }
+  return [...collectSymbols(cached.parsed).values()].map((symbol) => ({
+    name: symbol.name,
+    location: {
+      uri,
+      range: {
+        start: { line: symbol.line, character: symbol.token.start },
+        end: { line: symbol.line, character: symbol.token.end }
       }
-    });
-  }
-
-  return definitions;
+    }
+  }));
 }
 
 export function collectReferences(uri: string, cached: CachedDocument): readonly SymbolReference[] {
@@ -133,30 +123,6 @@ export function collectReferences(uri: string, cached: CachedDocument): readonly
   }
 
   return references;
-}
-
-function getDefinedLabelToken(node: ParsedLine): Token | null {
-  if (node.shape === "equate") {
-    return node.label;
-  }
-
-  if (node.shape === "labelOnly") {
-    return node.label;
-  }
-
-  if (node.shape === "instruction" && node.label !== null) {
-    return node.label;
-  }
-
-  if (node.shape === "directive" && node.label !== null) {
-    return node.label;
-  }
-
-  if (node.shape === "data" && node.label !== null) {
-    return node.label;
-  }
-
-  return null;
 }
 
 function getReferencedTokens(node: ParsedLine): readonly Token[] {

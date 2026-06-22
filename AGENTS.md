@@ -21,7 +21,7 @@ The current parser also exposes first-class macro definition regions with body l
 The current document model now lives under `src/asm/document.ts` and preserves line-by-line structure while collecting malformed-line errors.
 The current document model also exposes explicit macro definition, macro body, parameter-reference, nested-macro-call, symbol-reference, and macro-local-label structures for downstream macro-aware analysis.
 The current macro index now lives under `src/asm/macros.ts` and summarizes per-document and per-workspace macro definitions, body ranges, positional parameter counts, referenced symbols, nested macro calls, and macro-local label usage.
-The current symbol collector now lives under `src/asm/symbols.ts` and indexes labels, equates, and named storage/data definitions.
+The current symbol collector now lives under `src/asm/symbols.ts` and indexes labels, equates, named storage/data definitions, and macros through one shared symbol-record shape that carries token locations plus attached macro-definition metadata for macro symbols.
 The current local-label resolver now lives under `src/asm/local-labels.ts` and resolves Merlin32 `]local` and `:local` labels within the nearest global-label scope.
 The current workspace indexer now lives under `src/asm/workspace.ts` and follows `asm`/`put`/`use` directives across the local fixture corpus.
 The current diagnostics pass now lives under `src/asm/diagnostics.ts` and reports duplicate symbols, unresolved references, malformed lines, and unsupported 65816-only syntax.

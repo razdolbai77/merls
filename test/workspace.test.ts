@@ -24,6 +24,8 @@ export function runWorkspaceGraphTest(): void {
     name: "TEXT",
     kind: "equate",
     line: 11,
+    token: { kind: "label", lexeme: "TEXT", start: 0, end: 4 },
+    macroDefinition: null,
     filePath: mainPath
   });
 

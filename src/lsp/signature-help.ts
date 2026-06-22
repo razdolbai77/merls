@@ -1,5 +1,6 @@
 import { SignatureHelp, SignatureInformation, ParameterInformation } from "vscode-languageserver/node";
 import { CachedDocument } from "../asm/document";
+import { findSymbol } from "../asm/symbols";
 
 export function buildSignatureHelp(
   openDocuments: ReadonlyMap<string, CachedDocument>,
@@ -30,37 +31,33 @@ export function buildSignatureHelp(
     }
   }
 
-  // Find macro definition in any open document
-  let maxParam = 0;
-  let found = false;
+  const macroMatch = findSymbol(openDocuments, macroName, "macro");
+  if (macroMatch === null) {
+    return null;
+  }
 
-  for (const doc of openDocuments.values()) {
-    let inMacro = false;
-    for (const l of doc.parsed.lines) {
-      if (l.node.shape === "directive" && l.node.label?.lexeme === macroName && l.node.directive.lexeme.toLowerCase() === "mac") {
-        inMacro = true;
-        found = true;
-        continue;
+  let maxParam = 0;
+  let inMacro = false;
+  const macroDocument = openDocuments.get(macroMatch.uri);
+  for (const l of macroDocument?.parsed.lines ?? []) {
+    if (l.node.shape === "directive" && l.node.label?.lexeme === macroName && l.node.directive.lexeme.toLowerCase() === "mac") {
+      inMacro = true;
+      continue;
+    }
+    if (inMacro) {
+      if (l.node.shape === "directive" && (l.node.directive.lexeme.toLowerCase() === "eom" || l.node.directive.lexeme === "<<<")) {
+        break;
       }
-      if (inMacro) {
-        if (l.node.shape === "directive" && (l.node.directive.lexeme.toLowerCase() === "eom" || l.node.directive.lexeme === "<<<")) {
-          break;
-        }
-        // look for ]1, ]2, etc.
-        const matches = l.node.text.match(/][1-9]/g);
-        if (matches) {
-          for (const m of matches) {
-            const p = parseInt(m.slice(1), 10);
-            if (p > maxParam) maxParam = p;
+      const matches = l.node.text.match(/][1-9]/g);
+      if (matches) {
+        for (const m of matches) {
+          const p = parseInt(m.slice(1), 10);
+          if (p > maxParam) {
+            maxParam = p;
           }
         }
       }
     }
-    if (found) break;
-  }
-
-  if (!found) {
-    return null;
   }
 
   const parameters: ParameterInformation[] = [];
