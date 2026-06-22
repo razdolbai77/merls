@@ -15,6 +15,7 @@ import { runMacroParserTest } from "./macro-parser.test";
 import { runMacroIndexTest } from "./macro-index.test";
 import { runMacroDiagnosticsTest } from "./macro-diagnostics.test";
 import { runMacroSubstitutionTest } from "./macro-substitution.test";
+import { runMacroReferencesTest } from "./macro-references.test";
 import { runLocalLabelScopeTest } from "./local-labels.test";
 import { runMetadataTableTest } from "./metadata.test";
 import { runPublishDiagnosticsTest } from "./publish-diagnostics.test";
@@ -123,6 +124,10 @@ const tests: TestCase[] = [
   {
     name: "macro substitution maps call arguments onto parameter placeholders",
     run: runMacroSubstitutionTest
+  },
+  {
+    name: "macro-expanded references are attributed to call-site argument symbols",
+    run: runMacroReferencesTest
   },
   {
     name: "server returns document symbols for Merlin labels equates and data definitions",

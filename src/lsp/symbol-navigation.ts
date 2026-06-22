@@ -5,6 +5,7 @@ import { type Expression } from "../asm/expression";
 import { type ParsedLine } from "../asm/parser";
 import { type Token, tokenAtCharacter } from "../asm/lexer";
 import { collectSymbols } from "../asm/symbols";
+import { buildMacroSubstitution } from "../asm/substitution";
 
 type SymbolDefinition = {
   name: string;
@@ -106,7 +107,7 @@ export function collectReferences(uri: string, cached: CachedDocument): readonly
   const references: SymbolReference[] = [];
 
   for (const line of cached.parsed.lines) {
-    const tokens = getReferencedTokens(line.node);
+    const tokens = getReferencedTokens(cached, line.line, line.node);
 
     for (const token of tokens) {
       references.push({
@@ -125,7 +126,7 @@ export function collectReferences(uri: string, cached: CachedDocument): readonly
   return references;
 }
 
-function getReferencedTokens(node: ParsedLine): readonly Token[] {
+function getReferencedTokens(cached: CachedDocument, lineNumber: number, node: ParsedLine): readonly Token[] {
   if (node.shape === "instruction" && node.operand !== null) {
     return collectExpressionIdentifiers(node.operand.expression);
   }
@@ -139,7 +140,19 @@ function getReferencedTokens(node: ParsedLine): readonly Token[] {
   }
 
   if (node.shape === "macroCall") {
-    return [node.macro];
+    const macroCall = cached.parsed.macroCalls.find((call) => call.line === lineNumber);
+    if (macroCall === undefined) {
+      return [node.macro];
+    }
+
+    const substitution = buildMacroSubstitution(cached.parsed, macroCall);
+    const expandedReferences = substitution.parameterSubstitutions.flatMap((parameterSubstitution) =>
+      parameterSubstitution.argumentTokens.filter(
+        (token) => token.kind === "identifier" || token.kind === "label"
+      )
+    );
+
+    return expandedReferences.length > 0 ? expandedReferences : [node.macro];
   }
 
   return [];
