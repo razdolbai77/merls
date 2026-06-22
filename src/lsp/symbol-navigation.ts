@@ -22,21 +22,74 @@ export function findDefinition(
   uri: string,
   line: number,
   character: number
-): Location | null {
-  const targetName = getSymbolAtPosition(openDocuments.get(uri), line, character);
+): Location | Location[] | null {
+  const cached = openDocuments.get(uri);
+  const targetName = getSymbolAtPosition(cached, line, character);
   if (targetName === null) {
     return null;
   }
 
-  for (const [documentUri, cached] of openDocuments.entries()) {
-    for (const definition of collectDefinitions(documentUri, cached)) {
-      if (definition.name === targetName) {
-        return definition.location;
+  const parameterMatch = /^\](\d+)$/u.exec(targetName);
+  if (parameterMatch !== null && cached !== undefined) {
+    const parameterIndex = Number.parseInt(parameterMatch[1] ?? "0", 10);
+    const enclosingMacro = cached.parsed.macroDefinitions.find(
+      (def) => line > def.startLine && (def.endLine === null || line < def.endLine)
+    );
+
+    if (enclosingMacro !== undefined) {
+      const locations: Location[] = [];
+
+      for (const [docUri, docCached] of openDocuments.entries()) {
+        for (const macroCall of docCached.parsed.macroCalls) {
+          if (macroCall.macro.lexeme === enclosingMacro.name) {
+            const substitution = buildMacroSubstitution(docCached.parsed, macroCall);
+            const paramSub = substitution.parameterSubstitutions.find((s) => s.parameterIndex === parameterIndex);
+
+            if (paramSub !== undefined) {
+              const argumentTokens = paramSub.argumentTokens.filter(
+                (t) => t.kind === "identifier" || t.kind === "label" || t.kind === "localLabel"
+              );
+              for (const token of argumentTokens) {
+                const defs = findDefinition(openDocuments, docUri, macroCall.line, token.start);
+                if (defs !== null) {
+                  if (Array.isArray(defs)) {
+                    locations.push(...defs);
+                  } else {
+                    locations.push(defs);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (locations.length > 0) {
+        const uniqueLocations = Array.from(
+          new Map(locations.map((l) => [JSON.stringify(l), l])).values()
+        );
+        return uniqueLocations.length === 1 ? uniqueLocations[0] : uniqueLocations;
       }
     }
   }
 
-  return null;
+  const locations: Location[] = [];
+  for (const [documentUri, docCached] of openDocuments.entries()) {
+    for (const definition of collectDefinitions(documentUri, docCached)) {
+      if (definition.name === targetName) {
+        locations.push(definition.location);
+      }
+    }
+  }
+
+  if (locations.length === 0) {
+    return null;
+  }
+
+  const uniqueLocations = Array.from(
+    new Map(locations.map((l) => [JSON.stringify(l), l])).values()
+  );
+  return uniqueLocations.length === 1 ? uniqueLocations[0] : uniqueLocations;
 }
 
 export function findReferences(

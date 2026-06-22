@@ -29,6 +29,7 @@ Macro-definition and macro-call diagnostics now preserve token-based character s
 The initial parameter-substitution model now lives under `src/asm/substitution.ts` and maps macro call arguments onto parsed `]n` placeholder uses inside macro bodies while collecting referenced symbols from each argument expression.
 The current substitution test coverage explicitly includes repeated placeholder use, unused trailing arguments, parenthesized argument expressions, and arguments that reference multiple concrete symbols.
 Reference collection in `src/lsp/symbol-navigation.ts` now attributes macro-expanded symbol uses back to the concrete argument tokens at the macro call site instead of only treating the macro name as the reference.
+Definition lookup now resolves identifier uses inside macro-expanded contexts (like parameter placeholders) through parameter substitution to the real symbol definitions supplied at the call sites.
 Macro-aware definition/reference coverage now includes call-site symbol resolution through nested macro calls, ensuring navigation lands on the concrete symbol definition supplied to the macro rather than on the macro symbol itself.
 Rename planning now propagates through macro-expanded call-site symbol references, so renaming a concrete symbol updates both its definition and the macro call arguments that expand to that symbol.
 Rename coverage now includes nested macro-call expansion paths, ensuring the propagated edit set still targets only the concrete symbol definition and call-site argument tokens rather than macro placeholders.

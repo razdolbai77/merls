@@ -63,17 +63,20 @@ export function buildHover(
       }
     }
 
-    const definition = findDefinition(openDocuments, uri, line, token.start);
-    if (definition !== null) {
-      if (definition.uri !== uri) {
-        const filename = definition.uri.split("/").pop();
+    const definitions = findDefinition(openDocuments, uri, line, token.start);
+    if (definitions !== null) {
+      const definition = Array.isArray(definitions) ? definitions[0] : definitions;
+      if (definition !== undefined) {
+        if (definition.uri !== uri) {
+          const filename = definition.uri.split("/").pop();
+          return {
+            contents: `Symbol ${token.lexeme} defined in ${filename} at line ${definition.range.start.line}`
+          };
+        }
         return {
-          contents: `Symbol ${token.lexeme} defined in ${filename} at line ${definition.range.start.line}`
+          contents: `Symbol ${token.lexeme} defined at line ${definition.range.start.line}`
         };
       }
-      return {
-        contents: `Symbol ${token.lexeme} defined at line ${definition.range.start.line}`
-      };
     }
   }
 

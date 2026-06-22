@@ -44,4 +44,32 @@ export function runMacroDefinitionReferencesIntegrationTest(): void {
       end: { line: 7, character: 6 }
     }
   });
+
+  const innerDef = findDefinition(
+    new Map([["file:///macro-nested.S", cached]]),
+    "file:///macro-nested.S",
+    1,
+    12
+  );
+  assert.deepEqual(innerDef, {
+    uri: "file:///macro-nested.S",
+    range: {
+      start: { line: 7, character: 0 },
+      end: { line: 7, character: 6 }
+    }
+  });
+
+  const outerDef = findDefinition(
+    new Map([["file:///macro-nested.S", cached]]),
+    "file:///macro-nested.S",
+    4,
+    14
+  );
+  assert.deepEqual(outerDef, {
+    uri: "file:///macro-nested.S",
+    range: {
+      start: { line: 7, character: 0 },
+      end: { line: 7, character: 6 }
+    }
+  });
 }
