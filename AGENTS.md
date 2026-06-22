@@ -26,6 +26,7 @@ The current signature-help implementation now resolves macro arity from indexed 
 The current signature-help test coverage explicitly includes zero-argument macros, multi-digit positional parameters, nested expressions, and top-level comma tracking for active-parameter selection.
 The current diagnostics pass now also emits macro-specific failures for unresolved macro calls, duplicate macro definitions, missing `eom`/`<<<` terminators, illegal nested macro definitions, and obvious arity mismatches.
 Macro-definition and macro-call diagnostics now preserve token-based character spans through `src/asm/diagnostics.ts` and `src/lsp/diagnostics.ts` so editor highlights are narrower and testable.
+The initial parameter-substitution model now lives under `src/asm/substitution.ts` and maps macro call arguments onto parsed `]n` placeholder uses inside macro bodies while collecting referenced symbols from each argument expression.
 The current local-label resolver now lives under `src/asm/local-labels.ts` and resolves Merlin32 `]local` and `:local` labels within the nearest global-label scope.
 The current workspace indexer now lives under `src/asm/workspace.ts` and follows `asm`/`put`/`use` directives across the local fixture corpus.
 The current diagnostics pass now lives under `src/asm/diagnostics.ts` and reports duplicate symbols, unresolved references, malformed lines, and unsupported 65816-only syntax.
