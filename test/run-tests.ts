@@ -11,6 +11,7 @@ import { runFixtureCorpusTest } from "./fixture-corpus.test";
 import { runHoverTest } from "./hover.test";
 import { runLexerTest } from "./lexer.test";
 import { runLineParserTest } from "./line-parser.test";
+import { runMacroParserTest } from "./macro-parser.test";
 import { runLocalLabelScopeTest } from "./local-labels.test";
 import { runMetadataTableTest } from "./metadata.test";
 import { runPublishDiagnosticsTest } from "./publish-diagnostics.test";
@@ -83,6 +84,10 @@ const tests: TestCase[] = [
   {
     name: "line parser recognizes equates instructions directives data and malformed lines",
     run: runLineParserTest
+  },
+  {
+    name: "parser recognizes macro definition regions and parameter placeholders",
+    run: runMacroParserTest
   },
   {
     name: "document model preserves line structure and tolerates malformed lines",

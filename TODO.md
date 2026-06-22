@@ -3,7 +3,7 @@
 - [x] Add fixture coverage for Merlin32 macro definitions, macro calls, nested macro calls, zero-argument macros, variadic-like comma-heavy arguments, local labels inside macros, conditional assembly inside macros, and macro-generated unresolved references.
 - [x] Add parser tests that lock down current macro-call and `mac`/`eom` behavior before refactoring.
 - [x] Introduce explicit AST/document-model types for macro definitions, macro bodies, macro parameters, and macro call sites instead of inferring macro structure from raw line text.
-- [ ] Extend the parser to recognize macro-definition regions as first-class structures, including start line, end line, body lines, and parameter placeholders referenced as `]1`, `]2`, etc.
+- [x] Extend the parser to recognize macro-definition regions as first-class structures, including start line, end line, body lines, and parameter placeholders referenced as `]1`, `]2`, etc.
 - [ ] Record macro body token usage in a structured form so parameter references, symbol references, nested macro calls, and local-label definitions/references can be distinguished without regex scans.
 - [ ] Add a macro index module in `src/asm/` that collects macro definitions per document and workspace, including definition location, body range, max positional parameter, referenced symbols, nested calls, and local-label usage.
 - [ ] Refactor existing symbol collection so macro definitions and normal symbols share a consistent indexed representation rather than being partially split across `symbols.ts`, `signature-help.ts`, and `symbol-navigation.ts`.
