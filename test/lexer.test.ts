@@ -27,12 +27,18 @@ export function runLexerTest(): void {
     process.cwd(),
     "test/fixtures/valid/merlin32-linkscript.S"
   );
+  const macroFixturePath = path.resolve(
+    process.cwd(),
+    "test/fixtures/valid/merlin32-macro-coverage.S"
+  );
 
   const mainFixture = fs.readFileSync(mainFixturePath, "utf8");
   const linkFixture = fs.readFileSync(linkFixturePath, "utf8");
+  const macroFixture = fs.readFileSync(macroFixturePath, "utf8");
 
   const mainLines = lexSource(mainFixture).lines;
   const linkLines = lexSource(linkFixture).lines;
+  const macroLines = lexSource(macroFixture).lines;
 
   assert.deepEqual(
     summarizeTokens(findLine(mainLines, "; Source: apple2accumulator/merlin32").tokens),
@@ -82,6 +88,33 @@ export function runLexerTest(): void {
     [
       ["directive", "asm"],
       ["string", "\"merlin32-main-6502.S\""]
+    ]
+  );
+
+  assert.deepEqual(
+    summarizeTokens(findLine(macroLines, "PrintPair mac").tokens),
+    [
+      ["label", "PrintPair"],
+      ["directive", "mac"]
+    ]
+  );
+
+  assert.deepEqual(
+    summarizeTokens(findLine(macroLines, "        PrintPair #',' , ]1").tokens),
+    [
+      ["identifier", "PrintPair"],
+      ["expressionOperator", "#"],
+      ["string", "','"],
+      ["expressionOperator", ","],
+      ["localLabel", "]1"]
+    ]
+  );
+
+  assert.deepEqual(
+    summarizeTokens(findLine(macroLines, "]done   rts").tokens),
+    [
+      ["localLabel", "]done"],
+      ["mnemonic", "rts"]
     ]
   );
 }

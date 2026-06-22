@@ -1,0 +1,33 @@
+# Macro Expansion Awareness TODO
+
+- [x] Add fixture coverage for Merlin32 macro definitions, macro calls, nested macro calls, zero-argument macros, variadic-like comma-heavy arguments, local labels inside macros, conditional assembly inside macros, and macro-generated unresolved references.
+- [ ] Add parser tests that lock down current macro-call and `mac`/`eom` behavior before refactoring.
+- [ ] Introduce explicit AST/document-model types for macro definitions, macro bodies, macro parameters, and macro call sites instead of inferring macro structure from raw line text.
+- [ ] Extend the parser to recognize macro-definition regions as first-class structures, including start line, end line, body lines, and parameter placeholders referenced as `]1`, `]2`, etc.
+- [ ] Record macro body token usage in a structured form so parameter references, symbol references, nested macro calls, and local-label definitions/references can be distinguished without regex scans.
+- [ ] Add a macro index module in `src/asm/` that collects macro definitions per document and workspace, including definition location, body range, max positional parameter, referenced symbols, nested calls, and local-label usage.
+- [ ] Refactor existing symbol collection so macro definitions and normal symbols share a consistent indexed representation rather than being partially split across `symbols.ts`, `signature-help.ts`, and `symbol-navigation.ts`.
+- [ ] Replace the current signature-help implementation with one driven by the macro index so parameter counts and documentation come from parsed macro structure instead of line-text regex matching.
+- [ ] Add signature-help tests for macro arity, active-parameter selection, zero-argument macros, nested expressions as arguments, and commas inside more complex argument forms.
+- [ ] Implement macro-call diagnostics for unresolved macro names, missing `eom`/`<<<`, duplicate macro definitions, invalid macro re-entry/nesting rules, and obvious arity mismatches.
+- [ ] Add diagnostics tests that verify macro-definition and macro-call failures report stable ranges and messages.
+- [ ] Build a parameter-substitution model that maps each macro call argument to the parameter placeholders used inside the referenced macro body.
+- [ ] Add tests for parameter-substitution mapping, including repeated parameter use, unused parameters, nested identifiers inside expressions, and argument expressions containing multiple referenced symbols.
+- [ ] Extend reference collection so symbol references contributed by macro expansions are attributed back to the originating macro call site and the concrete argument symbols passed there.
+- [ ] Extend definition lookup so identifier uses inside macro-expanded contexts can resolve through parameter substitution to the real symbol definitions supplied at the call site.
+- [ ] Add definition/reference integration tests covering symbols passed through macros, symbols referenced multiple times inside one macro body, and nested macro calls.
+- [ ] Refactor rename planning so renames propagate safely through macro-expanded references while avoiding accidental edits to parameter placeholders or unrelated macro definitions.
+- [ ] Add rename tests for symbols passed into macros, symbols referenced from nested macro calls, and rename rejection in ambiguous expansion cases.
+- [ ] Introduce an expansion-aware local-label model for macros so labels defined inside macro bodies are scoped per expansion instance rather than treated as globally shared text.
+- [ ] Add tests for local labels inside macros, repeated macro invocations that define the same local labels, and interactions between macro-local labels and existing Merlin local-label rules.
+- [ ] Extend hover output so macro calls show parsed parameter signatures, macro definition locations, and expansion-aware symbol information when hovering arguments or substituted references.
+- [ ] Extend completion so macro names, macro parameters where appropriate, and expansion-aware symbol candidates behave consistently at macro call sites and inside macro bodies.
+- [ ] Extend semantic tokens so macro definitions, macro invocations, macro parameters, and expansion-resolved symbol uses are tokenized distinctly and consistently across files.
+- [ ] Add semantic-token, hover, and completion tests focused on macro-heavy fixtures.
+- [ ] Introduce a dedicated expansion-analysis layer that can produce a bounded virtual expansion view for one macro call, including substituted identifiers and remapped source locations.
+- [ ] Reuse that expansion-analysis layer in navigation, diagnostics, highlights, call hierarchy, code lens, and inlay hints so macro-aware behavior is implemented once rather than separately in each LSP handler.
+- [ ] Add caching and invalidation rules for macro indexes and expansion-analysis results so open-document updates do not re-expand the entire workspace unnecessarily.
+- [ ] Add performance tests or at least regression benchmarks for large macro-heavy fixture files to keep navigation and diagnostics responsive.
+- [ ] Add guardrails for unsupported or ambiguous cases such as recursive macros, deeply nested expansions, token-pasted/generated names, and conditionals that cannot be resolved statically.
+- [ ] Define fallback behavior and diagnostics for those unsupported cases so the server fails predictably instead of returning incorrect navigation results.
+- [ ] Update `README.md` and `AGENTS.md` to document macro expansion awareness, its supported scope, known limitations, and the new test coverage once implementation lands.

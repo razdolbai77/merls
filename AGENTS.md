@@ -10,6 +10,7 @@ The current bootstrap server entrypoint is `src/server.ts`, and the packaged CLI
 The repository now includes `examples/coc-settings.json` as the baseline coc.nvim launch example, targeting `dist/src/cli.js --stdio` with `.git` and `package.json` root markers.
 The initial positive fixture corpus now lives under `test/fixtures/valid/` and is transcribed from upstream Merlin32 sources.
 The initial negative fixture corpus now lives under `test/fixtures/invalid/` and captures unsupported 65816-only syntax.
+The fixture corpus now also includes dedicated macro coverage samples under `test/fixtures/valid/merlin32-macro-coverage.S` and `test/fixtures/invalid/macro-generated-unresolved.S` for nested calls, zero-argument macros, local labels, conditional assembly, and macro-generated unresolved references.
 Shared 6502 opcode and Merlin32 directive metadata now lives under `src/asm/metadata.ts`.
 Shared token-kind and line-shape metadata now lives under `src/asm/syntax.ts`.
 The current lexer implementation now lives under `src/asm/lexer.ts` and is covered by fixture-driven unit tests.

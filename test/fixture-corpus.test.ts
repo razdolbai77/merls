@@ -4,10 +4,12 @@ import path from "node:path";
 
 const validFixturePaths = [
   "test/fixtures/valid/merlin32-linkscript.S",
+  "test/fixtures/valid/merlin32-macro-coverage.S",
   "test/fixtures/valid/merlin32-main-6502.S"
 ];
 
 const invalidFixturePaths = [
+  "test/fixtures/invalid/macro-generated-unresolved.S",
   "test/fixtures/invalid/65816-bank-ops.S",
   "test/fixtures/invalid/65816-long-addressing.S"
 ];
@@ -28,6 +30,10 @@ export function runFixtureCorpusTest(): void {
 
     const content = fs.readFileSync(absolutePath, "utf8");
     assert.match(content, /Source: apple2accumulator\/merlin32/);
-    assert.match(content, /65816-only/);
+    if (fixturePath.includes("65816")) {
+      assert.match(content, /65816-only/);
+    } else {
+      assert.match(content, /macro-generated unresolved reference/);
+    }
   }
 }
