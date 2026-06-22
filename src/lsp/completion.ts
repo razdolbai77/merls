@@ -15,6 +15,7 @@ export function buildCompletionItems(
 ): CompletionItem[] {
   let operandToken: { lexeme: string; kind: string } | null = null;
   const cached = openDocuments.get(uri);
+  let enclosingMacro: { maxParameterIndex: number } | undefined;
   if (cached !== undefined) {
     const lexedLine = cached.lexed.lines[line];
     if (lexedLine !== undefined) {
@@ -27,12 +28,20 @@ export function buildCompletionItems(
           }
         }
         if (token.end < character) {
-          if (token.kind === "mnemonic" || token.kind === "directive") {
+          if (
+            token.kind === "mnemonic" ||
+            token.kind === "directive" ||
+            token.kind === "identifier"
+          ) {
             operandToken = token;
           }
         }
       }
     }
+
+    enclosingMacro = cached.parsed.macroDefinitions.find(
+      (def) => line > def.startLine && (def.endLine === null || line < def.endLine)
+    );
   }
 
   let exclusiveCompletions: readonly string[] | null = null;
@@ -59,15 +68,39 @@ export function buildCompletionItems(
     return completions;
   }
 
+  if (enclosingMacro !== undefined && operandToken !== null) {
+    const maxParam = Math.max(9, enclosingMacro.maxParameterIndex);
+    for (let i = 1; i <= maxParam; i++) {
+      const param = `]${i}`;
+      if (!seenSymbols.has(param)) {
+        seenSymbols.add(param);
+        completions.push({
+          label: param,
+          kind: CompletionItemKind.Variable
+        });
+      }
+    }
+  }
+
   for (const doc of openDocuments.values()) {
     const symbols = collectSymbols(doc.parsed);
     for (const symbol of symbols.values()) {
-      if (!seenSymbols.has(symbol.name)) {
-        seenSymbols.add(symbol.name);
-        completions.push({
-          label: symbol.name,
-          kind: CompletionItemKind.Variable
-        });
+      if (symbol.kind === "macro") {
+        if (operandToken === null && !seenSymbols.has(symbol.name)) {
+          seenSymbols.add(symbol.name);
+          completions.push({
+            label: symbol.name,
+            kind: CompletionItemKind.Function
+          });
+        }
+      } else {
+        if (!seenSymbols.has(symbol.name)) {
+          seenSymbols.add(symbol.name);
+          completions.push({
+            label: symbol.name,
+            kind: CompletionItemKind.Variable
+          });
+        }
       }
     }
   }

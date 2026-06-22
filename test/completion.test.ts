@@ -52,6 +52,17 @@ function positionOf(text: string, needle: string): { line: number; character: nu
   };
 }
 
+function positionOfLast(text: string, needle: string): { line: number; character: number } {
+  const index = text.lastIndexOf(needle);
+  assert.notEqual(index, -1, `expected to find last ${needle}`);
+  const prefix = text.slice(0, index);
+  const lines = prefix.split("\n");
+  return {
+    line: lines.length - 1,
+    character: lines.at(-1)?.length ?? 0
+  };
+}
+
 export async function runCompletionTest(): Promise<void> {
   const serverPath = path.resolve(__dirname, "../src/server.js");
   const mainPath = path.resolve(
@@ -60,6 +71,14 @@ export async function runCompletionTest(): Promise<void> {
   );
   const mainUri = `file://${mainPath.replace(/\\/g, "/")}`;
   const text = `${fs.readFileSync(mainPath, "utf8")}\n        ld\n        du\n        bpl G`;
+
+  const macroPath = path.resolve(
+    process.cwd(),
+    "test/fixtures/valid/merlin32-macro-coverage.S"
+  );
+  const macroUri = `file://${macroPath.replace(/\\/g, "/")}`;
+  const macroText = `${fs.readFileSync(macroPath, "utf8")}\n        Outer VA\n        Ou`;
+
   const child = spawn(process.execPath, [serverPath], {
     stdio: ["pipe", "pipe", "pipe"]
   });
@@ -143,8 +162,40 @@ export async function runCompletionTest(): Promise<void> {
       textDocument: { uri: mainUri },
       position: positionOf(text, "        bpl G")
     });
-    const symbolItems = symbolResponse.result as Array<{ label: string }>;
+    const symbolItems = symbolResponse.result as Array<{ label: string; kind: number }>;
     assert.equal(symbolItems.some((item) => item.label === "GetKey"), true);
+
+    sendNotification("textDocument/didOpen", {
+      textDocument: {
+        uri: macroUri,
+        languageId: "asm",
+        version: 1,
+        text: macroText
+      }
+    });
+
+    const macroParamResponse = await sendRequest("textDocument/completion", {
+      textDocument: { uri: macroUri },
+      position: positionOf(macroText, "]1")
+    });
+    const macroParamItems = macroParamResponse.result as Array<{ label: string }>;
+    assert.equal(macroParamItems.some((item) => item.label === "]1"), true);
+    assert.equal(macroParamItems.some((item) => item.label === "]2"), true);
+
+    const macroNameResponse = await sendRequest("textDocument/completion", {
+      textDocument: { uri: macroUri },
+      position: positionOfLast(macroText, "Ou")
+    });
+    const macroNameItems = macroNameResponse.result as Array<{ label: string; kind: number }>;
+    assert.equal(macroNameItems.some((item) => item.label === "Outer" && item.kind === 3), true); // 3 = Function
+
+    const macroArgResponse = await sendRequest("textDocument/completion", {
+      textDocument: { uri: macroUri },
+      position: positionOfLast(macroText, "VA")
+    });
+    const macroArgItems = macroArgResponse.result as Array<{ label: string; kind: number }>;
+    assert.equal(macroArgItems.some((item) => item.label === "VALUE"), true);
+    assert.equal(macroArgItems.some((item) => item.label === "lda"), false); // Should not offer opcodes here
   } finally {
     child.kill();
   }

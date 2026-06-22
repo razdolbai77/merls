@@ -43,7 +43,7 @@ The current `textDocument/documentSymbol` provider is wired through `src/server.
 The current `workspace/symbol` provider is wired through `src/server.ts` and `src/lsp/workspace-symbols.ts` over the open-document symbol set.
 The current `textDocument/definition` and `textDocument/references` handlers are wired through `src/server.ts` and `src/lsp/symbol-navigation.ts`.
 The current `textDocument/hover` handler is wired through `src/server.ts` and `src/lsp/hover.ts`.
-The current `textDocument/completion` handler is wired through `src/server.ts` and `src/lsp/completion.ts`.
+The current `textDocument/completion` handler provides contextual suggestions for macro names, macro parameters (using parsed positional indices), opcodes, directives, and expansion-aware symbols depending on the enclosing macro definition or call site.
 The current `textDocument/semanticTokens` handler is wired through `src/server.ts` and `src/lsp/semantic-tokens.ts`.
 The current `textDocument/publishDiagnostics` path is wired through `src/server.ts` and `src/lsp/diagnostics.ts`, with full-document sync on open/change so editor clients receive live parser and resolver diagnostics across the entire watched workspace.
 Additional advanced LSP handlers for rename, formatting, folding, document highlights, inlay hints, signature help, call hierarchy, code actions, code lenses, document links, and selection ranges are also fully wired through `src/server.ts` to their respective modules in `src/lsp/`.
