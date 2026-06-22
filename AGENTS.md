@@ -18,6 +18,7 @@ The current lexer implementation now lives under `src/asm/lexer.ts` and is cover
 The current expression parser now lives under `src/asm/expression.ts` and is covered by unit tests for numeric forms, modifiers, arithmetic, and indexed operands.
 The current line parser now lives under `src/asm/parser.ts` and classifies equates, instructions, directives, data lines, and malformed input.
 The current document model now lives under `src/asm/document.ts` and preserves line-by-line structure while collecting malformed-line errors.
+The current document model also exposes explicit macro definition, macro body, parameter-reference, and macro-call structures for downstream macro-aware analysis.
 The current symbol collector now lives under `src/asm/symbols.ts` and indexes labels, equates, and named storage/data definitions.
 The current local-label resolver now lives under `src/asm/local-labels.ts` and resolves Merlin32 `]local` and `:local` labels within the nearest global-label scope.
 The current workspace indexer now lives under `src/asm/workspace.ts` and follows `asm`/`put`/`use` directives across the local fixture corpus.

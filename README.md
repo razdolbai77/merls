@@ -131,8 +131,8 @@ An example configuration lives in `examples/coc-settings.json`.
 - LSP handlers (hover, completion, diagnostics, etc.) are located in `src/lsp/`.
 - The CLI entry point lives in `src/cli.ts` and compiles to `dist/src/cli.js`.
 - The VS Code extension contributes `Pearls: Compile Current File with Merlin32` and `Pearls: Assemble Project with Merlin32` commands and exposes `pearls.merlin32Executable`, `pearls.compileArgs`, `pearls.merlin32MacroFolder`, and `pearls.merlin32ProjectEntryFile` settings for assembler invocation.
-- The `test/fixtures/valid/` directory contains supported 6502 Merlin32-style syntax samples.
 - The `test/fixtures/valid/` directory contains supported 6502 Merlin32-style syntax samples, including dedicated macro-coverage fixtures for nested calls, zero-argument macros, local labels, and conditional assembly forms.
 - The `test/fixtures/invalid/` directory contains unsupported 65816-only syntax samples for negative testing plus negative macro fixtures such as macro-generated unresolved references.
 - Parser tests now explicitly lock down current macro-call parsing and the existing `mac`/`eom`/`<<<` line behavior before macro-structure refactors.
+- The document model now exposes explicit macro definition and macro call structures, including macro body lines and positional parameter references, via `src/asm/document.ts`.
 - The integration test suite covers stdio `initialize`, the CLI contract, and core LSP features.
