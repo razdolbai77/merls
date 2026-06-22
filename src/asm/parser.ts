@@ -80,10 +80,31 @@ export type MacroParameterReference = {
   index: number;
 };
 
+export type MacroSymbolReference = {
+  token: Token;
+};
+
+export type MacroNestedCall = {
+  macro: Token;
+  args: readonly Token[];
+};
+
+export type MacroLocalLabelDefinition = {
+  token: Token;
+};
+
+export type MacroLocalLabelReference = {
+  token: Token;
+};
+
 export type MacroBodyLine = {
   line: number;
   node: ParsedLine;
   parameterReferences: readonly MacroParameterReference[];
+  symbolReferences: readonly MacroSymbolReference[];
+  nestedMacroCalls: readonly MacroNestedCall[];
+  localLabelDefinitions: readonly MacroLocalLabelDefinition[];
+  localLabelReferences: readonly MacroLocalLabelReference[];
 };
 
 export type MacroDefinitionRegion = {
@@ -95,6 +116,10 @@ export type MacroDefinitionRegion = {
   endDirective: Token | null;
   body: readonly MacroBodyLine[];
   parameterReferences: readonly MacroParameterReference[];
+  symbolReferences: readonly MacroSymbolReference[];
+  nestedMacroCalls: readonly MacroNestedCall[];
+  localLabelDefinitions: readonly MacroLocalLabelDefinition[];
+  localLabelReferences: readonly MacroLocalLabelReference[];
   maxParameterIndex: number;
 };
 
@@ -273,6 +298,10 @@ function collectMacroDefinitionRegions(lines: readonly ParsedLine[]): readonly M
 
     const body: MacroBodyLine[] = [];
     const parameterReferences: MacroParameterReference[] = [];
+    const symbolReferences: MacroSymbolReference[] = [];
+    const nestedMacroCalls: MacroNestedCall[] = [];
+    const localLabelDefinitions: MacroLocalLabelDefinition[] = [];
+    const localLabelReferences: MacroLocalLabelReference[] = [];
     let endLine: number | null = null;
     let endDirective: Token | null = null;
 
@@ -289,12 +318,16 @@ function collectMacroDefinitionRegions(lines: readonly ParsedLine[]): readonly M
         break;
       }
 
-      const bodyParameterReferences = collectMacroParameterReferences(currentNode);
-      parameterReferences.push(...bodyParameterReferences);
+      const bodyUsage = collectMacroBodyUsage(currentNode);
+      parameterReferences.push(...bodyUsage.parameterReferences);
+      symbolReferences.push(...bodyUsage.symbolReferences);
+      nestedMacroCalls.push(...bodyUsage.nestedMacroCalls);
+      localLabelDefinitions.push(...bodyUsage.localLabelDefinitions);
+      localLabelReferences.push(...bodyUsage.localLabelReferences);
       body.push({
         line: bodyIndex,
         node: currentNode,
-        parameterReferences: bodyParameterReferences
+        ...bodyUsage
       });
     }
 
@@ -307,6 +340,10 @@ function collectMacroDefinitionRegions(lines: readonly ParsedLine[]): readonly M
       endDirective,
       body,
       parameterReferences,
+      symbolReferences,
+      nestedMacroCalls,
+      localLabelDefinitions,
+      localLabelReferences,
       maxParameterIndex: parameterReferences.reduce(
         (max, parameterReference) => Math.max(max, parameterReference.index),
         0
@@ -317,87 +354,100 @@ function collectMacroDefinitionRegions(lines: readonly ParsedLine[]): readonly M
   return macroDefinitions;
 }
 
-function collectMacroParameterReferences(node: ParsedLine): readonly MacroParameterReference[] {
-  const tokens = collectNodeTokens(node);
+function collectMacroBodyUsage(node: ParsedLine): Omit<MacroBodyLine, "line" | "node"> {
   const parameterReferences: MacroParameterReference[] = [];
+  const symbolReferences: MacroSymbolReference[] = [];
+  const nestedMacroCalls: MacroNestedCall[] = [];
+  const localLabelDefinitions: MacroLocalLabelDefinition[] = [];
+  const localLabelReferences: MacroLocalLabelReference[] = [];
 
-  for (const token of tokens) {
+  const collectTokenUsage = (token: Token): void => {
     const match = /^\](\d+)$/u.exec(token.lexeme);
-    if (match === null) {
-      continue;
+    if (token.kind === "localLabel" && match !== null) {
+      parameterReferences.push({
+        token,
+        index: Number.parseInt(match[1] ?? "0", 10)
+      });
+      return;
     }
 
-    parameterReferences.push({
-      token,
-      index: Number.parseInt(match[1] ?? "0", 10)
-    });
-  }
+    if (token.kind === "localLabel") {
+      localLabelReferences.push({ token });
+      return;
+    }
 
-  return parameterReferences;
-}
+    if (token.kind === "identifier" || token.kind === "label") {
+      symbolReferences.push({ token });
+    }
+  };
 
-function collectNodeTokens(node: ParsedLine): readonly Token[] {
   switch (node.shape) {
-    case "equate":
-      return [node.label, ...collectExpressionTokens(node.expression)];
-    case "instruction":
-      return [
-        ...(node.label !== null ? [node.label] : []),
-        node.mnemonic,
-        ...(node.operand !== null ? collectOperandTokens(node.operand) : [])
-      ];
     case "macroCall":
-      return [
-        ...(node.label !== null ? [node.label] : []),
-        node.macro,
-        ...node.args
-      ];
+      if (node.label?.kind === "localLabel") {
+        localLabelDefinitions.push({ token: node.label });
+      }
+      nestedMacroCalls.push({
+        macro: node.macro,
+        args: node.args
+      });
+      node.args.forEach(collectTokenUsage);
+      break;
+    case "instruction":
+      if (node.label?.kind === "localLabel") {
+        localLabelDefinitions.push({ token: node.label });
+      }
+      if (node.operand !== null) {
+        collectExpressionUsage(node.operand.expression, collectTokenUsage);
+      }
+      break;
+    case "equate":
+      if (node.label.kind === "localLabel") {
+        localLabelDefinitions.push({ token: node.label });
+      }
+      collectExpressionUsage(node.expression, collectTokenUsage);
+      break;
     case "directive":
-      return [
-        ...(node.label !== null ? [node.label] : []),
-        node.directive,
-        ...(node.operand !== null ? collectExpressionTokens(node.operand) : [])
-      ];
-    case "data":
-      return [
-        ...(node.label !== null ? [node.label] : []),
-        node.directive
-      ];
+      if (node.label?.kind === "localLabel") {
+        localLabelDefinitions.push({ token: node.label });
+      }
+      if (node.operand !== null) {
+        collectExpressionUsage(node.operand, collectTokenUsage);
+      }
+      break;
     case "labelOnly":
-      return [node.label];
-    case "commentOnly":
-      return [node.comment];
+      if (node.label.kind === "localLabel") {
+        localLabelDefinitions.push({ token: node.label });
+      }
+      break;
     default:
-      return [];
+      break;
   }
+
+  return {
+    parameterReferences,
+    symbolReferences,
+    nestedMacroCalls,
+    localLabelDefinitions,
+    localLabelReferences
+  };
 }
 
-function collectOperandTokens(operand: Operand): readonly Token[] {
-  const tokens = collectExpressionTokens(operand.expression);
-
-  return [
-    ...(operand.immediate ? [{ kind: "expressionOperator", lexeme: "#", start: -1, end: -1 } as Token] : []),
-    ...tokens
-  ];
-}
-
-function collectExpressionTokens(expression: Expression): readonly Token[] {
+function collectExpressionUsage(expression: Expression, collectTokenUsage: (token: Token) => void): void {
   switch (expression.kind) {
     case "identifier":
-      return [expression.token];
+      collectTokenUsage(expression.token);
+      break;
     case "modifier":
-      return [
-        { kind: "modifier", lexeme: expression.operator, start: -1, end: -1 } as Token,
-        ...collectExpressionTokens(expression.expression)
-      ];
+      collectExpressionUsage(expression.expression, collectTokenUsage);
+      break;
     case "unary":
-      return collectExpressionTokens(expression.expression);
+      collectExpressionUsage(expression.expression, collectTokenUsage);
+      break;
     case "binary":
-      return [
-        ...collectExpressionTokens(expression.left),
-        ...collectExpressionTokens(expression.right)
-      ];
+      collectExpressionUsage(expression.left, collectTokenUsage);
+      collectExpressionUsage(expression.right, collectTokenUsage);
+      break;
     default:
-      return [];
+      break;
   }
 }

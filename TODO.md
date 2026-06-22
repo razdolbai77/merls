@@ -4,7 +4,7 @@
 - [x] Add parser tests that lock down current macro-call and `mac`/`eom` behavior before refactoring.
 - [x] Introduce explicit AST/document-model types for macro definitions, macro bodies, macro parameters, and macro call sites instead of inferring macro structure from raw line text.
 - [x] Extend the parser to recognize macro-definition regions as first-class structures, including start line, end line, body lines, and parameter placeholders referenced as `]1`, `]2`, etc.
-- [ ] Record macro body token usage in a structured form so parameter references, symbol references, nested macro calls, and local-label definitions/references can be distinguished without regex scans.
+- [x] Record macro body token usage in a structured form so parameter references, symbol references, nested macro calls, and local-label definitions/references can be distinguished without regex scans.
 - [ ] Add a macro index module in `src/asm/` that collects macro definitions per document and workspace, including definition location, body range, max positional parameter, referenced symbols, nested calls, and local-label usage.
 - [ ] Refactor existing symbol collection so macro definitions and normal symbols share a consistent indexed representation rather than being partially split across `symbols.ts`, `signature-help.ts`, and `symbol-navigation.ts`.
 - [ ] Replace the current signature-help implementation with one driven by the macro index so parameter counts and documentation come from parsed macro structure instead of line-text regex matching.

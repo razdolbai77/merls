@@ -51,7 +51,21 @@ export function runDocumentModelTest(): void {
             token: { kind: "localLabel", lexeme: "]1", start: 25, end: 27 },
             index: 1
           }
-        ]
+        ],
+        symbolReferences: [],
+        nestedMacroCalls: [
+          {
+            macro: { kind: "identifier", lexeme: "PrintPair", start: 8, end: 17 },
+            args: [
+              { kind: "expressionOperator", lexeme: "#", start: 18, end: 19 },
+              { kind: "string", lexeme: "','", start: 19, end: 22 },
+              { kind: "expressionOperator", lexeme: ",", start: 23, end: 24 },
+              { kind: "localLabel", lexeme: "]1", start: 25, end: 27 }
+            ]
+          }
+        ],
+        localLabelDefinitions: [],
+        localLabelReferences: []
       }
     ],
     parameterReferences: [
@@ -60,6 +74,20 @@ export function runDocumentModelTest(): void {
         index: 1
       }
     ],
+    symbolReferences: [],
+    nestedMacroCalls: [
+      {
+        macro: { kind: "identifier", lexeme: "PrintPair", start: 8, end: 17 },
+        args: [
+          { kind: "expressionOperator", lexeme: "#", start: 18, end: 19 },
+          { kind: "string", lexeme: "','", start: 19, end: 22 },
+          { kind: "expressionOperator", lexeme: ",", start: 23, end: 24 },
+          { kind: "localLabel", lexeme: "]1", start: 25, end: 27 }
+        ]
+      }
+    ],
+    localLabelDefinitions: [],
+    localLabelReferences: [],
     maxParameterIndex: 1
   });
 

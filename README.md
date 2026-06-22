@@ -134,6 +134,6 @@ An example configuration lives in `examples/coc-settings.json`.
 - The `test/fixtures/valid/` directory contains supported 6502 Merlin32-style syntax samples, including dedicated macro-coverage fixtures for nested calls, zero-argument macros, local labels, and conditional assembly forms.
 - The `test/fixtures/invalid/` directory contains unsupported 65816-only syntax samples for negative testing plus negative macro fixtures such as macro-generated unresolved references.
 - Parser tests now explicitly lock down current macro-call parsing and the existing `mac`/`eom`/`<<<` line behavior before macro-structure refactors.
-- The parser now exposes first-class macro definition regions, including body lines, closing directives, and positional parameter placeholders, via `src/asm/parser.ts`.
-- The document model now exposes explicit macro definition and macro call structures, including macro body lines and positional parameter references, via `src/asm/document.ts`.
+- The parser now exposes first-class macro definition regions, including body lines, closing directives, positional parameter placeholders, nested macro calls, symbol references, and macro-local label definitions/references, via `src/asm/parser.ts`.
+- The document model now exposes explicit macro definition and macro call structures, including structured macro body usage metadata for parameter references, nested calls, symbol references, and macro-local labels, via `src/asm/document.ts`.
 - The integration test suite covers stdio `initialize`, the CLI contract, and core LSP features.
