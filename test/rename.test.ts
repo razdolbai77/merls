@@ -53,4 +53,34 @@ utils
     const editsEmpty = buildRenameEdits(openDocuments, file1Uri, 3, 1, "nothing");
     assert.equal(editsEmpty, null);
   }
+
+  // Rename a symbol passed into a macro call should update the definition and the call-site argument token.
+  {
+    const macroUri = "file:///workspace/macro.S";
+    const macroSource = `
+Wrap mac
+  lda ]1
+  sta ]1
+  eom
+Target
+  Wrap Target
+  `;
+    const macroDocuments = new Map<string, CachedDocument>([
+      [macroUri, buildCachedDocument(macroSource)]
+    ]);
+
+    const edits = buildRenameEdits(macroDocuments, macroUri, 5, 0, "RenamedTarget");
+    assert.ok(edits !== null);
+    assert.ok(edits.changes);
+    assert.equal(edits.changes[macroUri].length, 2);
+    assert.equal(edits.changes[macroUri][0].newText, "RenamedTarget");
+    assert.equal(edits.changes[macroUri][1].newText, "RenamedTarget");
+    assert.deepEqual(
+      edits.changes[macroUri].map((edit) => edit.range.start),
+      [
+        { line: 5, character: 0 },
+        { line: 6, character: 7 }
+      ]
+    );
+  }
 }
