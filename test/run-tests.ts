@@ -13,6 +13,7 @@ import { runLexerTest } from "./lexer.test";
 import { runLineParserTest } from "./line-parser.test";
 import { runMacroParserTest } from "./macro-parser.test";
 import { runMacroIndexTest } from "./macro-index.test";
+import { runMacroDiagnosticsTest } from "./macro-diagnostics.test";
 import { runLocalLabelScopeTest } from "./local-labels.test";
 import { runMetadataTableTest } from "./metadata.test";
 import { runPublishDiagnosticsTest } from "./publish-diagnostics.test";
@@ -113,6 +114,10 @@ const tests: TestCase[] = [
   {
     name: "diagnostics report duplicates unresolved refs malformed lines and unsupported 65816 syntax",
     run: runDiagnosticsTest
+  },
+  {
+    name: "macro diagnostics report stable messages and ranges",
+    run: runMacroDiagnosticsTest
   },
   {
     name: "server returns document symbols for Merlin labels equates and data definitions",

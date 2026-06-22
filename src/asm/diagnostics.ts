@@ -21,6 +21,8 @@ export type Diagnostic = {
   line: number;
   code: DiagnosticCode;
   message: string;
+  startCharacter?: number;
+  endCharacter?: number;
 };
 
 export type DocumentEntry = {
@@ -34,13 +36,22 @@ type SymbolRecord = {
   filePath: string;
 };
 
+type MacroRecord = {
+  name: string;
+  line: number;
+  filePath: string;
+  startCharacter: number;
+  endCharacter: number;
+  maxParameterIndex: number;
+};
+
 export function collectWorkspaceDiagnostics(
   documents: readonly DocumentEntry[]
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
   const globalSymbols = new Set<string>();
   const symbolRecords: SymbolRecord[] = [];
-  const macrosByName = new Map<string, SymbolRecord[]>();
+  const macrosByName = new Map<string, MacroRecord[]>();
 
   for (const entry of documents) {
     for (const symbol of collectGlobalDefinitions(entry.document, entry.filePath)) {
@@ -53,7 +64,10 @@ export function collectWorkspaceDiagnostics(
       current.push({
         name: macroDefinition.name,
         line: macroDefinition.startLine,
-        filePath: entry.filePath
+        filePath: entry.filePath,
+        startCharacter: macroDefinition.nameToken.start,
+        endCharacter: macroDefinition.nameToken.end,
+        maxParameterIndex: macroDefinition.maxParameterIndex
       });
       macrosByName.set(macroDefinition.name, current);
     }
@@ -100,7 +114,7 @@ function collectDuplicateSymbolDiagnostics(
 }
 
 function collectDuplicateMacroDiagnostics(
-  macrosByName: ReadonlyMap<string, readonly SymbolRecord[]>
+  macrosByName: ReadonlyMap<string, readonly MacroRecord[]>
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
 
@@ -115,7 +129,9 @@ function collectDuplicateMacroDiagnostics(
         filePath: duplicate.filePath,
         line: duplicate.line,
         code: "duplicate-macro-definition",
-        message: `Duplicate macro definition ${name}; first defined at line ${firstDefinition.line}`
+        message: `Duplicate macro definition ${name}; first defined at line ${firstDefinition.line}`,
+        startCharacter: duplicate.startCharacter,
+        endCharacter: duplicate.endCharacter
       });
     }
   }
@@ -179,7 +195,9 @@ function collectMacroStructureDiagnostics(
         filePath,
         line: macroDefinition.startLine,
         code: "missing-macro-end",
-        message: `Macro ${macroDefinition.name} is missing a closing eom/<<<`
+        message: `Macro ${macroDefinition.name} is missing a closing eom/<<<`,
+        startCharacter: macroDefinition.nameToken.start,
+        endCharacter: macroDefinition.nameToken.end
       });
     }
 
@@ -194,7 +212,9 @@ function collectMacroStructureDiagnostics(
           filePath,
           line: bodyLine.line,
           code: "invalid-macro-nesting",
-          message: `Macro ${bodyNode.label.lexeme} cannot be defined inside macro ${macroDefinition.name}`
+          message: `Macro ${bodyNode.label.lexeme} cannot be defined inside macro ${macroDefinition.name}`,
+          startCharacter: bodyNode.label.start,
+          endCharacter: bodyNode.label.end
         });
       }
     }
@@ -261,7 +281,7 @@ function collectUnresolvedDiagnostics(
 function collectMacroCallDiagnostics(
   filePath: string,
   document: ParsedDocument,
-  macrosByName: ReadonlyMap<string, readonly SymbolRecord[]>
+  macrosByName: ReadonlyMap<string, readonly MacroRecord[]>
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
 
@@ -274,24 +294,23 @@ function collectMacroCallDiagnostics(
         filePath,
         line: macroCall.line,
         code: "unresolved-macro",
-        message: `Unresolved macro ${macroCall.macro.lexeme}`
+        message: `Unresolved macro ${macroCall.macro.lexeme}`,
+        startCharacter: macroCall.macro.start,
+        endCharacter: macroCall.macro.end
       });
       continue;
     }
 
-    const parsedDefinition = document.macroDefinitions.find(
-      (macroDefinition) =>
-        macroDefinition.name === macroCall.macro.lexeme &&
-        macroDefinition.startLine === definition.line
-    );
-    const requiredArity = parsedDefinition?.maxParameterIndex ?? 0;
+    const requiredArity = definition.maxParameterIndex;
     const actualArity = countMacroCallArguments(macroCall.args);
     if (requiredArity !== actualArity) {
       diagnostics.push({
         filePath,
         line: macroCall.line,
         code: "macro-arity-mismatch",
-        message: `Macro ${macroCall.macro.lexeme} expected ${requiredArity} argument(s) but received ${actualArity}`
+        message: `Macro ${macroCall.macro.lexeme} expected ${requiredArity} argument(s) but received ${actualArity}`,
+        startCharacter: macroCall.macro.start,
+        endCharacter: macroCall.macro.end
       });
     }
   }
