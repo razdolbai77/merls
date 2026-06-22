@@ -19,6 +19,25 @@ export function runDiagnosticsTest(): void {
     "        TYP BLAH",
     "        end BLAH"
   ].join("\n");
+  const macroSource = [
+    "FirstMac mac",
+    "        lda ]1",
+    "        sta ]2",
+    "SecondMac mac",
+    "        lda ]1",
+    "        eom",
+    "FirstMac mac",
+    "        eom",
+    "        MissingMac VALUE",
+    "        FirstMac VALUE",
+    "        SecondMac",
+    "ZeroMac  mac",
+    "        eom",
+    "        ZeroMac VALUE",
+    "        FirstMac VALUE,OTHER",
+    "UnclosedMac mac",
+    "        lda ]1"
+  ].join("\n");
 
   const bankOpsPath = path.resolve(
     process.cwd(),
@@ -33,6 +52,10 @@ export function runDiagnosticsTest(): void {
     {
       filePath: "<memory>",
       document: parseDocument(duplicateSource)
+    },
+    {
+      filePath: "<macro>",
+      document: parseDocument(macroSource)
     },
     {
       filePath: bankOpsPath,
@@ -52,6 +75,93 @@ export function runDiagnosticsTest(): void {
         diagnostic.line === 2
     ),
     true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<macro>" &&
+        diagnostic.code === "missing-macro-end" &&
+        diagnostic.line === 15 &&
+        diagnostic.message.includes("UnclosedMac")
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<macro>" &&
+        diagnostic.code === "invalid-macro-nesting" &&
+        diagnostic.line === 3 &&
+        diagnostic.message.includes("SecondMac")
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<macro>" &&
+        diagnostic.code === "duplicate-macro-definition" &&
+        diagnostic.line === 6 &&
+        diagnostic.message.includes("FirstMac")
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<macro>" &&
+        diagnostic.code === "unresolved-macro" &&
+        diagnostic.line === 8 &&
+        diagnostic.message.includes("MissingMac")
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<macro>" &&
+        diagnostic.code === "macro-arity-mismatch" &&
+        diagnostic.line === 9 &&
+        diagnostic.message.includes("expected 2")
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<macro>" &&
+        diagnostic.code === "macro-arity-mismatch" &&
+        diagnostic.line === 10 &&
+        diagnostic.message.includes("expected 1")
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<macro>" &&
+        diagnostic.code === "macro-arity-mismatch" &&
+        diagnostic.line === 13 &&
+        diagnostic.message.includes("expected 0")
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<macro>" &&
+        diagnostic.code === "macro-arity-mismatch" &&
+        diagnostic.line === 14
+    ),
+    false
   );
 
   assert.equal(

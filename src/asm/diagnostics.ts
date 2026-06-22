@@ -1,14 +1,20 @@
 import { type ParsedDocument } from "./document";
 import { type Expression, type Operand } from "./expression";
+import { type Token } from "./lexer";
 import { resolveLocalLabels } from "./local-labels";
 import { directiveTable } from "./metadata";
 import { type ParsedLine } from "./parser";
 
 export type DiagnosticCode =
   | "duplicate-symbol"
+  | "duplicate-macro-definition"
   | "unresolved-reference"
+  | "unresolved-macro"
   | "malformed-line"
-  | "unsupported-65816";
+  | "unsupported-65816"
+  | "missing-macro-end"
+  | "invalid-macro-nesting"
+  | "macro-arity-mismatch";
 
 export type Diagnostic = {
   filePath: string;
@@ -34,21 +40,35 @@ export function collectWorkspaceDiagnostics(
   const diagnostics: Diagnostic[] = [];
   const globalSymbols = new Set<string>();
   const symbolRecords: SymbolRecord[] = [];
+  const macrosByName = new Map<string, SymbolRecord[]>();
 
   for (const entry of documents) {
     for (const symbol of collectGlobalDefinitions(entry.document, entry.filePath)) {
       symbolRecords.push(symbol);
       globalSymbols.add(symbol.name);
     }
+
+    for (const macroDefinition of entry.document.macroDefinitions) {
+      const current = macrosByName.get(macroDefinition.name) ?? [];
+      current.push({
+        name: macroDefinition.name,
+        line: macroDefinition.startLine,
+        filePath: entry.filePath
+      });
+      macrosByName.set(macroDefinition.name, current);
+    }
   }
 
   diagnostics.push(...collectDuplicateSymbolDiagnostics(symbolRecords));
+  diagnostics.push(...collectDuplicateMacroDiagnostics(macrosByName));
 
   for (const entry of documents) {
     diagnostics.push(
       ...collectMalformedDiagnostics(entry.filePath, entry.document),
       ...collectUnsupportedDiagnostics(entry.filePath, entry.document),
-      ...collectUnresolvedDiagnostics(entry.filePath, entry.document, globalSymbols)
+      ...collectMacroStructureDiagnostics(entry.filePath, entry.document),
+      ...collectUnresolvedDiagnostics(entry.filePath, entry.document, globalSymbols),
+      ...collectMacroCallDiagnostics(entry.filePath, entry.document, macrosByName)
     );
   }
 
@@ -74,6 +94,30 @@ function collectDuplicateSymbolDiagnostics(
       code: "duplicate-symbol",
       message: `Duplicate symbol ${symbol.name}; first defined at line ${firstDefinition.line}`
     });
+  }
+
+  return diagnostics;
+}
+
+function collectDuplicateMacroDiagnostics(
+  macrosByName: ReadonlyMap<string, readonly SymbolRecord[]>
+): readonly Diagnostic[] {
+  const diagnostics: Diagnostic[] = [];
+
+  for (const [name, definitions] of macrosByName.entries()) {
+    const firstDefinition = definitions[0];
+    if (firstDefinition === undefined) {
+      continue;
+    }
+
+    for (const duplicate of definitions.slice(1)) {
+      diagnostics.push({
+        filePath: duplicate.filePath,
+        line: duplicate.line,
+        code: "duplicate-macro-definition",
+        message: `Duplicate macro definition ${name}; first defined at line ${firstDefinition.line}`
+      });
+    }
   }
 
   return diagnostics;
@@ -123,6 +167,42 @@ function collectUnsupportedDiagnostics(
   return diagnostics;
 }
 
+function collectMacroStructureDiagnostics(
+  filePath: string,
+  document: ParsedDocument
+): readonly Diagnostic[] {
+  const diagnostics: Diagnostic[] = [];
+
+  for (const macroDefinition of document.macroDefinitions) {
+    if (macroDefinition.endLine === null) {
+      diagnostics.push({
+        filePath,
+        line: macroDefinition.startLine,
+        code: "missing-macro-end",
+        message: `Macro ${macroDefinition.name} is missing a closing eom/<<<`
+      });
+    }
+
+    for (const bodyLine of macroDefinition.body) {
+      const bodyNode = bodyLine.node;
+      if (
+        bodyNode.shape === "directive" &&
+        bodyNode.label !== null &&
+        bodyNode.directive.lexeme.toLowerCase() === "mac"
+      ) {
+        diagnostics.push({
+          filePath,
+          line: bodyLine.line,
+          code: "invalid-macro-nesting",
+          message: `Macro ${bodyNode.label.lexeme} cannot be defined inside macro ${macroDefinition.name}`
+        });
+      }
+    }
+  }
+
+  return diagnostics;
+}
+
 function collectUnresolvedDiagnostics(
   filePath: string,
   document: ParsedDocument,
@@ -130,9 +210,24 @@ function collectUnresolvedDiagnostics(
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
   const localScope = resolveLocalLabels(document);
+  const macroParameterLines = new Map<number, Set<string>>();
+
+  for (const macroDefinition of document.macroDefinitions) {
+    for (const bodyLine of macroDefinition.body) {
+      const lineParameters = macroParameterLines.get(bodyLine.line) ?? new Set<string>();
+      for (const parameterReference of bodyLine.parameterReferences) {
+        lineParameters.add(parameterReference.token.lexeme);
+      }
+      macroParameterLines.set(bodyLine.line, lineParameters);
+    }
+  }
 
   for (const line of document.lines) {
     for (const reference of findExpressionReferences(line.node)) {
+      if (macroParameterLines.get(line.line)?.has(reference) === true) {
+        continue;
+      }
+
       if (reference.startsWith("]") || reference.startsWith(":")) {
         const localKey = `${reference}@${line.line}`;
         const localDefinitionKey = [...localScope.definitions.keys()].find((key) =>
@@ -157,6 +252,47 @@ function collectUnresolvedDiagnostics(
           message: `Unresolved reference ${reference}`
         });
       }
+    }
+  }
+
+  return diagnostics;
+}
+
+function collectMacroCallDiagnostics(
+  filePath: string,
+  document: ParsedDocument,
+  macrosByName: ReadonlyMap<string, readonly SymbolRecord[]>
+): readonly Diagnostic[] {
+  const diagnostics: Diagnostic[] = [];
+
+  for (const macroCall of document.macroCalls) {
+    const definitions = macrosByName.get(macroCall.macro.lexeme);
+    const definition = definitions?.[0];
+
+    if (definition === undefined) {
+      diagnostics.push({
+        filePath,
+        line: macroCall.line,
+        code: "unresolved-macro",
+        message: `Unresolved macro ${macroCall.macro.lexeme}`
+      });
+      continue;
+    }
+
+    const parsedDefinition = document.macroDefinitions.find(
+      (macroDefinition) =>
+        macroDefinition.name === macroCall.macro.lexeme &&
+        macroDefinition.startLine === definition.line
+    );
+    const requiredArity = parsedDefinition?.maxParameterIndex ?? 0;
+    const actualArity = countMacroCallArguments(macroCall.args);
+    if (requiredArity !== actualArity) {
+      diagnostics.push({
+        filePath,
+        line: macroCall.line,
+        code: "macro-arity-mismatch",
+        message: `Macro ${macroCall.macro.lexeme} expected ${requiredArity} argument(s) but received ${actualArity}`
+      });
     }
   }
 
@@ -266,7 +402,12 @@ function getUnsupportedDirective(node: ParsedLine): string | null {
     return null;
   }
 
-  const directive = directiveTable.get(node.directive.lexeme.toLowerCase());
+  const directiveName = node.directive.lexeme.toLowerCase();
+  if (directiveName === "eom" || node.directive.lexeme === "<<<") {
+    return null;
+  }
+
+  const directive = directiveTable.get(directiveName);
   if (directive?.supported === false) {
     return node.directive.lexeme;
   }
@@ -294,4 +435,37 @@ function getUnsupportedTextPattern(text: string): string | null {
 
 function isLocalLabel(name: string): boolean {
   return name.startsWith("]") || name.startsWith(":");
+}
+
+function countMacroCallArguments(tokens: readonly Token[]): number {
+  if (tokens.length === 0) {
+    return 0;
+  }
+
+  let depth = 0;
+  let sawArgumentToken = false;
+  let argumentsCount = 1;
+
+  for (const token of tokens) {
+    if (token.kind === "expressionOperator" && token.lexeme === "(") {
+      depth += 1;
+      sawArgumentToken = true;
+      continue;
+    }
+
+    if (token.kind === "expressionOperator" && token.lexeme === ")") {
+      depth = Math.max(0, depth - 1);
+      sawArgumentToken = true;
+      continue;
+    }
+
+    if (token.kind === "expressionOperator" && token.lexeme === "," && depth === 0) {
+      argumentsCount += 1;
+      continue;
+    }
+
+    sawArgumentToken = true;
+  }
+
+  return sawArgumentToken ? argumentsCount : 0;
 }

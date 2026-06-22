@@ -140,4 +140,5 @@ An example configuration lives in `examples/coc-settings.json`.
 - The symbol index in `src/asm/symbols.ts` now uses one shared record shape for labels, equates, data definitions, and macros, including token locations and attached macro-definition metadata for macro symbols.
 - Signature help in `src/lsp/signature-help.ts` now derives macro parameter counts from the parsed macro index rather than rescanning macro body text with regexes.
 - Signature-help coverage now explicitly includes zero-argument macros, multi-digit positional parameters, nested expressions, and comma handling that only advances the active parameter at top-level argument boundaries.
+- Diagnostics in `src/asm/diagnostics.ts` now emit macro-specific failures for unresolved macro calls, duplicate macro definitions, missing `eom`/`<<<` terminators, illegal nested macro definitions, and straightforward arity mismatches.
 - The integration test suite covers stdio `initialize`, the CLI contract, and core LSP features.
