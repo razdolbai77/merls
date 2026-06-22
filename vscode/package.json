@@ -2,7 +2,7 @@
   "name": "pearls",
   "displayName": "Pearls",
   "description": "VS Code extension for 6502 assembly, powered by merls",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "publisher": "razdolbai",
   "icon": "images/icon.png",
   "license": "MIT",
@@ -17,7 +17,9 @@
     "Programming Languages"
   ],
   "activationEvents": [
-    "onLanguage:6502"
+    "onLanguage:6502",
+    "onCommand:pearls.compileCurrentFile",
+    "onCommand:pearls.compileProject"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -27,6 +29,72 @@
           "macro": "#C586C0",
           "function": "#DCDCAA",
           "variable": "#9CDCFE"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "pearls.compileCurrentFile",
+        "title": "Compile Current File with Merlin32",
+        "category": "Pearls"
+      },
+      {
+        "command": "pearls.compileProject",
+        "title": "Assemble Project with Merlin32",
+        "category": "Pearls"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "pearls.compileCurrentFile",
+          "when": "resourceLangId == 6502",
+          "group": "navigation@10"
+        },
+        {
+          "command": "pearls.compileProject",
+          "when": "resourceLangId == 6502",
+          "group": "navigation@11"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "pearls.compileCurrentFile",
+          "when": "resourceLangId == 6502",
+          "group": "navigation"
+        },
+        {
+          "command": "pearls.compileProject",
+          "when": "resourceLangId == 6502",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Pearls",
+      "properties": {
+        "pearls.merlin32Executable": {
+          "type": "string",
+          "default": "merlin32",
+          "description": "Command or absolute path for the merlin32 assembler executable used by the Pearls compile command."
+        },
+        "pearls.compileArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Additional arguments to pass to merlin32 before the macro folder and current file path when using the Pearls compile command."
+        },
+        "pearls.merlin32MacroFolder": {
+          "type": "string",
+          "default": "",
+          "description": "Optional per-project macro folder path passed to merlin32. When unset, Pearls uses the current file's directory."
+        },
+        "pearls.merlin32ProjectEntryFile": {
+          "type": "string",
+          "default": "",
+          "description": "Project entry file or link script for the Pearls project assembly command. Relative paths are resolved from the workspace folder."
         }
       }
     },
@@ -57,7 +125,8 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "tsc -watch -p ./",
+    "test": "npm run compile && node --test out/**/*.test.js"
   },
   "dependencies": {
     "@razdolbai/merls": "^2.1.6",

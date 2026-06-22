@@ -31,6 +31,7 @@ Additional advanced LSP handlers for rename, formatting, folding, document highl
 The current packaged CLI entrypoint lives under `src/cli.ts` and is covered by a compiled stdio launch-contract integration test.
 The coc.nvim smoke test now lives under `test/smoke/` with a headless Vim runner (`run-smoke.ps1`) and a minimal vimrc that isolates the test from the user's real Vim configuration.
 A fully standalone Visual Studio Code extension is located under the `vscode/` directory, which relies on the bundled server codebase and TextMate fallbacks.
+The current Visual Studio Code extension now contributes `Pearls: Compile Current File with Merlin32` and `Pearls: Assemble Project with Merlin32` commands that run `merlin32 <macro-folder> <source-or-entry-file>` in an integrated terminal, configurable via `pearls.merlin32Executable`, `pearls.compileArgs`, `pearls.merlin32MacroFolder`, and `pearls.merlin32ProjectEntryFile`, with the current file's directory used when the macro-folder setting is unset.
 Cross-file symbol and macro resolution for semantic tokens ensures robust syntax highlighting without relying purely on TextMate scopes.
 URI normalization is strictly enforced inside `getIndexedDocuments()` to prevent duplicate workspace index entries on Windows due to case mismatches.
 
@@ -43,6 +44,7 @@ The repository now includes the initial Node/TypeScript workspace scaffold:
 - `npm run build`: compile TypeScript sources to `dist/`.
 - `npm test`: run linting, build the project, and run the current test suite.
 - `npm run dev`: run the TypeScript compiler in watch mode during bootstrap work.
+- `cd vscode && npm test`: compile the Visual Studio Code extension and run its unit tests.
 
 The supported stdio launch contract is now `merls --stdio`, with `node dist/src/cli.js --stdio` as the equivalent local-development invocation.
 

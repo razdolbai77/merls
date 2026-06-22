@@ -1,14 +1,22 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { workspace, window, ExtensionContext } from 'vscode';
+import { commands, workspace, window, ExtensionContext, Uri } from 'vscode';
 import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
+import {
+  buildCompileCommand,
+  getCompileWorkingDirectory,
+  getMacroFolderPath,
+  getProjectEntryFilePath
+} from './compile';
 
 let client: LanguageClient;
+const compileCurrentFileCommand = 'pearls.compileCurrentFile';
+const compileProjectCommand = 'pearls.compileProject';
 
 export function activate(context: ExtensionContext) {
   // Look for the locally built merls in the parent directory when developing
@@ -73,6 +81,18 @@ export function activate(context: ExtensionContext) {
   client.start().catch(err => {
     window.showErrorMessage('Pearls LSP failed to start: ' + err);
   });
+
+  context.subscriptions.push(
+    commands.registerCommand(compileCurrentFileCommand, async (uri?: Uri) => {
+      await compileCurrentFile(uri);
+    })
+  );
+
+  context.subscriptions.push(
+    commands.registerCommand(compileProjectCommand, async (uri?: Uri) => {
+      await compileProject(uri);
+    })
+  );
 }
 
 export function deactivate(): Thenable<void> | undefined {
@@ -80,4 +100,119 @@ export function deactivate(): Thenable<void> | undefined {
     return undefined;
   }
   return client.stop();
+}
+
+async function compileCurrentFile(uri?: Uri): Promise<void> {
+  const document =
+    uri !== undefined
+      ? await workspace.openTextDocument(uri)
+      : window.activeTextEditor?.document;
+
+  if (document === undefined) {
+    void window.showErrorMessage('Pearls: open a Merlin32 source file before compiling.');
+    return;
+  }
+
+  if (document.isUntitled) {
+    void window.showErrorMessage('Pearls: save the current file before compiling with merlin32.');
+    return;
+  }
+
+  if (document.isDirty) {
+    const saved = await document.save();
+    if (!saved) {
+      void window.showErrorMessage('Pearls: the current file must be saved before compiling.');
+      return;
+    }
+  }
+
+  const configuration = workspace.getConfiguration('pearls', document.uri);
+  const assemblerPath = configuration.get<string>('merlin32Executable', 'merlin32');
+  const extraArgs = configuration.get<string[]>('compileArgs', []);
+  const configuredMacroFolderPath =
+    configuration.get<string>('merlin32MacroFolder')?.trim() || undefined;
+  const workspaceFolder = workspace.getWorkspaceFolder(document.uri);
+  const command = buildCompileCommand({
+    assemblerPath,
+    extraArgs,
+    macroFolderPath: getMacroFolderPath(document.uri.fsPath, configuredMacroFolderPath),
+    sourcePath: document.uri.fsPath,
+    isWindows: process.platform === 'win32'
+  });
+
+  const terminal = window.createTerminal({
+    name: 'Pearls Merlin32',
+    cwd: getCompileWorkingDirectory(document.uri.fsPath, workspaceFolder?.uri.fsPath)
+  });
+
+  terminal.show(true);
+  terminal.sendText(command, true);
+}
+
+async function compileProject(uri?: Uri): Promise<void> {
+  const targetUri = uri ?? window.activeTextEditor?.document.uri;
+  const workspaceFolder =
+    targetUri !== undefined ? workspace.getWorkspaceFolder(targetUri) : undefined;
+
+  if (workspaceFolder === undefined) {
+    void window.showErrorMessage(
+      'Pearls: open a file inside a workspace and configure pearls.merlin32ProjectEntryFile before assembling the project.'
+    );
+    return;
+  }
+
+  const configuration = workspace.getConfiguration('pearls', workspaceFolder.uri);
+  const configuredEntryFile =
+    configuration.get<string>('merlin32ProjectEntryFile')?.trim() ?? '';
+
+  if (configuredEntryFile.length === 0) {
+    void window.showErrorMessage(
+      'Pearls: set pearls.merlin32ProjectEntryFile for this workspace before assembling the project.'
+    );
+    return;
+  }
+
+  const entryFilePath = getProjectEntryFilePath(
+    workspaceFolder.uri.fsPath,
+    configuredEntryFile
+  );
+
+  try {
+    await workspace.fs.stat(Uri.file(entryFilePath));
+  } catch {
+    void window.showErrorMessage(
+      `Pearls: configured project entry file was not found: ${entryFilePath}`
+    );
+    return;
+  }
+
+  const document = await workspace.openTextDocument(entryFilePath);
+
+  if (document.isDirty) {
+    const saved = await document.save();
+    if (!saved) {
+      void window.showErrorMessage('Pearls: the project entry file must be saved before compiling.');
+      return;
+    }
+  }
+
+  const assemblerPath = configuration.get<string>('merlin32Executable', 'merlin32');
+  const extraArgs = configuration.get<string[]>('compileArgs', []);
+  const configuredMacroFolderPath =
+    configuration.get<string>('merlin32MacroFolder')?.trim() || undefined;
+  const command = buildCompileCommand({
+    assemblerPath,
+    extraArgs,
+    macroFolderPath: getMacroFolderPath(document.uri.fsPath, configuredMacroFolderPath),
+    sourcePath: document.uri.fsPath,
+    isWindows: process.platform === 'win32'
+  });
+
+  const terminal = window.createTerminal({
+    name: 'Pearls Merlin32',
+    cwd: getCompileWorkingDirectory(document.uri.fsPath, workspaceFolder.uri.fsPath)
+  });
+
+  terminal.show(true);
+  terminal.sendText(command, true);
 }

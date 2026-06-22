@@ -16,9 +16,15 @@ The extension serves as an LSP Client that launches the `merls` language server.
    npm run compile
    ```
    *(Or run `npm run watch` to compile on every file change).*
-3. Open the `vscode/` folder in VS Code, and press **F5** to start a new VS Code window (Extension Development Host) with the extension loaded.
+3. Run the extension unit tests:
+   ```bash
+   npm test
+   ```
+4. Open the `vscode/` folder in VS Code, and press **F5** to start a new VS Code window (Extension Development Host) with the extension loaded.
 
 > **Note**: During development, the extension is wired to look for `../dist/src/cli.js`. Ensure you have built the main `merls` project at the repository root first (`npm run build`).
+
+The extension now also contributes `Pearls: Compile Current File with Merlin32` and `Pearls: Assemble Project with Merlin32`, which launch `merlin32 <macro-folder> <source-or-entry-file>` in the integrated terminal. Use the `pearls.merlin32Executable`, `pearls.compileArgs`, `pearls.merlin32MacroFolder`, and `pearls.merlin32ProjectEntryFile` settings to adjust the command line during development.
 
 ## Packaging
 
