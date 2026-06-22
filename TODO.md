@@ -12,7 +12,7 @@
 - [x] Implement macro-call diagnostics for unresolved macro names, missing `eom`/`<<<`, duplicate macro definitions, invalid macro re-entry/nesting rules, and obvious arity mismatches.
 - [x] Add diagnostics tests that verify macro-definition and macro-call failures report stable ranges and messages.
 - [x] Build a parameter-substitution model that maps each macro call argument to the parameter placeholders used inside the referenced macro body.
-- [ ] Add tests for parameter-substitution mapping, including repeated parameter use, unused parameters, nested identifiers inside expressions, and argument expressions containing multiple referenced symbols.
+- [x] Add tests for parameter-substitution mapping, including repeated parameter use, unused parameters, nested identifiers inside expressions, and argument expressions containing multiple referenced symbols.
 - [ ] Extend reference collection so symbol references contributed by macro expansions are attributed back to the originating macro call site and the concrete argument symbols passed there.
 - [ ] Extend definition lookup so identifier uses inside macro-expanded contexts can resolve through parameter substitution to the real symbol definitions supplied at the call site.
 - [ ] Add definition/reference integration tests covering symbols passed through macros, symbols referenced multiple times inside one macro body, and nested macro calls.

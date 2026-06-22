@@ -143,4 +143,5 @@ An example configuration lives in `examples/coc-settings.json`.
 - Diagnostics in `src/asm/diagnostics.ts` now emit macro-specific failures for unresolved macro calls, duplicate macro definitions, missing `eom`/`<<<` terminators, illegal nested macro definitions, and straightforward arity mismatches.
 - Macro diagnostics now carry stable token-based character ranges for macro-definition and macro-call failures, and the LSP diagnostic bridge preserves those narrower spans instead of always highlighting whole lines.
 - The initial parameter-substitution model now lives in `src/asm/substitution.ts`, mapping macro call arguments onto the `]n` placeholders they satisfy inside parsed macro bodies and collecting symbol references from each supplied argument expression.
+- Substitution tests now cover repeated placeholder use, unused trailing arguments, parenthesized argument expressions, and arguments that reference multiple concrete symbols.
 - The integration test suite covers stdio `initialize`, the CLI contract, and core LSP features.
