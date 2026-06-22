@@ -3,6 +3,7 @@ import { runCliContractTest } from "./cli-contract.test";
 import { runCocConfigTest } from "./coc-config.test";
 import { runCompletionTest } from "./completion.test";
 import { runDefinitionReferencesTest } from "./definition-references.test";
+import { runMacroDefinitionReferencesIntegrationTest } from "./macro-definition-references.test";
 import { runDiagnosticsTest } from "./diagnostics.test";
 import { runDocumentModelTest } from "./document-model.test";
 import { runDocumentSymbolTest } from "./document-symbol.test";
@@ -140,6 +141,10 @@ const tests: TestCase[] = [
   {
     name: "server resolves definitions and references for Merlin symbols",
     run: runDefinitionReferencesTest
+  },
+  {
+    name: "macro-aware definitions and references resolve at call-site symbols",
+    run: runMacroDefinitionReferencesIntegrationTest
   },
   {
     name: "server returns hover information for opcodes directives and symbols",

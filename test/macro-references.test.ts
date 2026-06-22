@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 
 import { buildCachedDocument } from "../src/asm/document";
-import { collectReferences } from "../src/lsp/symbol-navigation";
+import { collectReferences, findDefinition } from "../src/lsp/symbol-navigation";
 
 export function runMacroReferencesTest(): void {
   const cached = buildCachedDocument([
@@ -65,4 +65,18 @@ export function runMacroReferencesTest(): void {
       }
     ]
   );
+
+  const definition = findDefinition(
+    new Map([["file:///macro-test.S", cached]]),
+    "file:///macro-test.S",
+    8,
+    18
+  );
+  assert.deepEqual(definition, {
+    uri: "file:///macro-test.S",
+    range: {
+      start: { line: 5, character: 0 },
+      end: { line: 5, character: 6 }
+    }
+  });
 }

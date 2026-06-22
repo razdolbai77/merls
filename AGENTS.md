@@ -29,6 +29,7 @@ Macro-definition and macro-call diagnostics now preserve token-based character s
 The initial parameter-substitution model now lives under `src/asm/substitution.ts` and maps macro call arguments onto parsed `]n` placeholder uses inside macro bodies while collecting referenced symbols from each argument expression.
 The current substitution test coverage explicitly includes repeated placeholder use, unused trailing arguments, parenthesized argument expressions, and arguments that reference multiple concrete symbols.
 Reference collection in `src/lsp/symbol-navigation.ts` now attributes macro-expanded symbol uses back to the concrete argument tokens at the macro call site instead of only treating the macro name as the reference.
+Macro-aware definition/reference coverage now includes call-site symbol resolution through nested macro calls, ensuring navigation lands on the concrete symbol definition supplied to the macro rather than on the macro symbol itself.
 The current local-label resolver now lives under `src/asm/local-labels.ts` and resolves Merlin32 `]local` and `:local` labels within the nearest global-label scope.
 The current workspace indexer now lives under `src/asm/workspace.ts` and follows `asm`/`put`/`use` directives across the local fixture corpus.
 The current diagnostics pass now lives under `src/asm/diagnostics.ts` and reports duplicate symbols, unresolved references, malformed lines, and unsupported 65816-only syntax.
