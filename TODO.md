@@ -20,7 +20,7 @@
 - [x] Add rename tests for symbols passed into macros, symbols referenced from nested macro calls, and rename rejection in ambiguous expansion cases.
 - [x] Introduce an expansion-aware local-label model for macros so labels defined inside macro bodies are scoped per expansion instance rather than treated as globally shared text.
 - [x] Add tests for local labels inside macros, repeated macro invocations that define the same local labels, and interactions between macro-local labels and existing Merlin local-label rules.
-- [ ] Extend hover output so macro calls show parsed parameter signatures, macro definition locations, and expansion-aware symbol information when hovering arguments or substituted references.
+- [x] Extend hover output so macro calls show parsed parameter signatures, macro definition locations, and expansion-aware symbol information when hovering arguments or substituted references.
 - [ ] Extend completion so macro names, macro parameters where appropriate, and expansion-aware symbol candidates behave consistently at macro call sites and inside macro bodies.
 - [ ] Extend semantic tokens so macro definitions, macro invocations, macro parameters, and expansion-resolved symbol uses are tokenized distinctly and consistently across files.
 - [ ] Add semantic-token, hover, and completion tests focused on macro-heavy fixtures.

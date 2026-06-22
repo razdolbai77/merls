@@ -150,4 +150,5 @@ An example configuration lives in `examples/coc-settings.json`.
 - Rename coverage now includes nested macro-call expansion paths, ensuring the propagated edit set still targets only the concrete symbol definition and call-site argument tokens rather than macro placeholders.
 - Local-label resolution now synthesizes per-invocation macro-local scopes, so repeated macro calls that define the same `]local` label no longer collapse into one shared global-text scope.
 - Local-label tests now also cover interaction between invocation-local macro labels and ordinary Merlin anchor-based locals that appear before or after the macro call.
+- Hover now recognizes macro call sites directly, showing parsed positional signatures and macro definition lines instead of only falling back to generic symbol hover text.
 - The integration test suite covers stdio `initialize`, the CLI contract, and core LSP features.

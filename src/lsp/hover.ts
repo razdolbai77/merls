@@ -4,6 +4,7 @@ import { directiveTable, opcodeTable } from "../asm/metadata";
 import { type CachedDocument } from "../asm/document";
 import { tokenAtCharacter } from "../asm/lexer";
 import { findDefinition } from "./symbol-navigation";
+import { findSymbol } from "../asm/symbols";
 
 export function buildHover(
   openDocuments: ReadonlyMap<string, CachedDocument>,
@@ -47,6 +48,19 @@ export function buildHover(
       return {
         contents: `Register ${token.lexeme.toUpperCase()}`
       };
+    }
+
+    if (documentLine.node.shape === "macroCall" && documentLine.node.macro.start === token.start) {
+      const macroSymbol = findSymbol(openDocuments, token.lexeme, "macro");
+      if (macroSymbol !== null) {
+        const maxParam = macroSymbol.symbol.macroDefinition?.maxParameterIndex ?? 0;
+        const signature = maxParam === 0
+          ? `${token.lexeme}()`
+          : `${token.lexeme}(${Array.from({ length: maxParam }, (_, index) => `]${index + 1}`).join(", ")})`;
+        return {
+          contents: `Macro ${signature} defined at line ${macroSymbol.symbol.line}`
+        };
+      }
     }
 
     const definition = findDefinition(openDocuments, uri, line, token.start);

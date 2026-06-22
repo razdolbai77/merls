@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
+import { buildCachedDocument } from "../src/asm/document";
+import { buildHover } from "../src/lsp/hover";
 
 type JsonRpcMessage = {
   id?: number;
@@ -169,6 +171,26 @@ export async function runHoverTest(): Promise<void> {
         ? symbolResult.contents
         : symbolResult.contents.value;
     assert.equal(symbolText.includes("GetKey"), true);
+
+    const macroUri = "file:///workspace/macro-hover.S";
+    const macroText = [
+      "Wrap mac",
+      "        lda ]1",
+      "        sta ]2",
+      "        eom",
+      "Target",
+      "        Wrap Target,Target"
+    ].join("\n");
+    const macroCached = buildCachedDocument(macroText);
+    const macroHover = buildHover(new Map([[macroUri, macroCached]]), macroUri, 5, 10);
+    assert.ok(macroHover);
+    const macroHoverText = typeof macroHover.contents === "string"
+      ? macroHover.contents
+      : Array.isArray(macroHover.contents)
+        ? macroHover.contents.map((entry) => typeof entry === "string" ? entry : entry.value).join("\n")
+        : macroHover.contents.value;
+    assert.equal(macroHoverText.includes("Wrap(]1, ]2)"), true);
+    assert.equal(macroHoverText.includes("defined at line 0"), true);
   } finally {
     child.kill();
   }
