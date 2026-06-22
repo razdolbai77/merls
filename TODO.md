@@ -17,7 +17,7 @@
 - [ ] Extend definition lookup so identifier uses inside macro-expanded contexts can resolve through parameter substitution to the real symbol definitions supplied at the call site.
 - [x] Add definition/reference integration tests covering symbols passed through macros, symbols referenced multiple times inside one macro body, and nested macro calls.
 - [x] Refactor rename planning so renames propagate safely through macro-expanded references while avoiding accidental edits to parameter placeholders or unrelated macro definitions.
-- [ ] Add rename tests for symbols passed into macros, symbols referenced from nested macro calls, and rename rejection in ambiguous expansion cases.
+- [x] Add rename tests for symbols passed into macros, symbols referenced from nested macro calls, and rename rejection in ambiguous expansion cases.
 - [ ] Introduce an expansion-aware local-label model for macros so labels defined inside macro bodies are scoped per expansion instance rather than treated as globally shared text.
 - [ ] Add tests for local labels inside macros, repeated macro invocations that define the same local labels, and interactions between macro-local labels and existing Merlin local-label rules.
 - [ ] Extend hover output so macro calls show parsed parameter signatures, macro definition locations, and expansion-aware symbol information when hovering arguments or substituted references.

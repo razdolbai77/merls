@@ -83,4 +83,35 @@ Target
       ]
     );
   }
+
+  // Nested macro call references should still rename the concrete call-site symbol only.
+  {
+    const nestedMacroUri = "file:///workspace/nested-macro.S";
+    const nestedMacroSource = `
+Inner mac
+  lda ]1
+  eom
+Outer mac
+  Inner ]1
+  sta ]1
+  eom
+Target
+  Outer Target
+  `;
+    const nestedDocuments = new Map<string, CachedDocument>([
+      [nestedMacroUri, buildCachedDocument(nestedMacroSource)]
+    ]);
+
+    const edits = buildRenameEdits(nestedDocuments, nestedMacroUri, 8, 0, "NestedTarget");
+    assert.ok(edits !== null);
+    assert.ok(edits.changes);
+    assert.equal(edits.changes[nestedMacroUri].length, 2);
+    assert.deepEqual(
+      edits.changes[nestedMacroUri].map((edit) => edit.range.start),
+      [
+        { line: 8, character: 0 },
+        { line: 9, character: 8 }
+      ]
+    );
+  }
 }
