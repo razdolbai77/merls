@@ -1,0 +1,148 @@
+import { type MacroCallLine, type MacroDefinitionRegion, type ParsedLine } from "./parser";
+import { type Token } from "./lexer";
+import { type Expression } from "./expression";
+
+export type ExpandedToken = Token & {
+  sourceToken: Token;
+};
+
+export type ExpandedLine = {
+  text: string;
+  tokens: readonly ExpandedToken[];
+};
+
+export type ExpandedMacro = {
+  lines: readonly ExpandedLine[];
+};
+
+export function expandMacroCall(
+  callLine: MacroCallLine,
+  macroDefinitions: readonly MacroDefinitionRegion[]
+): ExpandedMacro {
+  const definition = macroDefinitions.find((def) => def.name === callLine.macro.lexeme);
+  if (!definition) {
+    return { lines: [] };
+  }
+
+  // Use the substitution logic we already have?
+  // buildMacroSubstitution requires a ParsedDocument, which requires full ast.
+  // We can just extract the argument tokens here instead.
+
+  const args: Token[][] = [];
+  let currentArg: Token[] = [];
+  let depth = 0;
+  for (const token of callLine.args) {
+    if (token.kind === "expressionOperator" && token.lexeme === "(") {
+      depth++;
+      currentArg.push(token);
+    } else if (token.kind === "expressionOperator" && token.lexeme === ")") {
+      depth = Math.max(0, depth - 1);
+      currentArg.push(token);
+    } else if (token.kind === "expressionOperator" && token.lexeme === "," && depth === 0) {
+      args.push(currentArg);
+      currentArg = [];
+    } else {
+      currentArg.push(token);
+    }
+  }
+  if (currentArg.length > 0 || callLine.args.length > 0) {
+    args.push(currentArg);
+  }
+
+  const lines: ExpandedLine[] = [];
+
+  for (const bodyLine of definition.body) {
+    // Collect all tokens from the original line, and substitute parameters
+    const expandedTokens: ExpandedToken[] = [];
+    const nodeTokens = extractTokensFromNode(bodyLine.node);
+    
+    let expandedText = "";
+
+    for (const token of nodeTokens) {
+      const match = /^\](\d+)$/u.exec(token.lexeme);
+      if (token.kind === "localLabel" && match !== null) {
+        const paramIndex = Number.parseInt(match[1]!, 10);
+        const argTokens = args[paramIndex - 1] ?? [];
+        if (argTokens.length > 0) {
+          // If there are arg tokens, replace this placeholder with them
+          for (let i = 0; i < argTokens.length; i++) {
+            const argToken = argTokens[i]!;
+            const spaceBefore = i === 0 ? " " : ""; // simplified spacing
+            expandedText += spaceBefore + argToken.lexeme;
+            expandedTokens.push({
+              ...argToken,
+              start: expandedText.length - argToken.lexeme.length,
+              sourceToken: argToken // Maps back to call site argument
+            });
+          }
+        } else {
+          // Empty argument, skip
+        }
+      } else {
+        const spaceBefore = expandedTokens.length > 0 && token.kind !== "expressionOperator" ? " " : "";
+        expandedText += spaceBefore + token.lexeme;
+        expandedTokens.push({
+          ...token,
+          start: expandedText.length - token.lexeme.length,
+          sourceToken: token // Maps back to macro definition body
+        });
+      }
+    }
+
+    // Add leading spaces to approximate the original indentation
+    const indentMatch = /^\s+/.exec(bodyLine.node.text);
+    const indent = indentMatch ? indentMatch[0] : "";
+    const finalText = indent + expandedText;
+
+    // Shift tokens by indent length
+    const shiftedTokens = expandedTokens.map(t => ({
+      ...t,
+      start: t.start + indent.length
+    }));
+
+    lines.push({
+      text: finalText,
+      tokens: shiftedTokens
+    });
+  }
+
+  return { lines };
+}
+
+function extractTokensFromNode(node: ParsedLine): Token[] {
+  // Rough extraction since we just want tokens in order
+  const tokens: Token[] = [];
+  if ("label" in node && node.label) tokens.push(node.label);
+  if ("directive" in node && node.directive) tokens.push(node.directive);
+  if ("mnemonic" in node && node.mnemonic) tokens.push(node.mnemonic);
+  if ("macro" in node && node.macro) tokens.push(node.macro);
+  
+  if ("operand" in node && node.operand && "expression" in node.operand) {
+    collectExpressionTokens(node.operand.expression, tokens);
+  } else if ("operand" in node && node.operand) {
+    collectExpressionTokens(node.operand as Expression, tokens);
+  } else if ("expression" in node && node.expression) {
+    collectExpressionTokens(node.expression, tokens);
+  }
+  
+  if ("args" in node && node.args) {
+    tokens.push(...node.args);
+  }
+  
+  return tokens.sort((a, b) => a.start - b.start);
+}
+
+function collectExpressionTokens(expr: Expression, tokens: Token[]) {
+  if ("token" in expr && expr.token) {
+    tokens.push(expr.token);
+  }
+  if ("expression" in expr && expr.expression) {
+    collectExpressionTokens(expr.expression, tokens);
+  }
+  if ("left" in expr && expr.left) {
+    collectExpressionTokens(expr.left, tokens);
+  }
+  if ("right" in expr && expr.right) {
+    collectExpressionTokens(expr.right, tokens);
+  }
+}

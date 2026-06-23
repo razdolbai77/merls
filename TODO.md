@@ -24,7 +24,7 @@
 - [x] Extend completion so macro names, macro parameters where appropriate, and expansion-aware symbol candidates behave consistently at macro call sites and inside macro bodies.
 - [x] Extend semantic tokens so macro definitions, macro invocations, macro parameters, and expansion-resolved symbol uses are tokenized distinctly and consistently across files.
 - [x] Add semantic-token, hover, and completion tests focused on macro-heavy fixtures.
-- [ ] Introduce a dedicated expansion-analysis layer that can produce a bounded virtual expansion view for one macro call, including substituted identifiers and remapped source locations.
+- [x] Introduce a dedicated expansion-analysis layer that can produce a bounded virtual expansion view for one macro call, including substituted identifiers and remapped source locations.
 - [ ] Reuse that expansion-analysis layer in navigation, diagnostics, highlights, call hierarchy, code lens, and inlay hints so macro-aware behavior is implemented once rather than separately in each LSP handler.
 - [ ] Add caching and invalidation rules for macro indexes and expansion-analysis results so open-document updates do not re-expand the entire workspace unnecessarily.
 - [ ] Add performance tests or at least regression benchmarks for large macro-heavy fixture files to keep navigation and diagnostics responsive.
