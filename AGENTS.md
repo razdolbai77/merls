@@ -54,6 +54,9 @@ A fully standalone Visual Studio Code extension is located under the `vscode/` d
 The current Visual Studio Code extension now contributes `Pearls: Compile Current File with Merlin32` and `Pearls: Assemble Project with Merlin32` commands that run `merlin32 <macro-folder> <source-or-entry-file>` in an integrated terminal, configurable via `pearls.merlin32Executable`, `pearls.compileArgs`, `pearls.merlin32MacroFolder`, and `pearls.merlin32ProjectEntryFile`, with the current file's directory used when the macro-folder setting is unset.
 Cross-file symbol and macro resolution for semantic tokens ensures robust syntax highlighting without relying purely on TextMate scopes.
 URI normalization is strictly enforced inside `getIndexedDocuments()` to prevent duplicate workspace index entries on Windows due to case mismatches.
+The macro index and expansion-analysis layer now incorporate targeted caching and invalidation logic so that unaffected macro calls are not wastefully re-expanded during typing.
+Performance regression benchmarks now lock down responsiveness on massive, macro-heavy synthetic documents.
+Strict guardrails and distinct diagnostics (`macro-recursion`, `deep-macro-expansion`, `token-pasted-name`, `unresolved-conditional`) prevent infinite loops and ensure predictably degraded fallback behavior when the parser encounters unsupported macro techniques.
 
 ## Build, Test, and Development Commands
 
