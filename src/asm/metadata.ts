@@ -152,7 +152,15 @@ export const directiveDefinitions: readonly DirectiveDefinition[] = [
   defineDirective("do", "assembler", true, "Begin conditional assembly block."),
   defineDirective("fin", "assembler", true, "End conditional assembly block."),
   defineDirective("if", "assembler", true, "Begin conditional assembly."),
-  defineDirective("else", "assembler", true, "Else branch for conditional assembly.")
+  defineDirective("else", "assembler", true, "Else branch for conditional assembly."),
+  defineDirective("dfb", "data", true, "Emit byte data."),
+  defineDirective("ddb", "data", true, "Emit double-byte data."),
+  defineDirective("dw", "data", true, "Emit word data."),
+  defineDirective("dci", "data", true, "Emit DCI string."),
+  defineDirective("inv", "data", true, "Emit an inverse text string."),
+  defineDirective("fls", "data", true, "Emit a flashing text string."),
+  defineDirective("rev", "data", true, "Emit a reversed string."),
+  defineDirective("strl", "data", true, "Emit a length-prefixed string.")
 ];
 
 export const directiveTable = new Map(
