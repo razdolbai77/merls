@@ -245,28 +245,37 @@ export function getEffectiveLines(
 
   const effectiveLines: EffectiveLine[] = [];
 
-  for (const line of document.lines) {
-    if (line.node.shape === "macroCall") {
+  function expandNode(node: ParsedLine, sourceLine: number, depth: number, callStack: ReadonlySet<string>) {
+    if (node.shape === "macroCall") {
       effectiveLines.push({
-        line: line.line,
-        node: line.node,
-        isExpanded: false
+        line: sourceLine,
+        node,
+        isExpanded: depth > 0
       });
-      const expansion = expandMacroCall(line.node, macroDefinitions);
+
+      const macroName = node.macro.lexeme;
+      if (callStack.has(macroName) || depth >= 50) {
+        return;
+      }
+
+      const expansion = expandMacroCall(node, macroDefinitions);
+      const newStack = new Set(callStack);
+      newStack.add(macroName);
+
       for (const parsedLine of expansion.parsedLines) {
-        effectiveLines.push({
-          line: line.line,
-          node: parsedLine,
-          isExpanded: true
-        });
+        expandNode(parsedLine, sourceLine, depth + 1, newStack);
       }
     } else {
       effectiveLines.push({
-        line: line.line,
-        node: line.node,
-        isExpanded: false
+        line: sourceLine,
+        node,
+        isExpanded: depth > 0
       });
     }
+  }
+
+  for (const line of document.lines) {
+    expandNode(line.node, line.line, 0, new Set());
   }
 
   effectiveLinesCache.set(document, { resolvedDefinitions, effectiveLines });

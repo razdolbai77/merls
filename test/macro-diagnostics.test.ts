@@ -19,6 +19,14 @@ export function runMacroDiagnosticsTest(): void {
     "ZeroMac  mac",
     "        eom",
     "        ZeroMac VALUE",
+    "RecurseMac mac",
+    "        RecurseMac VALUE",
+    "        eom",
+    "PastedMac mac",
+    "        lda label]1",
+    "        do 1",
+    "        fin",
+    "        eom",
     "UnclosedMac mac",
     "        lda ]1"
   ].join("\n");
@@ -66,13 +74,40 @@ export function runMacroDiagnosticsTest(): void {
     endCharacter: 16
   });
 
-  assert.deepEqual(findDiagnostic(diagnostics, "missing-macro-end", 14), {
+  assert.deepEqual(findDiagnostic(diagnostics, "missing-macro-end", 22), {
     filePath: "<macro-ranges>",
-    line: 14,
+    line: 22,
     code: "missing-macro-end",
     message: "Macro UnclosedMac is missing a closing eom/<<<",
     startCharacter: 0,
     endCharacter: 11
+  });
+
+  assert.deepEqual(findDiagnostic(diagnostics, "macro-recursion", 15), {
+    filePath: "<macro-ranges>",
+    line: 15,
+    code: "macro-recursion",
+    message: "Recursive macro call detected for RecurseMac",
+    startCharacter: 8,
+    endCharacter: 18
+  });
+
+  assert.deepEqual(findDiagnostic(diagnostics, "token-pasted-name", 18), {
+    filePath: "<macro-ranges>",
+    line: 18,
+    code: "token-pasted-name",
+    message: "Unsupported token-pasted name label]1",
+    startCharacter: 12,
+    endCharacter: 19
+  });
+
+  assert.deepEqual(findDiagnostic(diagnostics, "unresolved-conditional", 19), {
+    filePath: "<macro-ranges>",
+    line: 19,
+    code: "unresolved-conditional",
+    message: "Conditional assembly directive do inside macro cannot be statically resolved",
+    startCharacter: 8,
+    endCharacter: 10
   });
 }
 

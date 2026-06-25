@@ -15,7 +15,11 @@ export type DiagnosticCode =
   | "unsupported-65816"
   | "missing-macro-end"
   | "invalid-macro-nesting"
-  | "macro-arity-mismatch";
+  | "macro-arity-mismatch"
+  | "macro-recursion"
+  | "deep-macro-expansion"
+  | "token-pasted-name"
+  | "unresolved-conditional";
 
 export type Diagnostic = {
   filePath: string;
@@ -191,6 +195,43 @@ function collectMacroStructureDiagnostics(
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
 
+  function traceCalls(defName: string, callLine: number, start: number, end: number, stack: ReadonlySet<string>, depth: number) {
+    if (stack.has(defName)) {
+      diagnostics.push({
+        filePath,
+        line: callLine,
+        code: "macro-recursion",
+        message: `Recursive macro call detected for ${defName}`,
+        startCharacter: start,
+        endCharacter: end
+      });
+      return;
+    }
+    if (depth >= 50) {
+      diagnostics.push({
+        filePath,
+        line: callLine,
+        code: "deep-macro-expansion",
+        message: `Macro expansion depth exceeded`,
+        startCharacter: start,
+        endCharacter: end
+      });
+      return;
+    }
+
+    const def = document.macroDefinitions.find(d => d.name === defName);
+    if (!def) return;
+
+    const newStack = new Set(stack);
+    newStack.add(defName);
+
+    for (const bLine of def.body) {
+      for (const nested of bLine.nestedMacroCalls) {
+        traceCalls(nested.macro.lexeme, callLine, start, end, newStack, depth + 1);
+      }
+    }
+  }
+
   for (const macroDefinition of document.macroDefinitions) {
     if (macroDefinition.endLine === null) {
       diagnostics.push({
@@ -204,7 +245,77 @@ function collectMacroStructureDiagnostics(
     }
 
     for (const bodyLine of macroDefinition.body) {
+      for (const nested of bodyLine.nestedMacroCalls) {
+        traceCalls(nested.macro.lexeme, bodyLine.line, nested.macro.start, nested.macro.end, new Set([macroDefinition.name]), 1);
+      }
+
+      for (const ref of bodyLine.symbolReferences) {
+        if (!/^\]\d+$/.test(ref.token.lexeme) && /\]\d+/.test(ref.token.lexeme)) {
+          diagnostics.push({
+            filePath,
+            line: bodyLine.line,
+            code: "token-pasted-name",
+            message: `Unsupported token-pasted name ${ref.token.lexeme}`,
+            startCharacter: ref.token.start,
+            endCharacter: ref.token.end
+          });
+        }
+      }
+
+      for (const ref of bodyLine.localLabelDefinitions) {
+        if (!/^\]\d+$/.test(ref.token.lexeme) && /\]\d+/.test(ref.token.lexeme)) {
+          diagnostics.push({
+            filePath,
+            line: bodyLine.line,
+            code: "token-pasted-name",
+            message: `Unsupported token-pasted name ${ref.token.lexeme}`,
+            startCharacter: ref.token.start,
+            endCharacter: ref.token.end
+          });
+        }
+      }
+
+      for (const ref of bodyLine.localLabelReferences) {
+        if (!/^\]\d+$/.test(ref.token.lexeme) && /\]\d+/.test(ref.token.lexeme)) {
+          diagnostics.push({
+            filePath,
+            line: bodyLine.line,
+            code: "token-pasted-name",
+            message: `Unsupported token-pasted name ${ref.token.lexeme}`,
+            startCharacter: ref.token.start,
+            endCharacter: ref.token.end
+          });
+        }
+      }
+
+      for (const call of bodyLine.nestedMacroCalls) {
+        if (!/^\]\d+$/.test(call.macro.lexeme) && /\]\d+/.test(call.macro.lexeme)) {
+          diagnostics.push({
+            filePath,
+            line: bodyLine.line,
+            code: "token-pasted-name",
+            message: `Unsupported token-pasted macro name ${call.macro.lexeme}`,
+            startCharacter: call.macro.start,
+            endCharacter: call.macro.end
+          });
+        }
+      }
+
       const bodyNode = bodyLine.node;
+      if (bodyNode.shape === "directive") {
+        const lexeme = bodyNode.directive.lexeme.toLowerCase();
+        if (lexeme === "do" || lexeme === "if" || lexeme === "else" || lexeme === "fin") {
+          diagnostics.push({
+            filePath,
+            line: bodyLine.line,
+            code: "unresolved-conditional",
+            message: `Conditional assembly directive ${bodyNode.directive.lexeme} inside macro cannot be statically resolved`,
+            startCharacter: bodyNode.directive.start,
+            endCharacter: bodyNode.directive.end
+          });
+        }
+      }
+
       if (
         bodyNode.shape === "directive" &&
         bodyNode.label !== null &&
