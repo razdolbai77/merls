@@ -29,5 +29,5 @@
 - [x] Add caching and invalidation rules for macro indexes and expansion-analysis results so open-document updates do not re-expand the entire workspace unnecessarily.
 - [x] Add performance tests or at least regression benchmarks for large macro-heavy fixture files to keep navigation and diagnostics responsive.
 - [x] Add guardrails for unsupported or ambiguous cases such as recursive macros, deeply nested expansions, token-pasted/generated names, and conditionals that cannot be resolved statically.
-- [ ] Define fallback behavior and diagnostics for those unsupported cases so the server fails predictably instead of returning incorrect navigation results.
+- [x] Define fallback behavior and diagnostics for those unsupported cases so the server fails predictably instead of returning incorrect navigation results.
 - [ ] Update `README.md` and `AGENTS.md` to document macro expansion awareness, its supported scope, known limitations, and the new test coverage once implementation lands.
