@@ -39,6 +39,7 @@ import { runCodeActionsTest } from "./code-actions.test";
 import { runCodeLensTest } from "./code-lens.test";
 import { runSelectionRangeTest } from "./selection-range.test";
 import { runWatchedFilesTest } from "./watched-files.test";
+import { runPerformanceTest } from "./performance.test";
 
 type TestCase = {
   name: string;
@@ -209,6 +210,10 @@ const tests: TestCase[] = [
   {
     name: "server handles watched files changes",
     run: runWatchedFilesTest
+  },
+  {
+    name: "parser and diagnostic layer processes large macro-heavy files responsively",
+    run: runPerformanceTest
   }
 ];
 

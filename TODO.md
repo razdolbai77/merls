@@ -27,7 +27,7 @@
 - [x] Introduce a dedicated expansion-analysis layer that can produce a bounded virtual expansion view for one macro call, including substituted identifiers and remapped source locations.
 - [x] Reuse that expansion-analysis layer in navigation, diagnostics, highlights, call hierarchy, code lens, and inlay hints so macro-aware behavior is implemented once rather than separately in each LSP handler.
 - [x] Add caching and invalidation rules for macro indexes and expansion-analysis results so open-document updates do not re-expand the entire workspace unnecessarily.
-- [ ] Add performance tests or at least regression benchmarks for large macro-heavy fixture files to keep navigation and diagnostics responsive.
+- [x] Add performance tests or at least regression benchmarks for large macro-heavy fixture files to keep navigation and diagnostics responsive.
 - [ ] Add guardrails for unsupported or ambiguous cases such as recursive macros, deeply nested expansions, token-pasted/generated names, and conditionals that cannot be resolved statically.
 - [ ] Define fallback behavior and diagnostics for those unsupported cases so the server fails predictably instead of returning incorrect navigation results.
 - [ ] Update `README.md` and `AGENTS.md` to document macro expansion awareness, its supported scope, known limitations, and the new test coverage once implementation lands.
