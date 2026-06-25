@@ -1,7 +1,8 @@
 import { CallHierarchyItem, CallHierarchyIncomingCall, CallHierarchyOutgoingCall, SymbolKind } from "vscode-languageserver/node";
 import { CachedDocument } from "../asm/document";
 import { ParsedLine } from "../asm/parser";
-import { getSymbolAtPosition, collectDefinitions, collectReferences } from "./symbol-navigation";
+import { getSymbolAtPosition, collectDefinitions, collectReferences, getReferencedTokens } from "./symbol-navigation";
+import { getEffectiveLines, type ExpandedToken } from "../asm/expansion";
 
 function getEnclosingGlobalLabel(parsed: CachedDocument["parsed"], lineIndex: number): ParsedLine | null {
   for (let i = lineIndex; i >= 0; i--) {
@@ -127,30 +128,38 @@ export function provideCallHierarchyOutgoingCalls(
 
   const outgoing = new Map<string, CallHierarchyOutgoingCall>();
 
-  for (let i = startLine + 1; i < cached.parsed.lines.length; i++) {
-    const line = cached.parsed.lines[i];
-    if (!line) continue;
+  const allMacros = Array.from(openDocuments.values()).flatMap((doc) => doc.parsed.macroDefinitions);
+  const effectiveLines = getEffectiveLines(cached.parsed, allMacros);
 
-    if ("label" in line.node && line.node.label && line.node.label.kind === "label") {
+  for (let i = 0; i < effectiveLines.length; i++) {
+    const effectiveLine = effectiveLines[i];
+    if (effectiveLine.line <= startLine) continue;
+
+    if (!effectiveLine.isExpanded && "label" in effectiveLine.node && effectiveLine.node.label && effectiveLine.node.label.kind === "label") {
       break; 
     }
 
-    if (line.node.shape === "instruction") {
-      const mnemonic = line.node.mnemonic.lexeme.toLowerCase();
+    if (effectiveLine.node.shape === "instruction") {
+      const mnemonic = effectiveLine.node.mnemonic.lexeme.toLowerCase();
       if (mnemonic === "jsr" || mnemonic === "jmp") {
-        const tokens = line.node.operand ? cached.lexed.lines[line.line]?.tokens : [];
+        const refs = getReferencedTokens(cached, effectiveLine.line, effectiveLine.node);
         let targetName: string | null = null;
         let targetTokenStart = 0;
         let targetTokenLength = 0;
 
-        for (const t of tokens || []) {
+        for (const t of refs) {
           if (t.kind === "identifier" || t.kind === "localLabel" || t.kind === "label") {
-            if (t.start > line.node.mnemonic.start) {
-              targetName = t.lexeme;
-              targetTokenStart = t.start;
-              targetTokenLength = t.lexeme.length;
-              break;
+            if (effectiveLine.isExpanded) {
+              const expandedToken = t as ExpandedToken;
+              if (!expandedToken.sourceToken || expandedToken.sourceToken === t) continue;
+              if (expandedToken.sourceToken.kind !== "identifier" && expandedToken.sourceToken.kind !== "label" && expandedToken.sourceToken.kind !== "localLabel") continue;
             }
+            const sourceToken = "sourceToken" in t ? (t as ExpandedToken).sourceToken : t;
+            
+            targetName = t.lexeme;
+            targetTokenStart = sourceToken.start;
+            targetTokenLength = sourceToken.end - sourceToken.start;
+            break;
           }
         }
 
@@ -178,8 +187,8 @@ export function provideCallHierarchyOutgoingCalls(
                     outgoing.set(key, outgoingCall);
                   }
                   outgoingCall.fromRanges.push({
-                    start: { line: line.line, character: targetTokenStart },
-                    end: { line: line.line, character: targetTokenStart + targetTokenLength }
+                    start: { line: effectiveLine.line, character: targetTokenStart },
+                    end: { line: effectiveLine.line, character: targetTokenStart + targetTokenLength }
                   });
                 }
               }

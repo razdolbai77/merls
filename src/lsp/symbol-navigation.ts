@@ -5,7 +5,7 @@ import { type Expression } from "../asm/expression";
 import { type ParsedLine } from "../asm/parser";
 import { type Token, tokenAtCharacter } from "../asm/lexer";
 import { collectSymbols } from "../asm/symbols";
-import { buildMacroSubstitution } from "../asm/substitution";
+import { splitMacroCallArguments, getEffectiveLines, type ExpandedToken } from "../asm/expansion";
 
 type SymbolDefinition = {
   name: string;
@@ -42,21 +42,19 @@ export function findDefinition(
       for (const [docUri, docCached] of openDocuments.entries()) {
         for (const macroCall of docCached.parsed.macroCalls) {
           if (macroCall.macro.lexeme === enclosingMacro.name) {
-            const substitution = buildMacroSubstitution(docCached.parsed, macroCall);
-            const paramSub = substitution.parameterSubstitutions.find((s) => s.parameterIndex === parameterIndex);
+            const argumentTokens = splitMacroCallArguments(macroCall.args);
+            const paramTokens = argumentTokens[parameterIndex - 1] ?? [];
+            const validTokens = paramTokens.filter(
+              (t) => t.kind === "identifier" || t.kind === "label" || t.kind === "localLabel"
+            );
 
-            if (paramSub !== undefined) {
-              const argumentTokens = paramSub.argumentTokens.filter(
-                (t) => t.kind === "identifier" || t.kind === "label" || t.kind === "localLabel"
-              );
-              for (const token of argumentTokens) {
-                const defs = findDefinition(openDocuments, docUri, macroCall.line, token.start);
-                if (defs !== null) {
-                  if (Array.isArray(defs)) {
-                    locations.push(...defs);
-                  } else {
-                    locations.push(defs);
-                  }
+            for (const token of validTokens) {
+              const defs = findDefinition(openDocuments, docUri, macroCall.line, token.start);
+              if (defs !== null) {
+                if (Array.isArray(defs)) {
+                  locations.push(...defs);
+                } else {
+                  locations.push(defs);
                 }
               }
             }
@@ -115,14 +113,39 @@ export function findReferences(
       }
     }
 
-    for (const reference of collectReferences(documentUri, cached)) {
-      if (reference.name === targetName) {
-        locations.push(reference.location);
+    const allMacros = Array.from(openDocuments.values()).flatMap((doc) => doc.parsed.macroDefinitions);
+    const effectiveLines = getEffectiveLines(cached.parsed, allMacros);
+
+    for (const line of effectiveLines) {
+      const tokens = getReferencedTokens(cached, line.line, line.node);
+
+      for (const token of tokens) {
+        if (line.isExpanded) {
+          const expandedToken = token as ExpandedToken;
+          if (!expandedToken.sourceToken || expandedToken.sourceToken === token) {
+            continue;
+          }
+        }
+        if (token.lexeme === targetName) {
+          const sourceToken = "sourceToken" in token ? (token as ExpandedToken).sourceToken : token;
+          
+          locations.push({
+            uri: documentUri,
+            range: {
+              start: { line: line.line, character: sourceToken.start },
+              end: { line: line.line, character: sourceToken.end }
+            }
+          });
+        }
       }
     }
   }
 
-  return locations;
+  const uniqueLocations = Array.from(
+    new Map(locations.map((l) => [JSON.stringify(l), l])).values()
+  );
+
+  return uniqueLocations;
 }
 
 export function getSymbolAtPosition(cached: CachedDocument | undefined, line: number, character: number): string | null {
@@ -158,28 +181,46 @@ export function collectDefinitions(uri: string, cached: CachedDocument): readonl
 
 export function collectReferences(uri: string, cached: CachedDocument): readonly SymbolReference[] {
   const references: SymbolReference[] = [];
+  const effectiveLines = getEffectiveLines(cached.parsed, cached.parsed.macroDefinitions);
 
-  for (const line of cached.parsed.lines) {
+  for (const line of effectiveLines) {
     const tokens = getReferencedTokens(cached, line.line, line.node);
 
     for (const token of tokens) {
+      if (line.isExpanded) {
+        const expandedToken = token as ExpandedToken;
+        if (!expandedToken.sourceToken || expandedToken.sourceToken === token) {
+          continue;
+        }
+        if (expandedToken.sourceToken.kind !== "identifier" && expandedToken.sourceToken.kind !== "label" && expandedToken.sourceToken.kind !== "localLabel") {
+          continue;
+        }
+        // If it's from the macro body, it will be found separately in the macro definition file.
+        // We only care about tokens that came from macro arguments (their sourceToken is different).
+      }
+      const sourceToken = "sourceToken" in token ? (token as ExpandedToken).sourceToken : token;
+      
       references.push({
         name: token.lexeme,
         location: {
           uri,
           range: {
-            start: { line: line.line, character: token.start },
-            end: { line: line.line, character: token.end }
+            start: { line: line.line, character: sourceToken.start },
+            end: { line: line.line, character: sourceToken.end }
           }
         }
       });
     }
   }
 
-  return references;
+  const uniqueReferences = Array.from(
+    new Map(references.map((r) => [JSON.stringify(r), r])).values()
+  );
+
+  return uniqueReferences;
 }
 
-function getReferencedTokens(cached: CachedDocument, lineNumber: number, node: ParsedLine): readonly Token[] {
+export function getReferencedTokens(cached: CachedDocument, lineNumber: number, node: ParsedLine): readonly Token[] {
   if (node.shape === "instruction" && node.operand !== null) {
     return collectExpressionIdentifiers(node.operand.expression);
   }
@@ -193,19 +234,13 @@ function getReferencedTokens(cached: CachedDocument, lineNumber: number, node: P
   }
 
   if (node.shape === "macroCall") {
-    const macroCall = cached.parsed.macroCalls.find((call) => call.line === lineNumber);
-    if (macroCall === undefined) {
-      return [node.macro];
+    const tokens: Token[] = [node.macro];
+    for (const arg of node.args) {
+      if (arg.kind === "identifier" || arg.kind === "label" || arg.kind === "localLabel") {
+        tokens.push(arg);
+      }
     }
-
-    const substitution = buildMacroSubstitution(cached.parsed, macroCall);
-    const expandedReferences = substitution.parameterSubstitutions.flatMap((parameterSubstitution) =>
-      parameterSubstitution.argumentTokens.filter(
-        (token) => token.kind === "identifier" || token.kind === "label"
-      )
-    );
-
-    return expandedReferences.length > 0 ? expandedReferences : [node.macro];
+    return tokens;
   }
 
   return [];

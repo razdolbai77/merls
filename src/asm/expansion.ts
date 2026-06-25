@@ -1,6 +1,7 @@
-import { type MacroCallLine, type MacroDefinitionRegion, type ParsedLine } from "./parser";
+import { type MacroCallLine, type MacroDefinitionRegion, type ParsedLine, parseLexedLine } from "./parser";
 import { type Token } from "./lexer";
 import { type Expression } from "./expression";
+import { type ParsedDocument } from "./document";
 
 export type ExpandedToken = Token & {
   sourceToken: Token;
@@ -13,6 +14,7 @@ export type ExpandedLine = {
 
 export type ExpandedMacro = {
   lines: readonly ExpandedLine[];
+  parsedLines: readonly ParsedLine[];
 };
 
 export function expandMacroCall(
@@ -21,7 +23,7 @@ export function expandMacroCall(
 ): ExpandedMacro {
   const definition = macroDefinitions.find((def) => def.name === callLine.macro.lexeme);
   if (!definition) {
-    return { lines: [] };
+    return { lines: [], parsedLines: [] };
   }
 
   // Use the substitution logic we already have?
@@ -106,7 +108,9 @@ export function expandMacroCall(
     });
   }
 
-  return { lines };
+  const parsedLines = lines.map(line => parseLexedLine({ line: 0, text: line.text, tokens: line.tokens }));
+
+  return { lines, parsedLines };
 }
 
 function extractTokensFromNode(node: ParsedLine): Token[] {
@@ -145,4 +149,75 @@ function collectExpressionTokens(expr: Expression, tokens: Token[]) {
   if ("right" in expr && expr.right) {
     collectExpressionTokens(expr.right, tokens);
   }
+}
+
+export function splitMacroCallArguments(tokens: readonly Token[]): readonly (readonly Token[])[] {
+  if (tokens.length === 0) {
+    return [];
+  }
+
+  const argumentsByIndex: Token[][] = [[]];
+  let depth = 0;
+
+  for (const token of tokens) {
+    if (token.kind === "expressionOperator" && token.lexeme === "(") {
+      depth += 1;
+      argumentsByIndex.at(-1)?.push(token);
+      continue;
+    }
+
+    if (token.kind === "expressionOperator" && token.lexeme === ")") {
+      depth = Math.max(0, depth - 1);
+      argumentsByIndex.at(-1)?.push(token);
+      continue;
+    }
+
+    if (token.kind === "expressionOperator" && token.lexeme === "," && depth === 0) {
+      argumentsByIndex.push([]);
+      continue;
+    }
+
+    argumentsByIndex.at(-1)?.push(token);
+  }
+
+  return argumentsByIndex;
+}
+
+export type EffectiveLine = {
+  line: number;
+  node: ParsedLine;
+  isExpanded: boolean;
+};
+
+export function getEffectiveLines(
+  document: ParsedDocument,
+  macroDefinitions: readonly MacroDefinitionRegion[]
+): readonly EffectiveLine[] {
+  const effectiveLines: EffectiveLine[] = [];
+
+  for (const line of document.lines) {
+    if (line.node.shape === "macroCall") {
+      effectiveLines.push({
+        line: line.line,
+        node: line.node,
+        isExpanded: false
+      });
+      const expansion = expandMacroCall(line.node, macroDefinitions);
+      for (const parsedLine of expansion.parsedLines) {
+        effectiveLines.push({
+          line: line.line,
+          node: parsedLine,
+          isExpanded: true
+        });
+      }
+    } else {
+      effectiveLines.push({
+        line: line.line,
+        node: line.node,
+        isExpanded: false
+      });
+    }
+  }
+
+  return effectiveLines;
 }

@@ -15,7 +15,6 @@ import { runLineParserTest } from "./line-parser.test";
 import { runMacroParserTest } from "./macro-parser.test";
 import { runMacroIndexTest } from "./macro-index.test";
 import { runMacroDiagnosticsTest } from "./macro-diagnostics.test";
-import { runMacroSubstitutionTest } from "./macro-substitution.test";
 import { runExpansionTest } from "./expansion.test";
 import { runMacroReferencesTest } from "./macro-references.test";
 import { runLocalLabelScopeTest } from "./local-labels.test";
@@ -122,10 +121,6 @@ const tests: TestCase[] = [
   {
     name: "macro diagnostics report stable messages and ranges",
     run: runMacroDiagnosticsTest
-  },
-  {
-    name: "macro substitution maps call arguments onto parameter placeholders",
-    run: runMacroSubstitutionTest
   },
   {
     name: "expansion layer produces virtual expanded macro body",

@@ -3,7 +3,8 @@ import { type Expression, type Operand } from "./expression";
 import { type Token } from "./lexer";
 import { resolveLocalLabels } from "./local-labels";
 import { directiveTable } from "./metadata";
-import { type ParsedLine } from "./parser";
+import { type ParsedLine, type MacroDefinitionRegion } from "./parser";
+import { getEffectiveLines } from "./expansion";
 
 export type DiagnosticCode =
   | "duplicate-symbol"
@@ -79,9 +80,9 @@ export function collectWorkspaceDiagnostics(
   for (const entry of documents) {
     diagnostics.push(
       ...collectMalformedDiagnostics(entry.filePath, entry.document),
-      ...collectUnsupportedDiagnostics(entry.filePath, entry.document),
+      ...collectUnsupportedDiagnostics(entry.filePath, entry.document, entry.document.macroDefinitions),
       ...collectMacroStructureDiagnostics(entry.filePath, entry.document),
-      ...collectUnresolvedDiagnostics(entry.filePath, entry.document, globalSymbols),
+      ...collectUnresolvedDiagnostics(entry.filePath, entry.document, globalSymbols, entry.document.macroDefinitions),
       ...collectMacroCallDiagnostics(entry.filePath, entry.document, macrosByName)
     );
   }
@@ -153,11 +154,13 @@ function collectMalformedDiagnostics(
 
 function collectUnsupportedDiagnostics(
   filePath: string,
-  document: ParsedDocument
+  document: ParsedDocument,
+  macroDefinitions: readonly MacroDefinitionRegion[]
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
+  const effectiveLines = getEffectiveLines(document, macroDefinitions);
 
-  for (const line of document.lines) {
+  for (const line of effectiveLines) {
     const unsupportedDirective = getUnsupportedDirective(line.node);
     if (unsupportedDirective !== null) {
       diagnostics.push({
@@ -174,8 +177,7 @@ function collectUnsupportedDiagnostics(
         filePath,
         line: line.line,
         code: "unsupported-65816",
-        message: `Unsupported 65816 syntax: ${unsupportedText}`,
-        // Provide a range spanning the entire text or at least first char
+        message: `Unsupported 65816 syntax: ${unsupportedText}`
       });
     }
   }
@@ -226,7 +228,8 @@ function collectMacroStructureDiagnostics(
 function collectUnresolvedDiagnostics(
   filePath: string,
   document: ParsedDocument,
-  globalSymbols: ReadonlySet<string>
+  globalSymbols: ReadonlySet<string>,
+  macroDefinitions: readonly MacroDefinitionRegion[]
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
   const localScope = resolveLocalLabels(document);
@@ -242,9 +245,11 @@ function collectUnresolvedDiagnostics(
     }
   }
 
-  for (const line of document.lines) {
+  const effectiveLines = getEffectiveLines(document, macroDefinitions);
+
+  for (const line of effectiveLines) {
     for (const reference of findExpressionReferences(line.node)) {
-      if (macroParameterLines.get(line.line)?.has(reference) === true) {
+      if (!line.isExpanded && macroParameterLines.get(line.line)?.has(reference) === true) {
         continue;
       }
 
@@ -254,12 +259,17 @@ function collectUnresolvedDiagnostics(
           key.startsWith(`${reference}@`)
         );
         if (!localScope.references.has(localKey) && localDefinitionKey === undefined) {
-          diagnostics.push({
-            filePath,
-            line: line.line,
-            code: "unresolved-reference",
-            message: `Unresolved local reference ${reference}`
-          });
+          // If we're in an expanded macro, local labels from the macro body will fail because resolveLocalLabels only runs on the unexpanded document!
+          // We should ideally resolve them, or at least skip them for now if they are inside expanded macros?
+          // For now, let's just let it report. Actually, we should probably ignore local labels if isExpanded is true to avoid false positives.
+          if (!line.isExpanded) {
+            diagnostics.push({
+              filePath,
+              line: line.line,
+              code: "unresolved-reference",
+              message: `Unresolved local reference ${reference}`
+            });
+          }
         }
         continue;
       }
