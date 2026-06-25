@@ -512,6 +512,16 @@ function findExpressionReferences(node: ParsedLine): readonly string[] {
     return findReferencesInExpression(node.expression);
   }
 
+  if (node.shape === "data") {
+    const references: string[] = [];
+    for (const token of node.tokens) {
+      if (token.kind === "identifier" || token.kind === "localLabel") {
+        references.push(token.lexeme);
+      }
+    }
+    return references;
+  }
+
   return [];
 }
 

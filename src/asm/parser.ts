@@ -67,6 +67,7 @@ export type DataLine = {
   label: Token | null;
   directive: Token;
   payload: string;
+  tokens: readonly Token[];
 };
 
 export type MalformedLine = {
@@ -232,12 +233,14 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
   if (token.kind === "directive") {
     const directive = directiveTable.get(token.lexeme.toLowerCase());
     if (directive !== undefined && dataDirectiveKinds.has(directive.kind)) {
+      const payloadTokens = tokens.slice(index + 1);
       return {
         shape: "data",
         text,
         label,
         directive: token,
-        payload: tokens.slice(index + 1).map((current) => current.lexeme).join("")
+        payload: payloadTokens.map((current) => current.lexeme).join(""),
+        tokens: payloadTokens
       };
     }
 
@@ -418,6 +421,12 @@ function collectMacroBodyUsage(node: ParsedLine): Omit<MacroBodyLine, "line" | "
       if (node.label.kind === "localLabel") {
         localLabelDefinitions.push({ token: node.label });
       }
+      break;
+    case "data":
+      if (node.label?.kind === "localLabel") {
+        localLabelDefinitions.push({ token: node.label });
+      }
+      node.tokens.forEach(collectTokenUsage);
       break;
     default:
       break;

@@ -66,7 +66,10 @@ export function runLineParserTest(): void {
     text: "        hex 2C",
     label: null,
     directive: { kind: "directive", lexeme: "hex", start: 8, end: 11 },
-    payload: "2C"
+    payload: "2C",
+    tokens: [
+      { kind: "identifier", lexeme: "2C", start: 12, end: 14 }
+    ]
   });
 
   assert.deepEqual(lines[4], {
