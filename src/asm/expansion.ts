@@ -17,13 +17,26 @@ export type ExpandedMacro = {
   parsedLines: readonly ParsedLine[];
 };
 
+const macroExpansionCache = new WeakMap<MacroCallLine, {
+  definition: MacroDefinitionRegion | undefined;
+  expansion: ExpandedMacro;
+}>();
+
 export function expandMacroCall(
   callLine: MacroCallLine,
   macroDefinitions: readonly MacroDefinitionRegion[]
 ): ExpandedMacro {
   const definition = macroDefinitions.find((def) => def.name === callLine.macro.lexeme);
+
+  const cached = macroExpansionCache.get(callLine);
+  if (cached && cached.definition === definition) {
+    return cached.expansion;
+  }
+
   if (!definition) {
-    return { lines: [], parsedLines: [] };
+    const result = { lines: [], parsedLines: [] };
+    macroExpansionCache.set(callLine, { definition, expansion: result });
+    return result;
   }
 
   // Use the substitution logic we already have?
@@ -110,7 +123,9 @@ export function expandMacroCall(
 
   const parsedLines = lines.map(line => parseLexedLine({ line: 0, text: line.text, tokens: line.tokens }));
 
-  return { lines, parsedLines };
+  const result = { lines, parsedLines };
+  macroExpansionCache.set(callLine, { definition, expansion: result });
+  return result;
 }
 
 function extractTokensFromNode(node: ParsedLine): Token[] {
@@ -189,10 +204,45 @@ export type EffectiveLine = {
   isExpanded: boolean;
 };
 
+type ExpansionCacheEntry = {
+  resolvedDefinitions: Map<string, MacroDefinitionRegion | undefined>;
+  effectiveLines: readonly EffectiveLine[];
+};
+
+const effectiveLinesCache = new WeakMap<ParsedDocument, ExpansionCacheEntry>();
+
 export function getEffectiveLines(
   document: ParsedDocument,
   macroDefinitions: readonly MacroDefinitionRegion[]
 ): readonly EffectiveLine[] {
+  const cached = effectiveLinesCache.get(document);
+  let canReuseCache = false;
+
+  if (cached) {
+    canReuseCache = true;
+    for (const macroCall of document.macroCalls) {
+      const macroName = macroCall.macro.lexeme;
+      const currentDefinition = macroDefinitions.find((def) => def.name === macroName);
+      if (cached.resolvedDefinitions.get(macroName) !== currentDefinition) {
+        canReuseCache = false;
+        break;
+      }
+    }
+  }
+
+  if (canReuseCache && cached) {
+    return cached.effectiveLines;
+  }
+
+  const resolvedDefinitions = new Map<string, MacroDefinitionRegion | undefined>();
+  for (const macroCall of document.macroCalls) {
+    const macroName = macroCall.macro.lexeme;
+    if (!resolvedDefinitions.has(macroName)) {
+      const definition = macroDefinitions.find((def) => def.name === macroName);
+      resolvedDefinitions.set(macroName, definition);
+    }
+  }
+
   const effectiveLines: EffectiveLine[] = [];
 
   for (const line of document.lines) {
@@ -219,5 +269,6 @@ export function getEffectiveLines(
     }
   }
 
+  effectiveLinesCache.set(document, { resolvedDefinitions, effectiveLines });
   return effectiveLines;
 }

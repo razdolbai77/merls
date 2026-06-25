@@ -40,6 +40,10 @@ export function runMacroIndexTest(): void {
     localLabelReferences: ["]loop"]
   });
 
+  // Verify caching
+  const documentMacros2 = collectDocumentMacros(entryDocument.parsed);
+  assert.equal(documentMacros, documentMacros2, "documentMacros should be cached per ParsedDocument");
+
   const workspaceMacros = collectWorkspaceMacros(new Map([
     [entryPath, entryDocument],
     [helperPath, helperDocument]

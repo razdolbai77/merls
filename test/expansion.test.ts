@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { lexSource } from "../src/asm/lexer";
-import { parseSourceStructure } from "../src/asm/parser";
-import { expandMacroCall } from "../src/asm/expansion";
+import { parseDocument } from "../src/asm/document";
+import { expandMacroCall, getEffectiveLines } from "../src/asm/expansion";
 
 export async function runExpansionTest(): Promise<void> {
   const source = [
@@ -13,11 +13,11 @@ export async function runExpansionTest(): Promise<void> {
   ].join("\n");
 
   const lexed = lexSource(source);
-  const parsed = parseSourceStructure(lexed);
-  const callLine = parsed.lines.find(line => line.shape === "macroCall");
-  assert.ok(callLine !== undefined && callLine.shape === "macroCall");
+  const parsed = parseDocument(lexed);
+  const callLine = parsed.lines.find(line => line.node.shape === "macroCall");
+  assert.ok(callLine !== undefined && callLine.node.shape === "macroCall");
 
-  const expansion = expandMacroCall(callLine, parsed.macroDefinitions);
+  const expansion = expandMacroCall(callLine.node, parsed.macroDefinitions);
   
   assert.equal(expansion.lines.length, 2);
   assert.equal(expansion.lines[0]?.text, "     lda $12");
@@ -33,4 +33,22 @@ export async function runExpansionTest(): Promise<void> {
   assert.ok(arg1Token);
   assert.equal(arg1Token.lexeme, "$12");
   assert.equal(arg1Token.sourceToken.lexeme, "$12"); // maps to call site
+
+  // Verify caching
+  const expansion2 = expandMacroCall(callLine.node, parsed.macroDefinitions);
+  assert.equal(expansion, expansion2, "expansion should be cached");
+
+  // Verify invalidation if definition changes
+  const otherDef = { ...parsed.macroDefinitions[0]! };
+  const expansion3 = expandMacroCall(callLine.node, [otherDef]);
+  assert.notEqual(expansion, expansion3, "expansion should be invalidated if definition changes");
+
+  // Verify getEffectiveLines caching
+  const effectiveLines = getEffectiveLines(parsed, parsed.macroDefinitions);
+  const effectiveLines2 = getEffectiveLines(parsed, parsed.macroDefinitions);
+  assert.equal(effectiveLines, effectiveLines2, "effectiveLines should be cached");
+
+  // Verify getEffectiveLines cache invalidation
+  const effectiveLines3 = getEffectiveLines(parsed, [otherDef]);
+  assert.notEqual(effectiveLines, effectiveLines3, "effectiveLines should be invalidated if definitions change");
 }

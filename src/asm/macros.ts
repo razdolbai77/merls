@@ -19,7 +19,14 @@ export type WorkspaceMacroDefinition = DocumentMacroDefinition & {
   filePath: string;
 };
 
+const documentMacrosCache = new WeakMap<ParsedDocument, Map<string, DocumentMacroDefinition>>();
+
 export function collectDocumentMacros(document: ParsedDocument): Map<string, DocumentMacroDefinition> {
+  const cached = documentMacrosCache.get(document);
+  if (cached) {
+    return cached;
+  }
+
   const macros = new Map<string, DocumentMacroDefinition>();
 
   for (const macroDefinition of document.macroDefinitions) {
@@ -38,6 +45,7 @@ export function collectDocumentMacros(document: ParsedDocument): Map<string, Doc
     });
   }
 
+  documentMacrosCache.set(document, macros);
   return macros;
 }
 
