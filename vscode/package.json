@@ -2,7 +2,7 @@
   "name": "pearls",
   "displayName": "Pearls",
   "description": "VS Code extension for 6502 assembly, powered by merls",
-  "version": "2.1.0",
+  "version": "2.11.0",
   "publisher": "razdolbai",
   "icon": "images/icon.png",
   "license": "MIT",
