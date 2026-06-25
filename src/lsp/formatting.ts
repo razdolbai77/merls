@@ -36,11 +36,11 @@ function formatLines(
   endLine: number
 ): TextEdit[] {
   const edits: TextEdit[] = [];
-  const { insertSpaces, tabSize } = options;
+  const { insertSpaces } = options;
 
-  const col1 = tabSize || 8;
-  const col2 = col1 * 2;
-  const col3 = col1 * 3;
+  const col1 = 8;
+  const col2 = 16;
+  const col3 = 24;
 
   for (let lineIndex = startLine; lineIndex <= endLine; lineIndex++) {
     const line = cached.parsed.lines[lineIndex];
@@ -138,10 +138,9 @@ function formatLine(
 
     let operandText = "";
     if (index <= endTokenIndex) {
-      const startToken = tokens[index];
-      const endToken = tokens[endTokenIndex];
-      // preserve exact spacing inside the operand
-      operandText = originalText.substring(startToken.start, endToken.end).trim();
+      for (let i = index; i <= endTokenIndex; i++) {
+        operandText += tokens[i].lexeme;
+      }
     }
 
     if (operandText.length > 0) {
