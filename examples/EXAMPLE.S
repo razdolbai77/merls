@@ -30,29 +30,23 @@ StartRoutine
 
 * Data Directives
         hex     000102
-        dfb     %001,%002
-        db      $03,$04,$gg
-        ddb     $000a,$000g
+        dfb     %001
+        db      $03,$04
+        ddb     $000a
         da      $55
         dw      $1000,$2000
         asc     'foobar'
         asc     "foobar"
-        asc     blah
         dci     "foobar"
         dci     'foobar'
-        dci     blah
         inv     'foobar'
         inv     "foobar"
-        inv     blah
         fls     'foobar'
         fls     "foobar"
-        fls     blah
         str     'foobar'
         str     "foobar"
-        str     blah
         strl    'foobar'
         strl    "foobar"
-        strl    blah
         da      StartRoutine
         ds      10,$FF  ; Define storage
 
@@ -66,6 +60,9 @@ Subroutine
 :loop                   ; ordinary local label
         dey
         bne     :loop
+]local
+        dey
+        bne     ]local
         rts
 
 * ==========================================
@@ -94,6 +91,11 @@ BadLocalLabel mac
 BadMacro mac            ; Error: Missing eom/<<< terminator
         lda     #0
 * (No eom here)
+
+* Case sensitivity
+        bne     startRoutine ; Error: Unresolved reference 'startRoutine' (case-sensitive)
+        waitLoop #$FF   ; Error: Unresolved reference 'waitLoop' (case-sensitive)
+
 
 * Diagnostic: Unknown Syntax
         lda     >$12345 ; Error: Unknown syntax: >
