@@ -1,8 +1,5 @@
 # Repository Guidelines
 
-## On Session Start
-> Prompt: Activate the current project using serena’s activation tool
-
 ## Project Structure & Module Organization
 
 This repository has an established baseline. The main document is `README.md` for scope. The runtime is Node.js with TypeScript and `vscode-languageserver`.
