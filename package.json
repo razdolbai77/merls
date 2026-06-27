@@ -1,6 +1,6 @@
 {
   "name": "@razdolbai/merls",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Language server for Merlin32-style 6502 assembly.",
   "license": "MIT",
   "type": "commonjs",
