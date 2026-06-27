@@ -115,7 +115,7 @@ function collectDuplicateSymbolDiagnostics(
       filePath: symbol.filePath,
       line: symbol.line,
       code: "duplicate-symbol",
-      message: `Duplicate symbol ${symbol.name}; first defined at line ${firstDefinition.line}`,
+      message: `Duplicate symbol ${symbol.name}; first defined at line ${firstDefinition.line + 1}`,
       startCharacter: symbol.startCharacter,
       endCharacter: symbol.endCharacter
     });
@@ -140,7 +140,7 @@ function collectDuplicateMacroDiagnostics(
         filePath: duplicate.filePath,
         line: duplicate.line,
         code: "duplicate-macro-definition",
-        message: `Duplicate macro definition ${name}; first defined at line ${firstDefinition.line}`,
+        message: `Duplicate macro definition ${name}; first defined at line ${firstDefinition.line + 1}`,
         startCharacter: duplicate.startCharacter,
         endCharacter: duplicate.endCharacter
       });
@@ -502,6 +502,9 @@ function getGlobalDefinitionToken(node: ParsedLine): Token | null {
   }
 
   if (node.shape === "directive" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
+    if (node.directive.lexeme.toLowerCase() === "mac") {
+      return null;
+    }
     return node.label;
   }
 

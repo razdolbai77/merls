@@ -17,47 +17,50 @@ export function collectSymbols(document: ParsedDocument): Map<string, SymbolDefi
   const symbols = new Map<string, SymbolDefinition>();
   const macroDefinitions = collectDocumentMacros(document);
 
+  const addSymbol = (name: string, kind: SymbolKind, line: number, token: Token, macroDefinition: DocumentMacroDefinition | null = null) => {
+    if (!symbols.has(name)) {
+      symbols.set(name, defineSymbol(name, kind, line, token, macroDefinition));
+    }
+  };
+
   for (const line of document.lines) {
     const node = line.node;
 
     if (node.shape === "equate") {
-      symbols.set(node.label.lexeme, defineSymbol(node.label.lexeme, "equate", line.line, node.label));
+      addSymbol(node.label.lexeme, "equate", line.line, node.label);
       continue;
     }
 
     if (node.shape === "labelOnly") {
-      symbols.set(node.label.lexeme, defineSymbol(node.label.lexeme, "label", line.line, node.label));
+      addSymbol(node.label.lexeme, "label", line.line, node.label);
       continue;
     }
 
     if (node.shape === "instruction" && node.label !== null) {
-      symbols.set(node.label.lexeme, defineSymbol(node.label.lexeme, "label", line.line, node.label));
+      addSymbol(node.label.lexeme, "label", line.line, node.label);
       continue;
     }
 
     if (node.shape === "directive" && node.label !== null) {
       const directive = directiveTable.get(node.directive.lexeme.toLowerCase());
       if (directive?.kind === "data" || directive?.kind === "storage") {
-        symbols.set(node.label.lexeme, defineSymbol(node.label.lexeme, "data", line.line, node.label));
+        addSymbol(node.label.lexeme, "data", line.line, node.label);
       } else if (directive?.name === "mac") {
-        symbols.set(
+        addSymbol(
           node.label.lexeme,
-          defineSymbol(
-            node.label.lexeme,
-            "macro",
-            line.line,
-            node.label,
-            macroDefinitions.get(node.label.lexeme) ?? null
-          )
+          "macro",
+          line.line,
+          node.label,
+          macroDefinitions.get(node.label.lexeme) ?? null
         );
       } else {
-        symbols.set(node.label.lexeme, defineSymbol(node.label.lexeme, "label", line.line, node.label));
+        addSymbol(node.label.lexeme, "label", line.line, node.label);
       }
       continue;
     }
 
     if (node.shape === "data" && node.label !== null) {
-      symbols.set(node.label.lexeme, defineSymbol(node.label.lexeme, "data", line.line, node.label));
+      addSymbol(node.label.lexeme, "data", line.line, node.label);
     }
   }
 

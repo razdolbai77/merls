@@ -50,6 +50,10 @@ export function buildHover(
       };
     }
 
+    if ("label" in documentLine.node && documentLine.node.label?.start === token.start) {
+      return null;
+    }
+
     if (documentLine.node.shape === "macroCall" && documentLine.node.macro.start === token.start) {
       const macroSymbol = findSymbol(openDocuments, token.lexeme, "macro");
       if (macroSymbol !== null) {

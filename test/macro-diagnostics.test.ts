@@ -51,7 +51,7 @@ export function runMacroDiagnosticsTest(): void {
     filePath: "<macro-ranges>",
     line: 6,
     code: "duplicate-macro-definition",
-    message: "Duplicate macro definition FirstMac; first defined at line 0",
+    message: "Duplicate macro definition FirstMac; first defined at line 1",
     startCharacter: 0,
     endCharacter: 8
   });
