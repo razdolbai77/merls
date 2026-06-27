@@ -4,12 +4,12 @@
 
 This repository has an established baseline. The main document is `README.md` for scope. The runtime is Node.js with TypeScript and `vscode-languageserver`.
 
-When the workspace is scaffolded, keep code under `src/`, tests under `test/`, and editor integration examples under `examples/` such as `examples/coc-settings.json`. Store parser fixtures in a dedicated test-fixture area and separate valid 6502 cases from invalid 65816 cases.
+When the workspace is scaffolded, keep code under `src/`, tests under `test/`, and editor integration examples under `examples/` such as `examples/coc-settings.json`. Store parser fixtures in a dedicated test-fixture area and separate valid 6502 cases from invalid unknown-syntax cases.
 
 The current bootstrap server entrypoint is `src/server.ts`, and the packaged CLI entrypoint is `src/cli.ts`, which compiles to `dist/src/cli.js`.
 The repository now includes `examples/coc-settings.json` as the baseline coc.nvim launch example, targeting `dist/src/cli.js --stdio` with `.git` and `package.json` root markers.
 The initial positive fixture corpus now lives under `test/fixtures/valid/` and is transcribed from upstream Merlin32 sources.
-The initial negative fixture corpus now lives under `test/fixtures/invalid/` and captures unsupported 65816-only syntax.
+The initial negative fixture corpus now lives under `test/fixtures/invalid/` and captures invalid unknown-syntax coverage samples.
 The fixture corpus now also includes dedicated macro coverage samples under `test/fixtures/valid/merlin32-macro-coverage.S` and `test/fixtures/invalid/macro-generated-unresolved.S` for nested calls, zero-argument macros, local labels, conditional assembly, and macro-generated unresolved references.
 The parser test suite now explicitly locks down current macro-call parsing and the present `mac`/`eom`/`<<<` line behavior before macro-parser refactors.
 Shared 6502 opcode and Merlin32 directive metadata now lives under `src/asm/metadata.ts`.
@@ -25,7 +25,7 @@ The current macro index now lives under `src/asm/macros.ts` and summarizes per-d
 The current symbol collector now lives under `src/asm/symbols.ts` and indexes labels, equates, named storage/data definitions, and macros through one shared symbol-record shape that carries token locations plus attached macro-definition metadata for macro symbols.
 The current signature-help implementation now resolves macro arity from indexed parsed macro definitions instead of rescanning macro body text ad hoc.
 The current signature-help test coverage explicitly includes zero-argument macros, multi-digit positional parameters, nested expressions, and top-level comma tracking for active-parameter selection.
-The current diagnostics pass now also emits macro-specific failures for unresolved macro calls, duplicate macro definitions, missing `eom`/`<<<` terminators, illegal nested macro definitions, and obvious arity mismatches.
+The current diagnostics pass now also emits macro-specific failures for unsupported-instruction-or-undefined-macro call sites, duplicate macro definitions, missing `eom`/`<<<` terminators, illegal nested macro definitions, and obvious arity mismatches.
 Macro-definition and macro-call diagnostics now preserve token-based character spans through `src/asm/diagnostics.ts` and `src/lsp/diagnostics.ts` so editor highlights are narrower and testable.
 The initial parameter-substitution model now lives under `src/asm/substitution.ts` and maps macro call arguments onto parsed `]n` placeholder uses inside macro bodies while collecting referenced symbols from each argument expression.
 The current substitution test coverage explicitly includes repeated placeholder use, unused trailing arguments, parenthesized argument expressions, and arguments that reference multiple concrete symbols.
@@ -39,7 +39,7 @@ Local-label coverage now also exercises interaction between invocation-local mac
 Hover now recognizes macro call sites directly, showing parsed positional signatures and macro definition lines instead of only falling back to generic symbol hover text.
 The current local-label resolver now lives under `src/asm/local-labels.ts` and resolves Merlin32 `]local` and `:local` labels within the nearest global-label scope.
 The current workspace indexer now lives under `src/asm/workspace.ts` and follows `asm`/`put`/`use` directives across the local fixture corpus.
-The current diagnostics pass now lives under `src/asm/diagnostics.ts` and reports duplicate symbols, unresolved references, malformed lines, and unsupported 65816-only syntax.
+The current diagnostics pass now lives under `src/asm/diagnostics.ts` and reports duplicate symbols, unresolved references, malformed lines, unsupported-instruction cases, and unknown directive/syntax cases.
 The current `textDocument/documentSymbol` provider is wired through `src/server.ts` and `src/lsp/document-symbols.ts`.
 The current `workspace/symbol` provider is wired through `src/server.ts` and `src/lsp/workspace-symbols.ts` over the open-document symbol set.
 The current `textDocument/definition` and `textDocument/references` handlers are wired through `src/server.ts` and `src/lsp/symbol-navigation.ts`.
@@ -75,11 +75,11 @@ The supported stdio launch contract is now `merls --stdio`, with `node dist/src/
 
 Use TypeScript throughout the implementation. Prefer small modules with explicit types and single-purpose exports. Use `camelCase` for variables and functions, `PascalCase` for types and classes, and kebab-case for example/config file names.
 
-Keep parser, symbol, and LSP layers separate. Name tests and fixtures after the behavior they cover, for example `parser.labels.test.ts` or `fixtures/invalid/65816-long-a.S`.
+Keep parser, symbol, and LSP layers separate. Name tests and fixtures after the behavior they cover, for example `parser.labels.test.ts` or `fixtures/invalid/unknown-addressing-modifiers.S`.
 
 ## Testing and Linting Guidelines
 
-TDD is mandatory in this repository: add or extend a failing test or fixture before implementation. Positive fixtures must cover supported Merlin32-style 6502 syntax. Negative fixtures must explicitly cover unsupported 65816 syntax and expected diagnostics.
+TDD is mandatory in this repository: add or extend a failing test or fixture before implementation. Positive fixtures must cover supported Merlin32-style 6502 syntax. Negative fixtures must explicitly cover unknown or unsupported syntax and expected diagnostics.
 
 Linting is enforced using ESLint. No task can be called complete unless both linting (`npm run lint`) and tests (`npm test`) pass 100% with no warnings. Disabling linting rules (e.g. using `// eslint-disable`) is absolutely forbidden.
 

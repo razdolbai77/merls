@@ -4,4 +4,4 @@
 - Disabling linting rules is absolutely forbidden.
 - Always review whether the task changed project behavior, structure, workflow, or contributor expectations.
 - If yes, update both `README.md` and `AGENTS.md` in the same task.
-- Preserve scope invariants: 6502 support only, 65816 rejection explicit, coc.nvim/stdio integration target unchanged unless the docs and plan are updated together.
+- Preserve scope invariants: 6502 support only, non-6502 syntax stays unsupported, coc.nvim/stdio integration target unchanged unless the docs and plan are updated together.

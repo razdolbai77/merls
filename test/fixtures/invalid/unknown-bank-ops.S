@@ -1,6 +1,6 @@
 ; Source: apple2accumulator/merlin32
 ; Upstream file: Test/main.s
-; 65816-only fixture: block move, MX flags, and PEA forms are intentionally unsupported.
+; Unknown diagnostic coverage: block move, width control, and stack-address forms.
 
         xc
         xc

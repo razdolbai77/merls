@@ -87,6 +87,7 @@ WaitLoop mac            ; Error: Duplicate macro 'WaitLoop'
 * Diagnostic: Invalid Local Label in Macro
 BadLocalLabel mac
 :loop                   ; Error: Local labels (:) cannot be used inside macros
+]local
         eom
 
 * Diagnostic: Missing Macro Terminator
@@ -94,7 +95,8 @@ BadMacro mac            ; Error: Missing eom/<<< terminator
         lda     #0
 * (No eom here)
 
-* Diagnostic: 65816 Unsupported Syntax
-        lda     >$12345 ; Error: Unsupported 24-bit address (65816)
-        rep     #$20    ; Error: Unsupported 65816 opcode
-        pea     $0000   ; Error: Unsupported 65816 opcode
+* Diagnostic: Unknown Syntax
+        lda     >$12345 ; Error: Unknown syntax: >
+        rep     #$20    ; Error: Unsupported instruction or undefined macro: rep
+        pea     $0000   ; Error: Unsupported instruction or undefined macro: pea
+        blah            ; Error: Unsupported instruction or undefined macro: blah

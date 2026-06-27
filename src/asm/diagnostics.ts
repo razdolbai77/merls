@@ -10,9 +10,10 @@ export type DiagnosticCode =
   | "duplicate-symbol"
   | "duplicate-macro-definition"
   | "unresolved-reference"
-  | "unresolved-macro"
   | "malformed-line"
-  | "unsupported-65816"
+  | "unknown-directive"
+  | "unsupported-instruction"
+  | "unknown-syntax"
   | "missing-macro-end"
   | "invalid-macro-nesting"
   | "macro-arity-mismatch"
@@ -85,7 +86,7 @@ export function collectWorkspaceDiagnostics(
   for (const entry of documents) {
     diagnostics.push(
       ...collectMalformedDiagnostics(entry.filePath, entry.document),
-      ...collectUnsupportedDiagnostics(entry.filePath, entry.document, entry.document.macroDefinitions),
+      ...collectUnknownDiagnostics(entry.filePath, entry.document, entry.document.macroDefinitions),
       ...collectMacroStructureDiagnostics(entry.filePath, entry.document),
       ...collectUnresolvedDiagnostics(entry.filePath, entry.document, globalSymbols, entry.document.macroDefinitions),
       ...collectMacroCallDiagnostics(entry.filePath, entry.document, macrosByName)
@@ -157,7 +158,7 @@ function collectMalformedDiagnostics(
   }));
 }
 
-function collectUnsupportedDiagnostics(
+function collectUnknownDiagnostics(
   filePath: string,
   document: ParsedDocument,
   macroDefinitions: readonly MacroDefinitionRegion[]
@@ -166,23 +167,23 @@ function collectUnsupportedDiagnostics(
   const effectiveLines = getEffectiveLines(document, macroDefinitions);
 
   for (const line of effectiveLines) {
-    const unsupportedDirective = getUnsupportedDirective(line.node);
-    if (unsupportedDirective !== null) {
+    const unknownDirective = getUnknownDirective(line.node);
+    if (unknownDirective !== null) {
       diagnostics.push({
         filePath,
         line: line.line,
-        code: "unsupported-65816",
-        message: `Unsupported 65816 directive: ${unsupportedDirective}`
+        code: "unknown-directive",
+        message: `Unknown directive: ${unknownDirective}`
       });
     }
 
-    const unsupportedText = getUnsupportedTextPattern(line.node.text);
-    if (unsupportedText !== null) {
+    const unknownText = getUnknownTextPattern(line.node.text);
+    if (unknownText !== null) {
       diagnostics.push({
         filePath,
         line: line.line,
-        code: "unsupported-65816",
-        message: `Unsupported 65816 syntax: ${unsupportedText}`
+        code: "unknown-syntax",
+        message: `Unknown syntax: ${unknownText}`
       });
     }
   }
@@ -431,8 +432,8 @@ function collectMacroCallDiagnostics(
       diagnostics.push({
         filePath,
         line: macroCall.line,
-        code: "unresolved-macro",
-        message: `Unresolved macro ${macroCall.macro.lexeme}`,
+        code: "unsupported-instruction",
+        message: `Unsupported instruction or undefined macro: ${macroCall.macro.lexeme}`,
         startCharacter: macroCall.macro.start,
         endCharacter: macroCall.macro.end
       });
@@ -564,7 +565,7 @@ function findReferencesInExpression(expression: Expression): readonly string[] {
   }
 }
 
-function getUnsupportedDirective(node: ParsedLine): string | null {
+function getUnknownDirective(node: ParsedLine): string | null {
   if (node.shape !== "directive") {
     return null;
   }
@@ -582,12 +583,8 @@ function getUnsupportedDirective(node: ParsedLine): string | null {
   return null;
 }
 
-function getUnsupportedTextPattern(text: string): string | null {
+function getUnknownTextPattern(text: string): string | null {
   const trimmed = text.trim().toLowerCase();
-
-  if (/^(pea|mvn|mvp|bra|stz)\b/.test(trimmed)) {
-    return trimmed.split(/\s+/, 1)[0] ?? trimmed;
-  }
 
   if (trimmed.includes("^")) {
     return "^";
@@ -597,9 +594,8 @@ function getUnsupportedTextPattern(text: string): string | null {
     return "|";
   }
 
-  // 65816 long addressing prefix
   if (/\b(lda|sta|cmp|adc|sbc|and|ora|eor|jmp|jsr|ldx|ldy|stx|sty|bit)\s+>[^=]/.test(trimmed)) {
-    return "> (long addressing)";
+    return ">";
   }
 
   return null;

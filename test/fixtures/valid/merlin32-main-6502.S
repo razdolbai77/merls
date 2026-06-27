@@ -1,6 +1,6 @@
 ; Source: apple2accumulator/merlin32
 ; Upstream file: Test/main.s
-; Transcribed from the 6502-safe portion and trimmed to exclude 65816-only cases.
+; Transcribed from the 6502-safe portion and trimmed to exclude non-6502 extension cases.
 
 *  main.s
 *  Merlin32 Test

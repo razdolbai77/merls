@@ -1,6 +1,6 @@
 ; Source: apple2accumulator/merlin32
 ; Upstream file: Test/main.s
-; 65816-only fixture: long-addressing and bank-byte modifiers are intentionally unsupported.
+; Unknown diagnostic coverage: long-addressing and bank-byte modifiers.
 
         xc
         xc

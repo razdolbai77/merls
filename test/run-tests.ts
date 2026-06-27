@@ -116,7 +116,7 @@ const tests: TestCase[] = [
     run: runWorkspaceGraphTest
   },
   {
-    name: "diagnostics report duplicates unresolved refs malformed lines and unsupported 65816 syntax",
+    name: "diagnostics report duplicates unresolved refs malformed lines and unknown syntax",
     run: runDiagnosticsTest
   },
   {

@@ -56,11 +56,11 @@ export function runMacroDiagnosticsTest(): void {
     endCharacter: 8
   });
 
-  assert.deepEqual(findDiagnostic(diagnostics, "unresolved-macro", 8), {
+  assert.deepEqual(findDiagnostic(diagnostics, "unsupported-instruction", 8), {
     filePath: "<macro-ranges>",
     line: 8,
-    code: "unresolved-macro",
-    message: "Unresolved macro MissingMac",
+    code: "unsupported-instruction",
+    message: "Unsupported instruction or undefined macro: MissingMac",
     startCharacter: 8,
     endCharacter: 18
   });

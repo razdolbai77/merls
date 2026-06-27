@@ -46,7 +46,7 @@ The LSP feature set for Merlin32-style 6502 assembly is comprehensive and fully 
 
 ### Out of Scope
 
-- 65816 support
+- non-6502 instruction-set extensions
 
 
 ## Implementation
@@ -132,7 +132,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - The CLI entry point lives in `src/cli.ts` and compiles to `dist/src/cli.js`.
 - The VS Code extension contributes `Pearls: Compile Current File with Merlin32` and `Pearls: Assemble Project with Merlin32` commands and exposes `pearls.merlin32Executable`, `pearls.compileArgs`, `pearls.merlin32MacroFolder`, and `pearls.merlin32ProjectEntryFile` settings for assembler invocation.
 - The `test/fixtures/valid/` directory contains supported 6502 Merlin32-style syntax samples, including dedicated macro-coverage fixtures for nested calls, zero-argument macros, local labels, and conditional assembly forms.
-- The `test/fixtures/invalid/` directory contains unsupported 65816-only syntax samples for negative testing plus negative macro fixtures such as macro-generated unresolved references.
+- The `test/fixtures/invalid/` directory contains unknown-syntax negative samples plus negative macro fixtures such as macro-generated unresolved references.
 - Parser tests now explicitly lock down current macro-call parsing and the existing `mac`/`eom`/`<<<` line behavior before macro-structure refactors.
 - The parser now exposes first-class macro definition regions, including body lines, closing directives, positional parameter placeholders, nested macro calls, symbol references, and macro-local label definitions/references, via `src/asm/parser.ts`.
 - The document model now exposes explicit macro definition and macro call structures, including structured macro body usage metadata for parameter references, nested calls, symbol references, and macro-local labels, via `src/asm/document.ts`.
@@ -140,7 +140,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - The symbol index in `src/asm/symbols.ts` now uses one shared record shape for labels, equates, data definitions, and macros, including token locations and attached macro-definition metadata for macro symbols.
 - Signature help in `src/lsp/signature-help.ts` now derives macro parameter counts from the parsed macro index rather than rescanning macro body text with regexes.
 - Signature-help coverage now explicitly includes zero-argument macros, multi-digit positional parameters, nested expressions, and comma handling that only advances the active parameter at top-level argument boundaries.
-- Diagnostics in `src/asm/diagnostics.ts` now emit macro-specific failures for unresolved macro calls, duplicate macro definitions, missing `eom`/`<<<` terminators, illegal nested macro definitions, and straightforward arity mismatches.
+- Diagnostics in `src/asm/diagnostics.ts` now emit macro-specific failures for unsupported-instruction-or-undefined-macro call sites, duplicate macro definitions, missing `eom`/`<<<` terminators, illegal nested macro definitions, and straightforward arity mismatches.
 - Macro diagnostics now carry stable token-based character ranges for macro-definition and macro-call failures, and the LSP diagnostic bridge preserves those narrower spans instead of always highlighting whole lines.
 - The initial parameter-substitution model now lives in `src/asm/substitution.ts`, mapping macro call arguments onto the `]n` placeholders they satisfy inside parsed macro bodies and collecting symbol references from each supplied argument expression.
 - Substitution tests now cover repeated placeholder use, unused trailing arguments, parenthesized argument expressions, and arguments that reference multiple concrete symbols.

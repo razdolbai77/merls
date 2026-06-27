@@ -10,8 +10,8 @@ const validFixturePaths = [
 
 const invalidFixturePaths = [
   "test/fixtures/invalid/macro-generated-unresolved.S",
-  "test/fixtures/invalid/65816-bank-ops.S",
-  "test/fixtures/invalid/65816-long-addressing.S"
+  "test/fixtures/invalid/unknown-bank-ops.S",
+  "test/fixtures/invalid/unknown-addressing-modifiers.S"
 ];
 
 export function runFixtureCorpusTest(): void {
@@ -30,8 +30,8 @@ export function runFixtureCorpusTest(): void {
 
     const content = fs.readFileSync(absolutePath, "utf8");
     assert.match(content, /Source: apple2accumulator\/merlin32/);
-    if (fixturePath.includes("65816")) {
-      assert.match(content, /65816-only/);
+    if (fixturePath.includes("unknown-")) {
+      assert.match(content, /unknown diagnostic coverage/i);
     } else {
       assert.match(content, /macro-generated unresolved reference/);
     }

@@ -45,11 +45,11 @@ export function runDiagnosticsTest(): void {
 
   const bankOpsPath = path.resolve(
     process.cwd(),
-    "test/fixtures/invalid/65816-bank-ops.S"
+    "test/fixtures/invalid/unknown-bank-ops.S"
   );
   const longPath = path.resolve(
     process.cwd(),
-    "test/fixtures/invalid/65816-long-addressing.S"
+    "test/fixtures/invalid/unknown-addressing-modifiers.S"
   );
 
   const diagnostics = collectWorkspaceDiagnostics([
@@ -142,7 +142,7 @@ export function runDiagnosticsTest(): void {
     diagnostics.some(
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<macro>" &&
-        diagnostic.code === "unresolved-macro" &&
+        diagnostic.code === "unsupported-instruction" &&
         diagnostic.line === 8 &&
         diagnostic.message.includes("MissingMac")
     ),
@@ -249,7 +249,7 @@ export function runDiagnosticsTest(): void {
     diagnostics.some(
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === bankOpsPath &&
-        diagnostic.code === "unsupported-65816" &&
+        diagnostic.code === "unsupported-instruction" &&
         diagnostic.message.includes("mvn")
     ),
     true
@@ -259,7 +259,7 @@ export function runDiagnosticsTest(): void {
     diagnostics.some(
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === longPath &&
-        diagnostic.code === "unsupported-65816" &&
+        diagnostic.code === "unknown-syntax" &&
         diagnostic.message.includes("^")
     ),
     true

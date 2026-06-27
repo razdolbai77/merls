@@ -11,32 +11,14 @@ export function runCodeActionsTest(): void {
 
   const cached = buildCachedDocument(source);
   const map = new Map([["file:///test.S", cached]]);
-  
-  const braDiagnostic: Diagnostic = {
-    range: { start: { line: 1, character: 0 }, end: { line: 1, character: 10 } },
-    message: "Unsupported 65816 syntax: bra",
+
+  const unknownDiagnostic: Diagnostic = {
+    range: { start: { line: 1, character: 0 }, end: { line: 1, character: 8 } },
+    message: "Unsupported instruction or undefined macro: bra",
     severity: DiagnosticSeverity.Error,
-    code: "unsupported-65816"
+    code: "unsupported-instruction"
   };
 
-  const stzDiagnostic: Diagnostic = {
-    range: { start: { line: 2, character: 0 }, end: { line: 2, character: 9 } },
-    message: "Unsupported 65816 syntax: stz",
-    severity: DiagnosticSeverity.Error,
-    code: "unsupported-65816"
-  };
-
-  const actionsBra = provideCodeActions(map, "file:///test.S", [braDiagnostic]);
-  assert.equal(actionsBra.length, 1);
-  assert.equal(actionsBra[0].title, "Replace with jmp (6502 alternative)");
-  assert.ok(actionsBra[0].edit);
-  assert.ok(actionsBra[0].edit.changes);
-  assert.equal(actionsBra[0].edit.changes["file:///test.S"][0].newText, "  jmp loop");
-
-  const actionsStz = provideCodeActions(map, "file:///test.S", [stzDiagnostic]);
-  assert.equal(actionsStz.length, 1);
-  assert.equal(actionsStz[0].title, "Replace with lda #0 / sta (6502 alternative)");
-  assert.ok(actionsStz[0].edit);
-  assert.ok(actionsStz[0].edit.changes);
-  assert.equal(actionsStz[0].edit.changes["file:///test.S"][0].newText, "  lda #0\n  sta $00");
+  const actions = provideCodeActions(map, "file:///test.S", [unknownDiagnostic]);
+  assert.equal(actions.length, 0);
 }
