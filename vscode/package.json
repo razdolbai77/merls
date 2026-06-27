@@ -2,7 +2,7 @@
   "name": "pearls",
   "displayName": "Pearls",
   "description": "VS Code extension for 6502 assembly, powered by merls",
-  "version": "2.11.3",
+  "version": "2.12.0",
   "publisher": "razdolbai",
   "icon": "images/icon.png",
   "license": "MIT",
@@ -27,13 +27,6 @@
       "[6502]": {
         "editor.indentSize": 8,
         "editor.tabSize": 8
-      },
-      "editor.semanticTokenColorCustomizations": {
-        "rules": {
-          "macro": "#C586C0",
-          "function": "#DCDCAA",
-          "variable": "#9CDCFE"
-        }
       }
     },
     "commands": [
@@ -99,6 +92,21 @@
           "type": "string",
           "default": "",
           "description": "Project entry file or link script for the Pearls project assembly command. Relative paths are resolved from the workspace folder."
+        },
+        "pearls.semanticTokenColors.macro": {
+          "type": "string",
+          "default": "#C586C0",
+          "description": "Color for macro semantic tokens in 6502 assembly."
+        },
+        "pearls.semanticTokenColors.function": {
+          "type": "string",
+          "default": "#DCDCAA",
+          "description": "Color for function semantic tokens in 6502 assembly."
+        },
+        "pearls.semanticTokenColors.variable": {
+          "type": "string",
+          "default": "#9CDCFE",
+          "description": "Color for variable semantic tokens in 6502 assembly."
         }
       }
     },

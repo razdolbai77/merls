@@ -14,6 +14,7 @@ import {
   getProjectEntryFilePath
 } from './compile';
 import { applyPearlsEditorOptions } from './editor-options';
+import { syncSemanticTokenColors } from './semantic-tokens-sync';
 
 let client: LanguageClient;
 const compileCurrentFileCommand = 'pearls.compileCurrentFile';
@@ -86,6 +87,20 @@ export function activate(context: ExtensionContext) {
   for (const editor of window.visibleTextEditors) {
     applyPearlsEditorOptions(editor);
   }
+
+  syncSemanticTokenColors().catch(err => {
+    console.error('Failed to sync semantic token colors', err);
+  });
+
+  context.subscriptions.push(
+    workspace.onDidChangeConfiguration(e => {
+      if (e.affectsConfiguration('pearls.semanticTokenColors')) {
+        syncSemanticTokenColors().catch(err => {
+          console.error('Failed to sync semantic token colors', err);
+        });
+      }
+    })
+  );
 
   context.subscriptions.push(
     window.onDidChangeActiveTextEditor(editor => {
