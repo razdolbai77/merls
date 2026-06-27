@@ -14,23 +14,23 @@ test('is6502Document matches only the Pearls language id', () => {
 test('applyPearlsEditorOptions sets hard tabs with width 8 for 6502 editors', () => {
   const editor = {
     document: { languageId: '6502' },
-    options: { insertSpaces: true, tabSize: 4 }
+    options: { insertSpaces: true, tabSize: 4, indentSize: 4 }
   };
 
   const changed = applyPearlsEditorOptions(editor as never);
 
   assert.equal(changed, true);
-  assert.deepEqual(editor.options, { insertSpaces: true, tabSize: 8 });
+  assert.deepEqual(editor.options, { insertSpaces: true, tabSize: 8, indentSize: 8 });
 });
 
 test('applyPearlsEditorOptions skips non-6502 editors', () => {
   const editor = {
     document: { languageId: 'plaintext' },
-    options: { insertSpaces: true, tabSize: 4 }
+    options: { insertSpaces: true, tabSize: 4, indentSize: 4 }
   };
 
   const changed = applyPearlsEditorOptions(editor as never);
 
   assert.equal(changed, false);
-  assert.deepEqual(editor.options, { insertSpaces: true, tabSize: 4 });
+  assert.deepEqual(editor.options, { insertSpaces: true, tabSize: 4, indentSize: 4 });
 });
