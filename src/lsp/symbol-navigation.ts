@@ -6,6 +6,7 @@ import { type ParsedLine } from "../asm/parser";
 import { type Token, tokenAtCharacter } from "../asm/lexer";
 import { collectSymbols } from "../asm/symbols";
 import { splitMacroCallArguments, getEffectiveLines, type ExpandedToken } from "../asm/expansion";
+import { resolveLocalLabels } from "../asm/local-labels";
 
 type SymbolDefinition = {
   name: string;
@@ -69,6 +70,35 @@ export function findDefinition(
         return uniqueLocations.length === 1 ? uniqueLocations[0] : uniqueLocations;
       }
     }
+  }
+
+  const isLocal = targetName.startsWith("]") || targetName.startsWith(":");
+
+  if (isLocal && cached !== undefined) {
+    const localScope = resolveLocalLabels(cached.parsed);
+    const localKey = `${targetName}@${line}`;
+    
+    const reference = localScope.references.get(localKey);
+    const targetLine = reference?.targetLine ?? (localScope.definitions.get(localKey)?.line);
+
+    if (targetLine === undefined) {
+      return null; // Unresolved or out-of-scope local label
+    }
+
+    const targetLexedLine = cached.lexed.lines[targetLine];
+    if (targetLexedLine !== undefined) {
+      const defToken = targetLexedLine.tokens.find(t => t.lexeme === targetName && (t.kind === "localLabel" || t.kind === "label"));
+      if (defToken !== undefined) {
+        return {
+          uri,
+          range: {
+            start: { line: targetLine, character: defToken.start },
+            end: { line: targetLine, character: defToken.end }
+          }
+        };
+      }
+    }
+    return null;
   }
 
   const locations: Location[] = [];

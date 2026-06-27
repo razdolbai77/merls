@@ -30,7 +30,7 @@ type AnchorState = {
 export function resolveLocalLabels(document: ParsedDocument): LocalLabelScope {
   const definitions = new Map<string, LocalLabelDefinition>();
   const references = new Map<string, LocalLabelReference>();
-  const definitionsByAnchor = new Map<string, Map<string, LocalLabelDefinition>>();
+  const definitionsByAnchor = new Map<string, Map<string, LocalLabelDefinition[]>>();
 
   let currentAnchor: AnchorState | null = null;
 
@@ -57,7 +57,12 @@ export function resolveLocalLabels(document: ParsedDocument): LocalLabelScope {
       anchorDefinitions = new Map();
       definitionsByAnchor.set(currentAnchor.name, anchorDefinitions);
     }
-    anchorDefinitions.set(localDefinition, definition);
+    let defs = anchorDefinitions.get(localDefinition);
+    if (!defs) {
+      defs = [];
+      anchorDefinitions.set(localDefinition, defs);
+    }
+    defs.push(definition);
   }
 
   currentAnchor = null;
@@ -74,7 +79,18 @@ export function resolveLocalLabels(document: ParsedDocument): LocalLabelScope {
     }
 
     for (const localName of findLocalReferences(line.node)) {
-      const target = anchorDefinitions.get(localName);
+      const targets = anchorDefinitions.get(localName);
+      if (targets === undefined) {
+        continue;
+      }
+
+      let target: LocalLabelDefinition | undefined;
+      if (localName.startsWith("]")) {
+        target = targets.slice().reverse().find(d => d.line < line.line);
+      } else {
+        target = targets[targets.length - 1];
+      }
+
       if (target === undefined) {
         continue;
       }
@@ -226,7 +242,7 @@ function synthesizeMacroLocalLabels(
       continue;
     }
 
-    const expansionDefinitions = new Map<string, LocalLabelDefinition>();
+    const expansionDefinitions = new Map<string, LocalLabelDefinition[]>();
     for (const bodyLine of macroDefinition.body) {
       const localDefinition = getLocalDefinition(bodyLine.node);
       if (localDefinition === null) {
@@ -241,12 +257,28 @@ function synthesizeMacroLocalLabels(
         qualifiedName
       };
       definitions.set(qualifiedName, definition);
-      expansionDefinitions.set(localDefinition, definition);
+      let defs = expansionDefinitions.get(localDefinition);
+      if (!defs) {
+        defs = [];
+        expansionDefinitions.set(localDefinition, defs);
+      }
+      defs.push(definition);
     }
 
     for (const bodyLine of macroDefinition.body) {
       for (const localName of findLocalReferences(bodyLine.node)) {
-        const target = expansionDefinitions.get(localName);
+        const targets = expansionDefinitions.get(localName);
+        if (targets === undefined) {
+          continue;
+        }
+
+        let target: LocalLabelDefinition | undefined;
+        if (localName.startsWith("]")) {
+          target = targets.slice().reverse().find(d => d.line < bodyLine.line);
+        } else {
+          target = targets[targets.length - 1];
+        }
+
         if (target === undefined) {
           continue;
         }
@@ -273,7 +305,18 @@ function synthesizeMacroLocalLabels(
       }
 
       for (const localName of findLocalReferences(nextLine.node)) {
-        const target = expansionDefinitions.get(localName);
+        const targets = expansionDefinitions.get(localName);
+        if (targets === undefined) {
+          continue;
+        }
+
+        let target: LocalLabelDefinition | undefined;
+        if (localName.startsWith("]")) {
+          target = targets[targets.length - 1];
+        } else {
+          target = targets[targets.length - 1];
+        }
+
         if (target === undefined) {
           continue;
         }

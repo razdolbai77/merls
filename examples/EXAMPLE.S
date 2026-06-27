@@ -15,9 +15,6 @@ Counter =       0
 * Macro Definition with Parameters and Macro Variables
 WaitLoop mac
         ldx     ]1      ; ]1 is the first positional parameter
-]local                  ; macro variable used as a label
-        dex
-        bne     ]local
         eom
 
 * Instruction Parsing and Addressing Modes
@@ -57,9 +54,13 @@ StartRoutine
 * Ordinary Local Labels
 Subroutine
         ldy     #5
+a
+        nop
 :loop                   ; ordinary local label
         dey
         bne     :loop
+        nop
+b
 ]local
         dey
         bne     ]local
@@ -76,8 +77,22 @@ StartRoutine            ; Error: Duplicate symbol 'StartRoutine'
 * Diagnostic: Unresolved Reference
         lda     MissingValue ; Error: Unresolved reference 'MissingValue'
 
+* Diagnostic: "]"-labels should be defined before they are used
+        bne     ]forward
+]forward
+
+* Diagnostic: ":"-labels are limited to the scope between nearby global labels
+:outside
+        nop
+global1
+        bne     :outside
+global2
+
 * Diagnostic: Duplicate Macro Definition
 WaitLoop mac            ; Error: Duplicate macro 'WaitLoop'
+]local                  ; local labels cannot be used in macros
+        dex
+        bne     ]local
         rts
         eom
 

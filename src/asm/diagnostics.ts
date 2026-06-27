@@ -392,13 +392,8 @@ function collectUnresolvedDiagnostics(
 
       if (reference.lexeme.startsWith("]") || reference.lexeme.startsWith(":")) {
         const localKey = `${reference.lexeme}@${line.line}`;
-        const localDefinitionKey = [...localScope.definitions.keys()].find((key) =>
-          key.startsWith(`${reference.lexeme}@`)
-        );
-        if (!localScope.references.has(localKey) && localDefinitionKey === undefined) {
-          // If we're in an expanded macro, local labels from the macro body will fail because resolveLocalLabels only runs on the unexpanded document!
-          // We should ideally resolve them, or at least skip them for now if they are inside expanded macros?
-          // For now, let's just let it report. Actually, we should probably ignore local labels if isExpanded is true to avoid false positives.
+        
+        if (!localScope.references.has(localKey)) {
           if (!line.isExpanded) {
             diagnostics.push({
               filePath,

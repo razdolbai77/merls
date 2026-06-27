@@ -58,7 +58,7 @@ export function buildHover(
           ? `${token.lexeme}()`
           : `${token.lexeme}(${Array.from({ length: maxParam }, (_, index) => `]${index + 1}`).join(", ")})`;
         return {
-          contents: `Macro ${signature} defined at line ${macroSymbol.symbol.line}`
+          contents: `Macro ${signature} defined at line ${macroSymbol.symbol.line + 1}`
         };
       }
     }
@@ -70,11 +70,11 @@ export function buildHover(
         if (definition.uri !== uri) {
           const filename = definition.uri.split("/").pop();
           return {
-            contents: `Symbol ${token.lexeme} defined in ${filename} at line ${definition.range.start.line}`
+            contents: `Symbol ${token.lexeme} defined in ${filename} at line ${definition.range.start.line + 1}`
           };
         }
         return {
-          contents: `Symbol ${token.lexeme} defined at line ${definition.range.start.line}`
+          contents: `Symbol ${token.lexeme} defined at line ${definition.range.start.line + 1}`
         };
       }
     }

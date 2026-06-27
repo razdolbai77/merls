@@ -190,7 +190,7 @@ export async function runHoverTest(): Promise<void> {
         ? macroHover.contents.map((entry) => typeof entry === "string" ? entry : entry.value).join("\n")
         : macroHover.contents.value;
     assert.equal(macroHoverText.includes("Wrap(]1, ]2)"), true);
-    assert.equal(macroHoverText.includes("defined at line 0"), true);
+    assert.equal(macroHoverText.includes("defined at line 1"), true);
   } finally {
     child.kill();
   }
