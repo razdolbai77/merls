@@ -102,9 +102,11 @@ export function runLineParserTest(): void {
   });
 
   assert.deepEqual(lines[7], {
-    shape: "malformed",
+    shape: "directive",
     text: "        <<<",
-    message: "unsupported line start: <"
+    label: null,
+    directive: { kind: "directive", lexeme: "<<<", start: 8, end: 11 },
+    operand: null
   });
 
   assert.equal(lines[8]?.shape, "malformed");

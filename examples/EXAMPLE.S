@@ -17,6 +17,11 @@ WaitLoop mac
         ldx     ]1      ; ]1 is the first positional parameter
         eom
 
+AnotherMacro mac
+        ldy     ]1      ; ]1 is the first positional parameter
+        ldx     ]2      ; ]2 is the second positional parameter
+        <<<
+
 * Instruction Parsing and Addressing Modes
 StartRoutine
         clc
@@ -89,6 +94,10 @@ global1
 global2
 
 * Diagnostic: Duplicate Macro Definition
+AnotherMacro mac        ; Error: Duplicate macro 'AnotherMacro'
+        ldx     ]1
+        <<<
+
 WaitLoop mac            ; Error: Duplicate macro 'WaitLoop'
 ]local                  ; local labels cannot be used in macros
         dex
