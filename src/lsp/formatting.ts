@@ -110,7 +110,8 @@ function formatLine(
     shape === "equate" ||
     shape === "instruction" ||
     shape === "directive" ||
-    shape === "data"
+    shape === "data" ||
+    shape === "macroCall"
   ) {
     let index = 0;
     let label = "";

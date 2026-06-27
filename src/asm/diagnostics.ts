@@ -19,7 +19,8 @@ export type DiagnosticCode =
   | "macro-recursion"
   | "deep-macro-expansion"
   | "token-pasted-name"
-  | "unresolved-conditional";
+  | "unresolved-conditional"
+  | "invalid-macro-local-label";
 
 export type Diagnostic = {
   filePath: string;
@@ -273,6 +274,14 @@ function collectMacroStructureDiagnostics(
             endCharacter: ref.token.end
           });
         }
+        diagnostics.push({
+          filePath,
+          line: bodyLine.line,
+          code: "invalid-macro-local-label",
+          message: `Local labels (${ref.token.lexeme}) cannot be used inside macros.`,
+          startCharacter: ref.token.start,
+          endCharacter: ref.token.end
+        });
       }
 
       for (const ref of bodyLine.localLabelReferences) {
@@ -286,6 +295,14 @@ function collectMacroStructureDiagnostics(
             endCharacter: ref.token.end
           });
         }
+        diagnostics.push({
+          filePath,
+          line: bodyLine.line,
+          code: "invalid-macro-local-label",
+          message: `Local labels (${ref.token.lexeme}) cannot be used inside macros.`,
+          startCharacter: ref.token.start,
+          endCharacter: ref.token.end
+        });
       }
 
       for (const call of bodyLine.nestedMacroCalls) {
@@ -578,6 +595,11 @@ function getUnsupportedTextPattern(text: string): string | null {
 
   if (trimmed.includes("|")) {
     return "|";
+  }
+
+  // 65816 long addressing prefix
+  if (/\b(lda|sta|cmp|adc|sbc|and|ora|eor|jmp|jsr|ldx|ldy|stx|sty|bit)\s+>[^=]/.test(trimmed)) {
+    return "> (long addressing)";
   }
 
   return null;

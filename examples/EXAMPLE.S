@@ -12,10 +12,10 @@
 TargetValue equ $C000
 Counter =       0
 
-* Macro Definition with Parameters and Local Labels
+* Macro Definition with Parameters and Macro Variables
 WaitLoop mac
         ldx     ]1      ; ]1 is the first positional parameter
-]local                  ; macro-local label
+]local                  ; macro variable used as a label
         dex
         bne     ]local
         eom
@@ -57,8 +57,8 @@ StartRoutine
         ds      10,$FF  ; Define storage
 
 * Macro Calls
-    WaitLoop #$FF
-    WaitLoop #10
+        WaitLoop #$FF
+        WaitLoop #10
 
 * Ordinary Local Labels
 Subroutine
@@ -84,6 +84,11 @@ WaitLoop mac            ; Error: Duplicate macro 'WaitLoop'
         rts
         eom
 
+* Diagnostic: Invalid Local Label in Macro
+BadLocalLabel mac
+:loop                   ; Error: Local labels (:) cannot be used inside macros
+        eom
+
 * Diagnostic: Missing Macro Terminator
 BadMacro mac            ; Error: Missing eom/<<< terminator
         lda     #0
@@ -91,5 +96,5 @@ BadMacro mac            ; Error: Missing eom/<<< terminator
 
 * Diagnostic: 65816 Unsupported Syntax
         lda     >$12345 ; Error: Unsupported 24-bit address (65816)
-    rep #$20         ; Error: Unsupported 65816 opcode
-    pea $0000        ; Error: Unsupported 65816 opcode
+        rep     #$20    ; Error: Unsupported 65816 opcode
+        pea     $0000   ; Error: Unsupported 65816 opcode

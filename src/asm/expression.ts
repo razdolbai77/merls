@@ -187,6 +187,8 @@ function parsePrefix(tokens: readonly Token[], startIndex: number): ParsedExpres
     };
   }
 
+
+
   if (token.kind === "identifier" || token.kind === "label" || token.kind === "localLabel") {
     return {
       expression: {

@@ -45,7 +45,7 @@ export function runFormattingTest(): void {
 
   // handles malformed lines safely
   {
-    const source = "label adc #0\noops malformed\nlabel2 rts";
+    const source = "label adc #0\n equ $12\nlabel2 rts";
     const cached = buildCachedDocument(source);
     const edits = formatDocument(cached, { insertSpaces: true, tabSize: 8 });
 

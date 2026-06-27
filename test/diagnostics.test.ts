@@ -35,6 +35,10 @@ export function runDiagnosticsTest(): void {
     "        eom",
     "        ZeroMac VALUE",
     "        FirstMac VALUE,OTHER",
+    "LocalLabelMac mac",
+    ":local",
+    "        jmp :local",
+    "        eom",
     "UnclosedMac mac",
     "        lda ]1"
   ].join("\n");
@@ -82,7 +86,7 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<macro>" &&
         diagnostic.code === "missing-macro-end" &&
-        diagnostic.line === 15 &&
+        diagnostic.line === 19 &&
         diagnostic.message.includes("UnclosedMac")
     ),
     true
@@ -98,6 +102,30 @@ export function runDiagnosticsTest(): void {
     ),
     true
   );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<macro>" &&
+        diagnostic.code === "invalid-macro-local-label" &&
+        diagnostic.line === 16 &&
+        diagnostic.message.includes("cannot be used inside macros")
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<macro>" &&
+        diagnostic.code === "invalid-macro-local-label" &&
+        diagnostic.line === 17 &&
+        diagnostic.message.includes("cannot be used inside macros")
+    ),
+    true
+  );
+
+
 
   assert.equal(
     diagnostics.some(
