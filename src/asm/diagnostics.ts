@@ -41,6 +41,8 @@ type SymbolRecord = {
   name: string;
   line: number;
   filePath: string;
+  startCharacter: number;
+  endCharacter: number;
 };
 
 type MacroRecord = {
@@ -113,7 +115,9 @@ function collectDuplicateSymbolDiagnostics(
       filePath: symbol.filePath,
       line: symbol.line,
       code: "duplicate-symbol",
-      message: `Duplicate symbol ${symbol.name}; first defined at line ${firstDefinition.line}`
+      message: `Duplicate symbol ${symbol.name}; first defined at line ${firstDefinition.line}`,
+      startCharacter: symbol.startCharacter,
+      endCharacter: symbol.endCharacter
     });
   }
 
@@ -167,23 +171,27 @@ function collectUnknownDiagnostics(
   const effectiveLines = getEffectiveLines(document, macroDefinitions);
 
   for (const line of effectiveLines) {
-    const unknownDirective = getUnknownDirective(line.node);
-    if (unknownDirective !== null) {
+    const unknownDirectiveToken = getUnknownDirectiveToken(line.node);
+    if (unknownDirectiveToken !== null) {
       diagnostics.push({
         filePath,
         line: line.line,
         code: "unknown-directive",
-        message: `Unknown directive: ${unknownDirective}`
+        message: `Unknown directive: ${unknownDirectiveToken.lexeme}`,
+        startCharacter: unknownDirectiveToken.start,
+        endCharacter: unknownDirectiveToken.end
       });
     }
 
-    const unknownText = getUnknownTextPattern(line.node.text);
-    if (unknownText !== null) {
+    const unknownTextMatch = getUnknownTextPattern(line.node.text);
+    if (unknownTextMatch !== null) {
       diagnostics.push({
         filePath,
         line: line.line,
         code: "unknown-syntax",
-        message: `Unknown syntax: ${unknownText}`
+        message: `Unknown syntax: ${unknownTextMatch.text}`,
+        startCharacter: unknownTextMatch.start,
+        endCharacter: unknownTextMatch.end
       });
     }
   }
@@ -378,14 +386,14 @@ function collectUnresolvedDiagnostics(
 
   for (const line of effectiveLines) {
     for (const reference of findExpressionReferences(line.node)) {
-      if (!line.isExpanded && macroParameterLines.get(line.line)?.has(reference) === true) {
+      if (!line.isExpanded && macroParameterLines.get(line.line)?.has(reference.lexeme) === true) {
         continue;
       }
 
-      if (reference.startsWith("]") || reference.startsWith(":")) {
-        const localKey = `${reference}@${line.line}`;
+      if (reference.lexeme.startsWith("]") || reference.lexeme.startsWith(":")) {
+        const localKey = `${reference.lexeme}@${line.line}`;
         const localDefinitionKey = [...localScope.definitions.keys()].find((key) =>
-          key.startsWith(`${reference}@`)
+          key.startsWith(`${reference.lexeme}@`)
         );
         if (!localScope.references.has(localKey) && localDefinitionKey === undefined) {
           // If we're in an expanded macro, local labels from the macro body will fail because resolveLocalLabels only runs on the unexpanded document!
@@ -396,19 +404,23 @@ function collectUnresolvedDiagnostics(
               filePath,
               line: line.line,
               code: "unresolved-reference",
-              message: `Unresolved local reference ${reference}`
+              message: `Unresolved local reference ${reference.lexeme}`,
+              startCharacter: reference.start,
+              endCharacter: reference.end
             });
           }
         }
         continue;
       }
 
-      if (!globalSymbols.has(reference)) {
+      if (!globalSymbols.has(reference.lexeme)) {
         diagnostics.push({
           filePath,
           line: line.line,
           code: "unresolved-reference",
-          message: `Unresolved reference ${reference}`
+          message: `Unresolved reference ${reference.lexeme}`,
+          startCharacter: reference.start,
+          endCharacter: reference.end
         });
       }
     }
@@ -464,46 +476,48 @@ function collectGlobalDefinitions(
   const symbols: SymbolRecord[] = [];
 
   for (const line of document.lines) {
-    const name = getGlobalDefinitionName(line.node);
-    if (name === null) {
+    const token = getGlobalDefinitionToken(line.node);
+    if (token === null) {
       continue;
     }
 
     symbols.push({
-      name,
+      name: token.lexeme,
       line: line.line,
-      filePath
+      filePath,
+      startCharacter: token.start,
+      endCharacter: token.end
     });
   }
 
   return symbols;
 }
 
-function getGlobalDefinitionName(node: ParsedLine): string | null {
+function getGlobalDefinitionToken(node: ParsedLine): Token | null {
   if (node.shape === "equate" && !isLocalLabel(node.label.lexeme)) {
-    return node.label.lexeme;
+    return node.label;
   }
 
   if (node.shape === "labelOnly" && !isLocalLabel(node.label.lexeme)) {
-    return node.label.lexeme;
+    return node.label;
   }
 
   if (node.shape === "instruction" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
-    return node.label.lexeme;
+    return node.label;
   }
 
   if (node.shape === "directive" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
-    return node.label.lexeme;
+    return node.label;
   }
 
   if (node.shape === "data" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
-    return node.label.lexeme;
+    return node.label;
   }
 
   return null;
 }
 
-function findExpressionReferences(node: ParsedLine): readonly string[] {
+function findExpressionReferences(node: ParsedLine): readonly Token[] {
   if (node.shape === "instruction" && node.operand !== null) {
     return findReferencesInOperand(node.operand);
   }
@@ -518,7 +532,7 @@ function findExpressionReferences(node: ParsedLine): readonly string[] {
           "nda", "cda", "tol", "dvr", "ldf", "fst"
         ]);
         return findReferencesInExpression(node.operand).filter(
-          (ref) => !knownAliases.has(ref.toLowerCase())
+          (ref) => !knownAliases.has(ref.lexeme.toLowerCase())
         );
       }
       return [];
@@ -531,10 +545,10 @@ function findExpressionReferences(node: ParsedLine): readonly string[] {
   }
 
   if (node.shape === "data") {
-    const references: string[] = [];
+    const references: Token[] = [];
     for (const token of node.tokens) {
       if (token.kind === "identifier" || token.kind === "localLabel") {
-        references.push(token.lexeme);
+        references.push(token);
       }
     }
     return references;
@@ -543,14 +557,14 @@ function findExpressionReferences(node: ParsedLine): readonly string[] {
   return [];
 }
 
-function findReferencesInOperand(operand: Operand): readonly string[] {
+function findReferencesInOperand(operand: Operand): readonly Token[] {
   return findReferencesInExpression(operand.expression);
 }
 
-function findReferencesInExpression(expression: Expression): readonly string[] {
+function findReferencesInExpression(expression: Expression): readonly Token[] {
   switch (expression.kind) {
     case "identifier":
-      return [expression.value];
+      return [expression.token];
     case "modifier":
       return findReferencesInExpression(expression.expression);
     case "unary":
@@ -565,7 +579,7 @@ function findReferencesInExpression(expression: Expression): readonly string[] {
   }
 }
 
-function getUnknownDirective(node: ParsedLine): string | null {
+function getUnknownDirectiveToken(node: ParsedLine): Token | null {
   if (node.shape !== "directive") {
     return null;
   }
@@ -577,25 +591,31 @@ function getUnknownDirective(node: ParsedLine): string | null {
 
   const directive = directiveTable.get(directiveName);
   if (directive?.supported === false) {
-    return node.directive.lexeme;
+    return node.directive;
   }
 
   return null;
 }
 
-function getUnknownTextPattern(text: string): string | null {
+function getUnknownTextPattern(text: string): { text: string; start: number; end: number } | null {
   const trimmed = text.trim().toLowerCase();
 
   if (trimmed.includes("^")) {
-    return "^";
+    const index = text.indexOf("^");
+    return { text: "^", start: index, end: index + 1 };
   }
 
   if (trimmed.includes("|")) {
-    return "|";
+    const index = text.indexOf("|");
+    return { text: "|", start: index, end: index + 1 };
   }
 
-  if (/\b(lda|sta|cmp|adc|sbc|and|ora|eor|jmp|jsr|ldx|ldy|stx|sty|bit)\s+>[^=]/.test(trimmed)) {
-    return ">";
+  const match = /\b(lda|sta|cmp|adc|sbc|and|ora|eor|jmp|jsr|ldx|ldy|stx|sty|bit)\s+>[^=]/i.exec(text);
+  if (match !== null) {
+    const index = text.indexOf(">", match.index);
+    if (index !== -1) {
+      return { text: ">", start: index, end: index + 1 };
+    }
   }
 
   return null;
