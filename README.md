@@ -131,6 +131,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - LSP handlers (hover, completion, diagnostics, etc.) are located in `src/lsp/`.
 - The CLI entry point lives in `src/cli.ts` and compiles to `dist/src/cli.js`.
 - The VS Code extension contributes `Pearls: Compile Current File with Merlin32` and `Pearls: Assemble Project with Merlin32` commands and exposes `pearls.merlin32Executable`, `pearls.compileArgs`, `pearls.merlin32MacroFolder`, and `pearls.merlin32ProjectEntryFile` settings for assembler invocation.
+- When the Pearls extension is active for the `6502` language in Visual Studio Code, it sets the language-scoped defaults `editor.tabSize = 8` and `editor.indentSize = 8`, and the extension also reapplies `tabSize = 8` to visible `6502` editors at runtime.
 - The `test/fixtures/valid/` directory contains supported 6502 Merlin32-style syntax samples, including dedicated macro-coverage fixtures for nested calls, zero-argument macros, local labels, and conditional assembly forms.
 - The `test/fixtures/invalid/` directory contains unknown-syntax negative samples plus negative macro fixtures such as macro-generated unresolved references.
 - Parser tests now explicitly lock down current macro-call parsing and the existing `mac`/`eom`/`<<<` line behavior before macro-structure refactors.

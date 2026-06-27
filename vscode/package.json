@@ -24,6 +24,10 @@
   "main": "./out/extension.js",
   "contributes": {
     "configurationDefaults": {
+      "[6502]": {
+        "editor.indentSize": 8,
+        "editor.tabSize": 8
+      },
       "editor.semanticTokenColorCustomizations": {
         "rules": {
           "macro": "#C586C0",

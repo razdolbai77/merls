@@ -13,6 +13,7 @@ import {
   getMacroFolderPath,
   getProjectEntryFilePath
 } from './compile';
+import { applyPearlsEditorOptions } from './editor-options';
 
 let client: LanguageClient;
 const compileCurrentFileCommand = 'pearls.compileCurrentFile';
@@ -81,6 +82,26 @@ export function activate(context: ExtensionContext) {
   client.start().catch(err => {
     window.showErrorMessage('Pearls LSP failed to start: ' + err);
   });
+
+  for (const editor of window.visibleTextEditors) {
+    applyPearlsEditorOptions(editor);
+  }
+
+  context.subscriptions.push(
+    window.onDidChangeActiveTextEditor(editor => {
+      if (editor !== undefined) {
+        applyPearlsEditorOptions(editor);
+      }
+    })
+  );
+
+  context.subscriptions.push(
+    window.onDidChangeVisibleTextEditors(editors => {
+      for (const editor of editors) {
+        applyPearlsEditorOptions(editor);
+      }
+    })
+  );
 
   context.subscriptions.push(
     commands.registerCommand(compileCurrentFileCommand, async (uri?: Uri) => {
