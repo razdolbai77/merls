@@ -204,6 +204,8 @@ function findLocalNamesInExpression(expression: Expression): readonly string[] {
       return isLocalLabel(expression.value) ? [expression.value] : [];
     case "modifier":
       return findLocalNamesInExpression(expression.expression);
+    case "unary":
+      return findLocalNamesInExpression(expression.expression);
     case "binary":
       return [
         ...findLocalNamesInExpression(expression.left),
