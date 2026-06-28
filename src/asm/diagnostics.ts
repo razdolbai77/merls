@@ -668,12 +668,14 @@ function getOperandAddressingModes(operand: Operand | null): readonly Addressing
   }
 
   if (operand.indirect) {
-    if (operand.indexRegister === "x") {
+    if (operand.indexRegister === "x" && operand.indexPosition === "inside") {
       return ["indexedIndirect"];
-    } else if (operand.indexRegister === "y") {
+    } else if (operand.indexRegister === "y" && operand.indexPosition === "outside") {
       return ["indirectIndexed"];
+    } else if (operand.indexRegister === null) {
+      return ["indirect"];
     }
-    return ["indirect"];
+    return [];
   }
 
   if (operand.indexRegister === "x") {

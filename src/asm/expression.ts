@@ -58,6 +58,7 @@ export type Operand = {
   immediate: boolean;
   indirect: boolean;
   indexRegister: "x" | "y" | null;
+  indexPosition?: "inside" | "outside" | null;
   expression: Expression;
 };
 
@@ -107,6 +108,7 @@ export function parseOperand(tokens: readonly Token[], startIndex = 0): ParsedOp
   let immediate = false;
   let indirect = false;
   let indexRegister: Operand["indexRegister"] = null;
+  let indexPosition: Operand["indexPosition"] = null;
 
   if (tokens[index]?.kind === "expressionOperator" && tokens[index]?.lexeme === "#") {
     immediate = true;
@@ -125,6 +127,7 @@ export function parseOperand(tokens: readonly Token[], startIndex = 0): ParsedOp
         immediate,
         indirect,
         indexRegister,
+        indexPosition,
         expression
       },
       nextTokenIndex: index + 1
@@ -140,6 +143,7 @@ export function parseOperand(tokens: readonly Token[], startIndex = 0): ParsedOp
 
     if (tokens[index]?.kind === "expressionOperator" && tokens[index]?.lexeme === ",") {
       indexRegister = parseIndexRegister(tokens[index + 1]);
+      indexPosition = "inside";
       index += 2;
     }
 
@@ -147,7 +151,11 @@ export function parseOperand(tokens: readonly Token[], startIndex = 0): ParsedOp
     index += 1;
 
     if (tokens[index]?.kind === "expressionOperator" && tokens[index]?.lexeme === ",") {
+      if (indexRegister !== null) {
+        throw new Error("unexpected second index register");
+      }
       indexRegister = parseIndexRegister(tokens[index + 1]);
+      indexPosition = "outside";
       index += 2;
     }
   } else {
@@ -156,6 +164,7 @@ export function parseOperand(tokens: readonly Token[], startIndex = 0): ParsedOp
 
     if (tokens[index]?.kind === "expressionOperator" && tokens[index]?.lexeme === ",") {
       indexRegister = parseIndexRegister(tokens[index + 1]);
+      indexPosition = "outside";
       index += 2;
     }
   }
@@ -165,6 +174,7 @@ export function parseOperand(tokens: readonly Token[], startIndex = 0): ParsedOp
       immediate,
       indirect,
       indexRegister,
+      indexPosition,
       expression: parsedExpression.expression
     },
     nextTokenIndex: index

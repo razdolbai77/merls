@@ -36,6 +36,7 @@ export function runLineParserTest(): void {
       immediate: false,
       indirect: true,
       indexRegister: "x",
+      indexPosition: "inside",
       expression: {
         kind: "binary",
         operator: "+",

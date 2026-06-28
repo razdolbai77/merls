@@ -18,7 +18,8 @@ export function runDiagnosticsTest(): void {
     "        TYP BIN",
     "        TYP BLAH",
     "        end BLAH",
-    "        dex #10"
+    "        dex #10",
+    "        lda ($10),x"
   ].join("\n");
   const macroSource = [
     "FirstMac mac",
@@ -273,6 +274,17 @@ export function runDiagnosticsTest(): void {
         diagnostic.code === "invalid-addressing-mode" &&
         diagnostic.line === 8 &&
         diagnostic.message.includes("dex")
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<memory>" &&
+        diagnostic.code === "invalid-addressing-mode" &&
+        diagnostic.line === 9 &&
+        diagnostic.message.includes("lda")
     ),
     true
   );

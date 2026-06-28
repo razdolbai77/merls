@@ -132,3 +132,7 @@ BadMacro mac            ; Error: Missing eom/<<< terminator
         clc     $1000   ; Error: Invalid addressing mode for 'clc'
         jmp     #$1000  ; Error: Invalid addressing mode for 'jmp'
         sta     #10     ; Error: Invalid addressing mode for 'sta'
+
+* Diagnostic: Incorrect index register placement in indirect addressing
+        lda     ($10),x ; Error: Invalid addressing mode for 'lda'
+        sta     ($10,y) ; Error: Invalid addressing mode for 'sta'
