@@ -150,7 +150,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - Rename planning now propagates through macro-expanded call-site symbol references, so renaming a concrete symbol updates both its definition and the macro call arguments that expand to that symbol.
 - Rename coverage now includes nested macro-call expansion paths, ensuring the propagated edit set still targets only the concrete symbol definition and call-site argument tokens rather than macro placeholders.
 - Local-label resolution is limited to ordinary Merlin anchor-based locals; local labels inside macros are rejected to match Merlin32 behavior.
-- Local-label tests now also cover interaction between invocation-local macro labels and ordinary Merlin anchor-based locals that appear before or after the macro call.
+- Local-label tests now also cover that macro-local labels remain unresolved while ordinary Merlin anchor-based locals before or after a macro call still resolve normally.
 - Hover now recognizes macro call sites directly, showing parsed positional signatures and macro definition lines instead of only falling back to generic symbol hover text.
 - Caching and invalidation rules for macro indexes and expansion-analysis results ensure that open-document updates do not unnecessarily re-expand the entire workspace.
 - Performance tests and regression benchmarks validate that navigation and diagnostics remain responsive even for heavily macro-expanded fixture files.
