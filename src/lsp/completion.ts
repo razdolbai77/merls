@@ -1,6 +1,7 @@
 import {
   CompletionItem,
-  CompletionItemKind
+  CompletionItemKind,
+  CompletionList
 } from "vscode-languageserver/node";
 
 import { type CachedDocument } from "../asm/document";
@@ -12,8 +13,9 @@ export function buildCompletionItems(
   uri: string,
   line: number,
   character: number
-): CompletionItem[] {
+): CompletionItem[] | CompletionList {
   let operandToken: { lexeme: string; kind: string } | null = null;
+  let currentWordStart = character;
   const cached = openDocuments.get(uri);
   let enclosingMacro: { maxParameterIndex: number } | undefined;
   if (cached !== undefined) {
@@ -23,7 +25,7 @@ export function buildCompletionItems(
         if (token.start < character) {
           if (token.kind === "comment" || token.kind === "string") {
             if (character <= token.end) {
-              return [];
+              return { isIncomplete: true, items: [] };
             }
           }
         }
@@ -36,12 +38,31 @@ export function buildCompletionItems(
             operandToken = token;
           }
         }
+        if (token.start <= character && character <= token.end) {
+          currentWordStart = token.start;
+        }
       }
     }
 
     enclosingMacro = cached.parsed.macroDefinitions.find(
       (def) => line > def.startLine && (def.endLine === null || line < def.endLine)
     );
+  }
+
+  // Create a diagnostic log file
+  try {
+    const fs = require('fs');
+    fs.appendFileSync('C:\\Users\\alexe\\Projects\\merls\\completion_log.txt', 
+      `\n--- Completion Request ---\n` +
+      `URI: ${uri}\n` +
+      `Line: ${line}, Character: ${character}\n` +
+      `Lexed line text: "${cached?.lexed.lines[line]?.text}"\n` +
+      `Tokens: ${JSON.stringify(cached?.lexed.lines[line]?.tokens)}\n` +
+      `operandToken: ${JSON.stringify(operandToken)}\n` +
+      `currentWordStart: ${currentWordStart}\n`
+    );
+  } catch (e) {
+    // Ignore
   }
 
   let exclusiveCompletions: readonly string[] | null = null;
@@ -65,7 +86,7 @@ export function buildCompletionItems(
         });
       }
     }
-    return completions;
+    return { isIncomplete: true, items: completions };
   }
 
   if (enclosingMacro !== undefined && operandToken !== null) {
@@ -106,11 +127,13 @@ export function buildCompletionItems(
   }
 
   if (operandToken === null) {
-    for (const opcode of opcodeDefinitions) {
-      completions.push({
-        label: opcode.mnemonic,
-        kind: CompletionItemKind.Keyword
-      });
+    if (currentWordStart > 0) {
+      for (const opcode of opcodeDefinitions) {
+        completions.push({
+          label: opcode.mnemonic,
+          kind: CompletionItemKind.Keyword
+        });
+      }
     }
 
     for (const directive of directiveDefinitions) {
@@ -123,5 +146,5 @@ export function buildCompletionItems(
 
 
 
-  return completions;
+  return { isIncomplete: true, items: completions };
 }

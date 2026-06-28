@@ -70,7 +70,7 @@ export async function runCompletionTest(): Promise<void> {
     "test/fixtures/valid/merlin32-main-6502.S"
   );
   const mainUri = `file://${mainPath.replace(/\\/g, "/")}`;
-  const text = `${fs.readFileSync(mainPath, "utf8")}\n        ld\n        du\n        bpl G`;
+  const text = `${fs.readFileSync(mainPath, "utf8")}\n        ld\n        du\n        bpl G\n_END_`;
 
   const macroPath = path.resolve(
     process.cwd(),
@@ -146,24 +146,31 @@ export async function runCompletionTest(): Promise<void> {
 
     const opcodeResponse = await sendRequest("textDocument/completion", {
       textDocument: { uri: mainUri },
-      position: positionOf(text, "        ld")
+      position: positionOf(text, "ld")
     });
     const opcodeItems = opcodeResponse.result as Array<{ label: string }>;
     assert.equal(opcodeItems.some((item) => item.label === "lda"), true);
 
     const directiveResponse = await sendRequest("textDocument/completion", {
       textDocument: { uri: mainUri },
-      position: positionOf(text, "        du")
+      position: positionOf(text, "du")
     });
     const directiveItems = directiveResponse.result as Array<{ label: string }>;
     assert.equal(directiveItems.some((item) => item.label === "dum"), true);
 
     const symbolResponse = await sendRequest("textDocument/completion", {
       textDocument: { uri: mainUri },
-      position: positionOf(text, "        bpl G")
+      position: positionOf(text, "bpl G")
     });
     const symbolItems = symbolResponse.result as Array<{ label: string; kind: number }>;
     assert.equal(symbolItems.some((item) => item.label === "GetKey"), true);
+
+    const column1Response = await sendRequest("textDocument/completion", {
+      textDocument: { uri: mainUri },
+      position: positionOf(text, "_END_")
+    });
+    const column1Items = column1Response.result as Array<{ label: string }>;
+    assert.equal(column1Items.some((item) => item.label === "lda"), false);
 
     sendNotification("textDocument/didOpen", {
       textDocument: {
