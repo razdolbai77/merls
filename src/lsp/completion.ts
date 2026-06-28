@@ -49,22 +49,6 @@ export function buildCompletionItems(
     );
   }
 
-  // Create a diagnostic log file
-  try {
-    const fs = require('fs');
-    fs.appendFileSync('C:\\Users\\alexe\\Projects\\merls\\completion_log.txt', 
-      `\n--- Completion Request ---\n` +
-      `URI: ${uri}\n` +
-      `Line: ${line}, Character: ${character}\n` +
-      `Lexed line text: "${cached?.lexed.lines[line]?.text}"\n` +
-      `Tokens: ${JSON.stringify(cached?.lexed.lines[line]?.tokens)}\n` +
-      `operandToken: ${JSON.stringify(operandToken)}\n` +
-      `currentWordStart: ${currentWordStart}\n`
-    );
-  } catch (e) {
-    // Ignore
-  }
-
   let exclusiveCompletions: readonly string[] | null = null;
   if (operandToken !== null && operandToken.kind === "directive") {
     const directive = directiveTable.get(operandToken.lexeme.toLowerCase());
