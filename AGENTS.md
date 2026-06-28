@@ -17,11 +17,11 @@ Shared token-kind and line-shape metadata now lives under `src/asm/syntax.ts`.
 The current lexer implementation now lives under `src/asm/lexer.ts` and is covered by fixture-driven unit tests.
 The current expression parser now lives under `src/asm/expression.ts` and is covered by unit tests for numeric forms, modifiers, arithmetic, and indexed operands.
 The current line parser now lives under `src/asm/parser.ts` and classifies equates, instructions, directives, data lines, and malformed input.
-The current parser also exposes first-class macro definition regions with body lines, closing directives, positional parameter placeholder references, nested macro-call usage, symbol references, and macro-local label definitions/references.
+The current parser also exposes first-class macro definition regions with body lines, closing directives, positional parameter placeholder references, nested macro-call usage, symbol references, and invalid macro-local label definitions/references for diagnostics.
 The current document model now lives under `src/asm/document.ts` and preserves line-by-line structure while collecting malformed-line errors.
-The current document model also exposes explicit macro definition, macro body, parameter-reference, nested-macro-call, symbol-reference, and macro-local-label structures for downstream macro-aware analysis.
+The current document model also exposes explicit macro definition, macro body, parameter-reference, nested-macro-call, symbol-reference, and invalid macro-local-label structures for downstream macro-aware analysis.
 The current expansion analysis layer now lives under `src/asm/expansion.ts` and provides a virtual macro expansion view mapping substituted identifiers and source locations back to macro body definitions and call sites.
-The current macro index now lives under `src/asm/macros.ts` and summarizes per-document and per-workspace macro definitions, body ranges, positional parameter counts, referenced symbols, nested macro calls, and macro-local label usage.
+The current macro index now lives under `src/asm/macros.ts` and summarizes per-document and per-workspace macro definitions, body ranges, positional parameter counts, referenced symbols, nested macro calls, and invalid macro-local label usage.
 The current symbol collector now lives under `src/asm/symbols.ts` and indexes labels, equates, named storage/data definitions, and macros through one shared symbol-record shape that carries token locations plus attached macro-definition metadata for macro symbols.
 The current signature-help implementation now resolves macro arity from indexed parsed macro definitions instead of rescanning macro body text ad hoc.
 The current signature-help test coverage explicitly includes zero-argument macros, multi-digit positional parameters, nested expressions, and top-level comma tracking for active-parameter selection.
@@ -34,7 +34,7 @@ Definition lookup now resolves identifier uses inside macro-expanded contexts (l
 Macro-aware definition/reference coverage now includes call-site symbol resolution through nested macro calls, ensuring navigation lands on the concrete symbol definition supplied to the macro rather than on the macro symbol itself.
 Rename planning now propagates through macro-expanded call-site symbol references, so renaming a concrete symbol updates both its definition and the macro call arguments that expand to that symbol.
 Rename coverage now includes nested macro-call expansion paths, ensuring the propagated edit set still targets only the concrete symbol definition and call-site argument tokens rather than macro placeholders.
-Local-label resolution now synthesizes per-invocation macro-local scopes, so repeated macro calls that define the same `]local` label no longer collapse into one shared global-text scope.
+Local-label resolution is limited to ordinary Merlin anchor-based locals; local labels inside macros are rejected to match Merlin32 behavior.
 Local-label coverage now also exercises interaction between invocation-local macro labels and ordinary Merlin anchor-based locals that appear before or after the macro call.
 Hover now recognizes macro call sites directly, showing parsed positional signatures and macro definition lines instead of only falling back to generic symbol hover text.
 The current local-label resolver now lives under `src/asm/local-labels.ts` and resolves Merlin32 `]local` and `:local` labels within the nearest global-label scope.

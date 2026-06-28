@@ -57,35 +57,10 @@ export function runLocalLabelScopeTest(): void {
   ].join("\n"));
   const macroScope = resolveLocalLabels(macroDocument);
 
-  assert.deepEqual(macroScope.definitions.get("]loop@5"), {
-    name: "]loop",
-    line: 1,
-    anchor: "TargetA",
-    qualifiedName: "]loop@5"
-  });
-
-  assert.deepEqual(macroScope.definitions.get("]loop@7"), {
-    name: "]loop",
-    line: 1,
-    anchor: "TargetB",
-    qualifiedName: "]loop@7"
-  });
-
-  assert.deepEqual(macroScope.references.get("]loop@5:2"), {
-    name: "]loop",
-    line: 2,
-    anchor: "TargetA",
-    qualifiedName: "]loop@5",
-    targetLine: 1
-  });
-
-  assert.deepEqual(macroScope.references.get("]loop@7:2"), {
-    name: "]loop",
-    line: 2,
-    anchor: "TargetB",
-    qualifiedName: "]loop@7",
-    targetLine: 1
-  });
+  assert.equal(macroScope.definitions.get("]loop@5"), undefined);
+  assert.equal(macroScope.definitions.get("]loop@7"), undefined);
+  assert.equal(macroScope.references.get("]loop@5:2"), undefined);
+  assert.equal(macroScope.references.get("]loop@7:2"), undefined);
 
   const mixedScopeDocument = parseDocument([
     "HostLabel",
@@ -107,18 +82,6 @@ export function runLocalLabelScopeTest(): void {
     qualifiedName: "]loop@0"
   });
 
-  assert.deepEqual(mixedScope.definitions.get("]loop@7"), {
-    name: "]loop",
-    line: 3,
-    anchor: "TargetC",
-    qualifiedName: "]loop@7"
-  });
-
-  assert.deepEqual(mixedScope.references.get("]loop@8"), {
-    name: "]loop",
-    line: 8,
-    anchor: "TargetC",
-    qualifiedName: "]loop@7",
-    targetLine: 3
-  });
+  assert.equal(mixedScope.definitions.get("]loop@7"), undefined);
+  assert.equal(mixedScope.references.get("]loop@8"), undefined);
 }
