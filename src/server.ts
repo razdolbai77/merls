@@ -146,7 +146,9 @@ export function startServer(
       for (const [docPath, cached] of workspace.documents.entries()) {
         const normalizedDocPath = docPath.toLowerCase();
         if (!addedPaths.has(normalizedDocPath)) {
-          const docUri = pathToFileURL(docPath).href;
+          const docUri = docPath.startsWith("untitled:") 
+            ? docPath 
+            : pathToFileURL(docPath).href;
           combined.set(docUri, cached);
           addedPaths.add(normalizedDocPath);
         }

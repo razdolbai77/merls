@@ -32,7 +32,10 @@ export function indexWorkspace(
   const loadOrder: string[] = [];
   const symbols = new Map<string, WorkspaceSymbol>();
 
-  visitFile(path.resolve(entryPath), documents, dependencies, loadOrder, overrides);
+  const resolvedEntry = entryPath.startsWith("untitled:") 
+    ? entryPath 
+    : path.resolve(entryPath);
+  visitFile(resolvedEntry, documents, dependencies, loadOrder, overrides);
 
   for (const filePath of loadOrder) {
     const document = documents.get(filePath);
