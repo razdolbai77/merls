@@ -1,7 +1,6 @@
 import {
   CompletionItem,
-  CompletionItemKind,
-  CompletionList
+  CompletionItemKind
 } from "vscode-languageserver/node";
 
 import { type CachedDocument } from "../asm/document";
