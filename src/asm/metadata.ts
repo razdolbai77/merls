@@ -24,6 +24,7 @@ export type DirectiveKind =
 export type OpcodeDefinition = {
   mnemonic: string;
   modes: readonly AddressingMode[];
+  description: string;
 };
 
 export type DirectiveDefinition = {
@@ -36,11 +37,13 @@ export type DirectiveDefinition = {
 
 function defineOpcode(
   mnemonic: string,
-  modes: readonly AddressingMode[]
+  modes: readonly AddressingMode[],
+  description: string
 ): OpcodeDefinition {
   return {
     mnemonic,
-    modes
+    modes,
+    description
   };
 }
 
@@ -61,62 +64,62 @@ function defineDirective(
 }
 
 export const opcodeDefinitions: readonly OpcodeDefinition[] = [
-  defineOpcode("adc", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"]),
-  defineOpcode("and", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"]),
-  defineOpcode("asl", ["accumulator", "zeroPage", "zeroPageX", "absolute", "absoluteX"]),
-  defineOpcode("bcc", ["relative"]),
-  defineOpcode("bcs", ["relative"]),
-  defineOpcode("beq", ["relative"]),
-  defineOpcode("bit", ["zeroPage", "absolute"]),
-  defineOpcode("bmi", ["relative"]),
-  defineOpcode("bne", ["relative"]),
-  defineOpcode("bpl", ["relative"]),
-  defineOpcode("brk", ["implied"]),
-  defineOpcode("bvc", ["relative"]),
-  defineOpcode("bvs", ["relative"]),
-  defineOpcode("clc", ["implied"]),
-  defineOpcode("cld", ["implied"]),
-  defineOpcode("cli", ["implied"]),
-  defineOpcode("clv", ["implied"]),
-  defineOpcode("cmp", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"]),
-  defineOpcode("cpx", ["immediate", "zeroPage", "absolute"]),
-  defineOpcode("cpy", ["immediate", "zeroPage", "absolute"]),
-  defineOpcode("dec", ["zeroPage", "zeroPageX", "absolute", "absoluteX"]),
-  defineOpcode("dex", ["implied"]),
-  defineOpcode("dey", ["implied"]),
-  defineOpcode("eor", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"]),
-  defineOpcode("inc", ["zeroPage", "zeroPageX", "absolute", "absoluteX"]),
-  defineOpcode("inx", ["implied"]),
-  defineOpcode("iny", ["implied"]),
-  defineOpcode("jmp", ["absolute", "indirect"]),
-  defineOpcode("jsr", ["absolute"]),
-  defineOpcode("lda", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"]),
-  defineOpcode("ldx", ["immediate", "zeroPage", "zeroPageY", "absolute", "absoluteY"]),
-  defineOpcode("ldy", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX"]),
-  defineOpcode("lsr", ["accumulator", "zeroPage", "zeroPageX", "absolute", "absoluteX"]),
-  defineOpcode("nop", ["implied"]),
-  defineOpcode("ora", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"]),
-  defineOpcode("pha", ["implied"]),
-  defineOpcode("php", ["implied"]),
-  defineOpcode("pla", ["implied"]),
-  defineOpcode("plp", ["implied"]),
-  defineOpcode("rol", ["accumulator", "zeroPage", "zeroPageX", "absolute", "absoluteX"]),
-  defineOpcode("ror", ["accumulator", "zeroPage", "zeroPageX", "absolute", "absoluteX"]),
-  defineOpcode("rti", ["implied"]),
-  defineOpcode("rts", ["implied"]),
-  defineOpcode("sbc", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"]),
-  defineOpcode("sec", ["implied"]),
-  defineOpcode("sed", ["implied"]),
-  defineOpcode("sei", ["implied"]),
-  defineOpcode("sta", ["zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"]),
-  defineOpcode("stx", ["zeroPage", "zeroPageY", "absolute"]),
-  defineOpcode("sty", ["zeroPage", "zeroPageX", "absolute"]),
-  defineOpcode("tax", ["implied"]),
-  defineOpcode("tay", ["implied"]),
-  defineOpcode("tsx", ["implied"]),
-  defineOpcode("txa", ["implied"]),
-  defineOpcode("txs", ["implied"]),
-  defineOpcode("tya", ["implied"])
+  defineOpcode("adc", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"], "Add with Carry"),
+  defineOpcode("and", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"], "Logical AND"),
+  defineOpcode("asl", ["accumulator", "zeroPage", "zeroPageX", "absolute", "absoluteX"], "Arithmetic Shift Left"),
+  defineOpcode("bcc", ["relative"], "Branch if Carry Clear"),
+  defineOpcode("bcs", ["relative"], "Branch if Carry Set"),
+  defineOpcode("beq", ["relative"], "Branch if Equal"),
+  defineOpcode("bit", ["zeroPage", "absolute"], "Bit Test"),
+  defineOpcode("bmi", ["relative"], "Branch if Minus"),
+  defineOpcode("bne", ["relative"], "Branch if Not Equal"),
+  defineOpcode("bpl", ["relative"], "Branch if Positive"),
+  defineOpcode("brk", ["implied"], "Force Interrupt"),
+  defineOpcode("bvc", ["relative"], "Branch if Overflow Clear"),
+  defineOpcode("bvs", ["relative"], "Branch if Overflow Set"),
+  defineOpcode("clc", ["implied"], "Clear Carry Flag"),
+  defineOpcode("cld", ["implied"], "Clear Decimal Mode"),
+  defineOpcode("cli", ["implied"], "Clear Interrupt Disable"),
+  defineOpcode("clv", ["implied"], "Clear Overflow Flag"),
+  defineOpcode("cmp", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"], "Compare"),
+  defineOpcode("cpx", ["immediate", "zeroPage", "absolute"], "Compare X Register"),
+  defineOpcode("cpy", ["immediate", "zeroPage", "absolute"], "Compare Y Register"),
+  defineOpcode("dec", ["zeroPage", "zeroPageX", "absolute", "absoluteX"], "Decrement Memory"),
+  defineOpcode("dex", ["implied"], "Decrement X Register"),
+  defineOpcode("dey", ["implied"], "Decrement Y Register"),
+  defineOpcode("eor", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"], "Exclusive OR"),
+  defineOpcode("inc", ["zeroPage", "zeroPageX", "absolute", "absoluteX"], "Increment Memory"),
+  defineOpcode("inx", ["implied"], "Increment X Register"),
+  defineOpcode("iny", ["implied"], "Increment Y Register"),
+  defineOpcode("jmp", ["absolute", "indirect"], "Jump"),
+  defineOpcode("jsr", ["absolute"], "Jump to Subroutine"),
+  defineOpcode("lda", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"], "Load Accumulator"),
+  defineOpcode("ldx", ["immediate", "zeroPage", "zeroPageY", "absolute", "absoluteY"], "Load X Register"),
+  defineOpcode("ldy", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX"], "Load Y Register"),
+  defineOpcode("lsr", ["accumulator", "zeroPage", "zeroPageX", "absolute", "absoluteX"], "Logical Shift Right"),
+  defineOpcode("nop", ["implied"], "No Operation"),
+  defineOpcode("ora", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"], "Logical Inclusive OR"),
+  defineOpcode("pha", ["implied"], "Push Accumulator"),
+  defineOpcode("php", ["implied"], "Push Processor Status"),
+  defineOpcode("pla", ["implied"], "Pull Accumulator"),
+  defineOpcode("plp", ["implied"], "Pull Processor Status"),
+  defineOpcode("rol", ["accumulator", "zeroPage", "zeroPageX", "absolute", "absoluteX"], "Rotate Left"),
+  defineOpcode("ror", ["accumulator", "zeroPage", "zeroPageX", "absolute", "absoluteX"], "Rotate Right"),
+  defineOpcode("rti", ["implied"], "Return from Interrupt"),
+  defineOpcode("rts", ["implied"], "Return from Subroutine"),
+  defineOpcode("sbc", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"], "Subtract with Carry"),
+  defineOpcode("sec", ["implied"], "Set Carry Flag"),
+  defineOpcode("sed", ["implied"], "Set Decimal Flag"),
+  defineOpcode("sei", ["implied"], "Set Interrupt Disable"),
+  defineOpcode("sta", ["zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"], "Store Accumulator"),
+  defineOpcode("stx", ["zeroPage", "zeroPageY", "absolute"], "Store X Register"),
+  defineOpcode("sty", ["zeroPage", "zeroPageX", "absolute"], "Store Y Register"),
+  defineOpcode("tax", ["implied"], "Transfer Accumulator to X"),
+  defineOpcode("tay", ["implied"], "Transfer Accumulator to Y"),
+  defineOpcode("tsx", ["implied"], "Transfer Stack Pointer to X"),
+  defineOpcode("txa", ["implied"], "Transfer X to Accumulator"),
+  defineOpcode("txs", ["implied"], "Transfer X to Stack Pointer"),
+  defineOpcode("tya", ["implied"], "Transfer Y to Accumulator")
 ];
 
 export const opcodeTable = new Map(

@@ -28,7 +28,7 @@ export function buildHover(
     const definition = opcodeTable.get(token.lexeme.toLowerCase());
     if (definition !== undefined) {
       return {
-        contents: `Opcode ${definition.mnemonic}: ${definition.modes.join(", ")}`
+        contents: `Opcode ${definition.mnemonic}: ${definition.description}\n\nModes: ${definition.modes.join(", ")}`
       };
     }
   }
@@ -89,7 +89,7 @@ export function buildHover(
     const definition = opcodeTable.get(node.mnemonic.lexeme.toLowerCase());
     if (definition !== undefined) {
       return {
-        contents: `Opcode ${definition.mnemonic}: ${definition.modes.join(", ")}`
+        contents: `Opcode ${definition.mnemonic}: ${definition.description}\n\nModes: ${definition.modes.join(", ")}`
       };
     }
   }
