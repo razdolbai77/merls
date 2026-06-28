@@ -126,3 +126,9 @@ BadMacro mac            ; Error: Missing eom/<<< terminator
         rep     #$20    ; Error: Unsupported instruction or undefined macro: rep
         pea     $0000   ; Error: Unsupported instruction or undefined macro: pea
         blah            ; Error: Unsupported instruction or undefined macro: blah
+
+* Diagnostic: Valid instruction, incorrect addressing mode
+        dex     #10     ; Error: Invalid addressing mode for 'dex'
+        clc     $1000   ; Error: Invalid addressing mode for 'clc'
+        jmp     #$1000  ; Error: Invalid addressing mode for 'jmp'
+        sta     #10     ; Error: Invalid addressing mode for 'sta'

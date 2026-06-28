@@ -17,7 +17,8 @@ export function runDiagnosticsTest(): void {
     "        DSK ../build/WORLD",
     "        TYP BIN",
     "        TYP BLAH",
-    "        end BLAH"
+    "        end BLAH",
+    "        dex #10"
   ].join("\n");
   const macroSource = [
     "FirstMac mac",
@@ -261,6 +262,17 @@ export function runDiagnosticsTest(): void {
         diagnostic.filePath === longPath &&
         diagnostic.code === "unknown-syntax" &&
         diagnostic.message.includes("^")
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<memory>" &&
+        diagnostic.code === "invalid-addressing-mode" &&
+        diagnostic.line === 8 &&
+        diagnostic.message.includes("dex")
     ),
     true
   );

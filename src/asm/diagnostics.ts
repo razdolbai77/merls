@@ -2,7 +2,7 @@ import { type ParsedDocument } from "./document";
 import { type Expression, type Operand } from "./expression";
 import { type Token } from "./lexer";
 import { resolveLocalLabels } from "./local-labels";
-import { directiveTable } from "./metadata";
+import { directiveTable, opcodeTable, type AddressingMode } from "./metadata";
 import { type ParsedLine, type MacroDefinitionRegion } from "./parser";
 import { getEffectiveLines } from "./expansion";
 
@@ -21,7 +21,8 @@ export type DiagnosticCode =
   | "deep-macro-expansion"
   | "token-pasted-name"
   | "unresolved-conditional"
-  | "invalid-macro-local-label";
+  | "invalid-macro-local-label"
+  | "invalid-addressing-mode";
 
 export type Diagnostic = {
   filePath: string;
@@ -89,6 +90,7 @@ export function collectWorkspaceDiagnostics(
     diagnostics.push(
       ...collectMalformedDiagnostics(entry.filePath, entry.document),
       ...collectUnknownDiagnostics(entry.filePath, entry.document, entry.document.macroDefinitions),
+      ...collectAddressingModeDiagnostics(entry.filePath, entry.document, entry.document.macroDefinitions),
       ...collectMacroStructureDiagnostics(entry.filePath, entry.document),
       ...collectUnresolvedDiagnostics(entry.filePath, entry.document, globalSymbols, entry.document.macroDefinitions),
       ...collectMacroCallDiagnostics(entry.filePath, entry.document, macrosByName)
@@ -654,4 +656,77 @@ function countMacroCallArguments(tokens: readonly Token[]): number {
   }
 
   return sawArgumentToken ? argumentsCount : 0;
+}
+
+function getOperandAddressingModes(operand: Operand | null): readonly AddressingMode[] {
+  if (operand === null) {
+    return ["implied", "accumulator"];
+  }
+
+  if (operand.immediate) {
+    return ["immediate"];
+  }
+
+  if (operand.indirect) {
+    if (operand.indexRegister === "x") {
+      return ["indexedIndirect"];
+    } else if (operand.indexRegister === "y") {
+      return ["indirectIndexed"];
+    }
+    return ["indirect"];
+  }
+
+  if (operand.indexRegister === "x") {
+    return ["zeroPageX", "absoluteX"];
+  }
+
+  if (operand.indexRegister === "y") {
+    return ["zeroPageY", "absoluteY"];
+  }
+
+  if (
+    operand.expression.kind === "identifier" &&
+    operand.expression.value.toLowerCase() === "a"
+  ) {
+    return ["accumulator", "zeroPage", "absolute", "relative"];
+  }
+
+  return ["zeroPage", "absolute", "relative"];
+}
+
+function collectAddressingModeDiagnostics(
+  filePath: string,
+  document: ParsedDocument,
+  macroDefinitions: readonly MacroDefinitionRegion[]
+): readonly Diagnostic[] {
+  const diagnostics: Diagnostic[] = [];
+  const effectiveLines = getEffectiveLines(document, macroDefinitions);
+
+  for (const line of effectiveLines) {
+    if (line.node.shape !== "instruction") {
+      continue;
+    }
+
+    const mnemonic = line.node.mnemonic.lexeme.toLowerCase();
+    const definition = opcodeTable.get(mnemonic);
+    if (definition === undefined) {
+      continue;
+    }
+
+    const possibleModes = getOperandAddressingModes(line.node.operand);
+    const hasValidMode = possibleModes.some((mode) => definition.modes.includes(mode));
+
+    if (!hasValidMode) {
+      diagnostics.push({
+        filePath,
+        line: line.line,
+        code: "invalid-addressing-mode",
+        message: `Invalid addressing mode for '${mnemonic}'`,
+        startCharacter: line.node.mnemonic.start,
+        endCharacter: line.node.mnemonic.end
+      });
+    }
+  }
+
+  return diagnostics;
 }
