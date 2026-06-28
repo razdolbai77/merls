@@ -65,6 +65,7 @@ export function activate(context: ExtensionContext) {
   const clientOptions: LanguageClientOptions = {
     documentSelector: [
       { scheme: 'file', language: '6502' },
+      { scheme: 'untitled', language: '6502' },
       { scheme: 'file', pattern: '**/*.{s,S,asm}' }
     ],
     synchronize: {

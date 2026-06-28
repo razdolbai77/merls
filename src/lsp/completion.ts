@@ -13,7 +13,7 @@ export function buildCompletionItems(
   uri: string,
   line: number,
   character: number
-): CompletionItem[] | CompletionList {
+): CompletionItem[] {
   let operandToken: { lexeme: string; kind: string } | null = null;
   let currentWordStart = character;
   const cached = openDocuments.get(uri);
@@ -25,7 +25,7 @@ export function buildCompletionItems(
         if (token.start < character) {
           if (token.kind === "comment" || token.kind === "string") {
             if (character <= token.end) {
-              return { isIncomplete: true, items: [] };
+              return [];
             }
           }
         }
@@ -70,7 +70,7 @@ export function buildCompletionItems(
         });
       }
     }
-    return { isIncomplete: true, items: completions };
+    return completions;
   }
 
   if (enclosingMacro !== undefined && operandToken !== null) {
@@ -128,7 +128,5 @@ export function buildCompletionItems(
     }
   }
 
-
-
-  return { isIncomplete: true, items: completions };
+  return completions;
 }
