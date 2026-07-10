@@ -2,57 +2,57 @@
 * This file demonstrates the supported 6502/Merlin32 syntax
 * and the diagnostics provided by the language server.
 
-        org     $1000
+        ORG     $1000
 
 * ==========================================
 * Positive Features: Valid Syntax
 * ==========================================
 
 * Equates and Variables
-TargetValue equ $C000
+TargetValue EQU $C000
 Counter =       0
 
 * Macro Definition with Parameters and Macro Variables
-WaitLoop mac
-        ldx     ]1      ; ]1 is the first positional parameter
-        eom
+WaitLoop MAC
+        LDX     ]1      ; ]1 is the first positional parameter
+        EOM
 
-AnotherMacro mac
-        ldy     ]1      ; ]1 is the first positional parameter
-        ldx     ]2      ; ]2 is the second positional parameter
+AnotherMacro MAC
+        LDY     ]1      ; ]1 is the first positional parameter
+        LDX     ]2      ; ]2 is the second positional parameter
         <<<
 
 * Instruction Parsing and Addressing Modes
 StartRoutine
-        clc
-        adc     #10     ; Immediate
-        lda     TargetValue ; Absolute
-        sta     $00,x   ; Zero Page Indexed
-        jmp     (TargetValue) ; Indirect
+        CLC
+        ADC     #10     ; Immediate
+        LDA     TargetValue ; Absolute
+        STA     $00,x   ; Zero Page Indexed
+        JMP     (TargetValue) ; Indirect
 
 * Data Directives
-        hex     000102
-        hex     00,ff
-        lda     $ff
-        dfb     %001
-        db      $03,$04
-        ddb     $000a
-        da      $55
-        dw      $1000,$2000
-        asc     'foobar'
-        asc     "foobar"
-        dci     "foobar"
-        dci     'foobar'
-        inv     'foobar'
-        inv     "foobar"
-        fls     'foobar'
-        fls     "foobar"
-        str     'foobar'
-        str     "foobar"
-        strl    'foobar'
-        strl    "foobar"
-        da      StartRoutine
-        ds      10,$FF  ; Define storage
+        HEX     000102
+        HEX     00,ff
+        LDA     $ff
+        DFB     %001
+        DB      $03,$04
+        DDB     $000a
+        DA      $55
+        DW      $1000,$2000
+        ASC     'foobar'
+        ASC     "foobar"
+        DCI     "foobar"
+        DCI     'foobar'
+        INV     'foobar'
+        INV     "foobar"
+        FLS     'foobar'
+        FLS     "foobar"
+        STR     'foobar'
+        STR     "foobar"
+        STRL    'foobar'
+        STRL    "foobar"
+        DA      StartRoutine
+        DS      10,$FF  ; Define storage
 
 * Macro Calls
         WaitLoop #$FF
@@ -60,18 +60,18 @@ StartRoutine
 
 * Ordinary Local Labels
 Subroutine
-        ldy     #5
+        LDY     #5
 a
-        nop
+        NOP
 :loop                   ; ordinary local label
-        dey
-        bne     :loop
-        nop
+        DEY
+        BNE     :loop
+        NOP
 b
 ]local
-        dey
-        bne     ]local
-        rts
+        DEY
+        BNE     ]local
+        RTS
 
 * ==========================================
 * Diagnostics: Invalid Syntax & Errors
@@ -79,62 +79,60 @@ b
 
 * Diagnostic: Duplicate Symbol Definition
 StartRoutine            ; Error: Duplicate symbol 'StartRoutine'
-        nop
+        NOP
 
 * Diagnostic: Unresolved Reference
-        lda     MissingValue ; Error: Unresolved reference 'MissingValue'
+        LDA     MissingValue ; Error: Unresolved reference 'MissingValue'
 
 * Diagnostic: "]"-labels should be defined before they are used
-        bne     ]forward
+        BNE     ]forward
 ]forward
 
 * Diagnostic: ":"-labels are limited to the scope between nearby global labels
 :outside
-        nop
+        NOP
 global1
-        bne     :outside
+        BNE     :outside
 global2
 
 * Diagnostic: Duplicate Macro Definition
-AnotherMacro mac        ; Error: Duplicate macro 'AnotherMacro'
-        ldx     ]1
+AnotherMacro MAC        ; Error: Duplicate macro 'AnotherMacro'
+        LDX     ]1
         <<<
 
-WaitLoop mac            ; Error: Duplicate macro 'WaitLoop'
-]local                  ; local labels cannot be used in macros
-        dex
-        bne     ]local
-        rts
-        eom
+WaitLoop MAC            ; Error: Duplicate macro 'WaitLoop'
+        DEX
+        RTS
+        EOM
 
 * Diagnostic: Invalid Local Label in Macro
-BadLocalLabel mac
+BadLocalLabel MAC
 :loop                   ; Error: Local labels (:) cannot be used inside macros
 ]local
-        eom
+        EOM
 
 * Diagnostic: Missing Macro Terminator
-BadMacro mac            ; Error: Missing eom/<<< terminator
-        lda     #0
+BadMacro MAC            ; Error: Missing eom/<<< terminator
+        LDA     #0
 * (No eom here)
 
 * Case sensitivity
-        bne     startRoutine ; Error: Unresolved reference 'startRoutine' (case-sensitive)
+        BNE     startRoutine ; Error: Unresolved reference 'startRoutine' (case-sensitive)
         waitLoop #$FF   ; Error: Unresolved reference 'waitLoop' (case-sensitive)
 
 
 * Diagnostic: Unknown Syntax
-        lda     >$12345 ; Error: Unknown syntax: >
+        LDA     >$12345 ; Error: Unknown syntax: >
         rep     #$20    ; Error: Unsupported instruction or undefined macro: rep
         pea     $0000   ; Error: Unsupported instruction or undefined macro: pea
         blah            ; Error: Unsupported instruction or undefined macro: blah
 
 * Diagnostic: Valid instruction, incorrect addressing mode
-        dex     #10     ; Error: Invalid addressing mode for 'dex'
-        clc     $1000   ; Error: Invalid addressing mode for 'clc'
-        jmp     #$1000  ; Error: Invalid addressing mode for 'jmp'
-        sta     #10     ; Error: Invalid addressing mode for 'sta'
+        DEX     #10     ; Error: Invalid addressing mode for 'dex'
+        CLC     $1000   ; Error: Invalid addressing mode for 'clc'
+        JMP     #$1000  ; Error: Invalid addressing mode for 'jmp'
+        STA     #10     ; Error: Invalid addressing mode for 'sta'
 
 * Diagnostic: Incorrect index register placement in indirect addressing
-        lda     ($10),x ; Error: Invalid addressing mode for 'lda'
-        sta     ($10,y) ; Error: Invalid addressing mode for 'sta'
+        LDA     ($10),x ; Error: Invalid addressing mode for 'lda'
+        STA     ($10,y) ; Error: Invalid addressing mode for 'sta'

@@ -125,8 +125,10 @@ function formatLine(
     if (!operationToken) {
       return null;
     }
-    // Convert mnemonics and directives to lowercase for standard formatting? 
-    const operation = operationToken.lexeme;
+    const operation =
+      operationToken.kind === "mnemonic" || operationToken.kind === "directive"
+        ? operationToken.lexeme.toUpperCase()
+        : operationToken.lexeme;
     index += 1;
 
     let result = label;
@@ -189,4 +191,3 @@ function padTo(currentText: string, targetCol: number, insertSpaces: boolean): s
   }
   return currentText + " ".repeat(targetCol - currentText.length);
 }
-

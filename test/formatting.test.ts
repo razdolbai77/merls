@@ -10,8 +10,8 @@ export function runFormattingTest(): void {
     const edits = formatDocument(cached, { insertSpaces: true, tabSize: 8 });
 
     assert.equal(edits.length, 2);
-    assert.equal(edits[0].newText, "label   adc     (0,x)   ; comment");
-    assert.equal(edits[1].newText, "        sta     _num1+dum0,x");
+    assert.equal(edits[0].newText, "label   ADC     (0,x)   ; comment");
+    assert.equal(edits[1].newText, "        STA     _num1+dum0,x");
   }
 
   // handles labels without operands
@@ -20,7 +20,8 @@ export function runFormattingTest(): void {
     const cached = buildCachedDocument(source);
     const edits = formatDocument(cached, { insertSpaces: true, tabSize: 8 });
 
-    assert.equal(edits.length, 0);
+    assert.equal(edits.length, 1);
+    assert.equal(edits[0].newText, "        RTS");
   }
 
   // formats equates
@@ -34,13 +35,24 @@ export function runFormattingTest(): void {
     assert.equal(edits[1].newText, "MY_VAL  EQU     $42");
   }
 
+  // formats known directives to uppercase
+  {
+    const source = "        hex 00,01,02,03";
+    const cached = buildCachedDocument(source);
+    const edits = formatDocument(cached, { insertSpaces: true, tabSize: 8 });
+
+    assert.equal(edits.length, 1);
+    assert.equal(edits[0].newText, "        HEX     00,01,02,03");
+  }
+
   // handles long labels
   {
     const source = "veryLongLabel adc #0";
     const cached = buildCachedDocument(source);
     const edits = formatDocument(cached, { insertSpaces: true, tabSize: 8 });
 
-    assert.equal(edits.length, 0);
+    assert.equal(edits.length, 1);
+    assert.equal(edits[0].newText, "veryLongLabel ADC #0");
   }
 
   // handles malformed lines safely
@@ -50,8 +62,8 @@ export function runFormattingTest(): void {
     const edits = formatDocument(cached, { insertSpaces: true, tabSize: 8 });
 
     assert.equal(edits.length, 2);
-    assert.equal(edits[0].newText, "label   adc     #0");
-    assert.equal(edits[1].newText, "label2  rts");
+    assert.equal(edits[0].newText, "label   ADC     #0");
+    assert.equal(edits[1].newText, "label2  RTS");
   }
 
   // formats specific range
@@ -64,7 +76,7 @@ export function runFormattingTest(): void {
     });
 
     assert.equal(edits.length, 1);
-    assert.equal(edits[0].newText, "label2  adc     #2");
+    assert.equal(edits[0].newText, "label2  ADC     #2");
   }
 
   // formats on type enter
@@ -75,6 +87,6 @@ export function runFormattingTest(): void {
     const edits = formatOnType(cached, { insertSpaces: true, tabSize: 8 }, { line: 1, character: 0 }, "\n");
 
     assert.equal(edits.length, 1);
-    assert.equal(edits[0].newText, "label1  adc     #1");
+    assert.equal(edits[0].newText, "label1  ADC     #1");
   }
 }
