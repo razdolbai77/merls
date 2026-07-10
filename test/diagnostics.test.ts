@@ -12,6 +12,12 @@ export function runDiagnosticsTest(): void {
   const duplicateSource = [
     "dup     equ 1",
     "        lda missing",
+    "        hex 8D",
+    "        hex 00,01,02,03",
+    "        hex 0001,0203",
+    "        hex fg",
+    "        hex F",
+    "        lda 8D",
     "dup     equ 2",
     "        adc (",
     "        DSK ../build/WORLD",
@@ -78,7 +84,7 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<memory>" &&
         diagnostic.code === "duplicate-symbol" &&
-        diagnostic.line === 2
+        diagnostic.line === 8
     ),
     true
   );
@@ -210,7 +216,82 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<memory>" &&
         diagnostic.code === "unresolved-reference" &&
-        (diagnostic.line === 4 || diagnostic.line === 5)
+        diagnostic.line === 2 &&
+        diagnostic.message.includes("8D")
+    ),
+    false
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<memory>" &&
+        diagnostic.code === "unknown-syntax" &&
+        diagnostic.line === 3
+    ),
+    false
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<memory>" &&
+        diagnostic.code === "unknown-syntax" &&
+        diagnostic.line === 4
+    ),
+    false
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<memory>" &&
+        diagnostic.code === "unknown-syntax" &&
+        diagnostic.line === 5 &&
+        diagnostic.message.includes("fg")
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<memory>" &&
+        diagnostic.code === "unresolved-reference" &&
+        diagnostic.line === 5 &&
+        diagnostic.message.includes("fg")
+    ),
+    false
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<memory>" &&
+        diagnostic.code === "unknown-syntax" &&
+        diagnostic.line === 6 &&
+        diagnostic.message.includes("F")
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<memory>" &&
+        diagnostic.code === "unresolved-reference" &&
+        diagnostic.line === 7 &&
+        diagnostic.message.includes("8D")
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<memory>" &&
+        diagnostic.code === "unresolved-reference" &&
+        diagnostic.line === 8
     ),
     false
   );
@@ -220,7 +301,17 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<memory>" &&
         diagnostic.code === "unresolved-reference" &&
-        diagnostic.line === 6 &&
+        (diagnostic.line === 9 || diagnostic.line === 10)
+    ),
+    false
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<memory>" &&
+        diagnostic.code === "unresolved-reference" &&
+        diagnostic.line === 12 &&
         diagnostic.message.includes("BLAH")
     ),
     true
@@ -231,7 +322,7 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<memory>" &&
         diagnostic.code === "malformed-line" &&
-        diagnostic.line === 3
+        diagnostic.line === 9
     ),
     true
   );
@@ -241,7 +332,7 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<memory>" &&
         diagnostic.code === "malformed-line" &&
-        diagnostic.line === 7 &&
+        diagnostic.line === 13 &&
         diagnostic.message === "unexpected operand for end"
     ),
     true
@@ -272,7 +363,7 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<memory>" &&
         diagnostic.code === "invalid-addressing-mode" &&
-        diagnostic.line === 8 &&
+        diagnostic.line === 14 &&
         diagnostic.message.includes("dex")
     ),
     true
@@ -283,7 +374,7 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<memory>" &&
         diagnostic.code === "invalid-addressing-mode" &&
-        diagnostic.line === 9 &&
+        diagnostic.line === 15 &&
         diagnostic.message.includes("lda")
     ),
     true

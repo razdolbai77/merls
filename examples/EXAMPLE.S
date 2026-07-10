@@ -32,6 +32,8 @@ StartRoutine
 
 * Data Directives
         hex     000102
+        hex     00,ff
+        lda     $ff
         dfb     %001
         db      $03,$04
         ddb     $000a

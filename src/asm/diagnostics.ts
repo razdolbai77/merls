@@ -185,6 +185,18 @@ function collectUnknownDiagnostics(
       });
     }
 
+    const invalidHexPayload = getInvalidHexPayloadPattern(line.node);
+    if (invalidHexPayload !== null) {
+      diagnostics.push({
+        filePath,
+        line: line.line,
+        code: "unknown-syntax",
+        message: `Unknown syntax: ${invalidHexPayload.text}`,
+        startCharacter: invalidHexPayload.start,
+        endCharacter: invalidHexPayload.end
+      });
+    }
+
     const unknownTextMatch = getUnknownTextPattern(line.node.text);
     if (unknownTextMatch !== null) {
       diagnostics.push({
@@ -545,6 +557,10 @@ function findExpressionReferences(node: ParsedLine): readonly Token[] {
   }
 
   if (node.shape === "data") {
+    if (node.directive.lexeme.toLowerCase() === "hex") {
+      return [];
+    }
+
     const references: Token[] = [];
     for (const token of node.tokens) {
       if (token.kind === "identifier" || token.kind === "localLabel") {
@@ -616,6 +632,52 @@ function getUnknownTextPattern(text: string): { text: string; start: number; end
     if (index !== -1) {
       return { text: ">", start: index, end: index + 1 };
     }
+  }
+
+  return null;
+}
+
+function getInvalidHexPayloadPattern(node: ParsedLine): { text: string; start: number; end: number } | null {
+  if (node.shape !== "data" || node.directive.lexeme.toLowerCase() !== "hex") {
+    return null;
+  }
+
+  let expectValue = true;
+  let lastComma: Token | null = null;
+
+  for (const token of node.tokens) {
+    if (token.kind === "expressionOperator" && token.lexeme === ",") {
+      if (expectValue) {
+        return {
+          text: token.lexeme,
+          start: token.start,
+          end: token.end
+        };
+      }
+      expectValue = true;
+      lastComma = token;
+      continue;
+    }
+
+    if (/^[0-9A-Fa-f]+$/.test(token.lexeme) && token.lexeme.length % 2 === 0) {
+      expectValue = false;
+      lastComma = null;
+      continue;
+    }
+
+    return {
+      text: token.lexeme,
+      start: token.start,
+      end: token.end
+    };
+  }
+
+  if (expectValue && lastComma !== null) {
+    return {
+      text: lastComma.lexeme,
+      start: lastComma.start,
+      end: lastComma.end
+    };
   }
 
   return null;
