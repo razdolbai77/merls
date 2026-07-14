@@ -10,6 +10,9 @@ type JsonRpcMessage = {
     capabilities?: {
       definitionProvider?: boolean;
       referencesProvider?: boolean;
+      completionProvider?: {
+        triggerCharacters?: readonly string[];
+      };
       textDocumentSync?: {
         change?: number;
         openClose?: boolean;
@@ -95,6 +98,12 @@ export async function runInitializeHandshakeTest(): Promise<void> {
     assert.equal(message.result?.capabilities?.textDocumentSync?.change, 1);
     assert.equal(message.result?.capabilities?.definitionProvider, true);
     assert.equal(message.result?.capabilities?.referencesProvider, true);
+    const completionTriggers = message.result?.capabilities?.completionProvider?.triggerCharacters;
+    assert.equal(completionTriggers?.includes("]"), true);
+    assert.equal(completionTriggers?.includes(":"), true);
+    assert.equal(completionTriggers?.includes("b"), true);
+    assert.equal(completionTriggers?.includes("G"), true);
+    assert.equal(completionTriggers?.includes("_"), true);
   } finally {
     child.kill();
   }

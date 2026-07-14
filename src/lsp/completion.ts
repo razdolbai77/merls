@@ -4,6 +4,7 @@ import {
 } from "vscode-languageserver/node";
 
 import { type CachedDocument } from "../asm/document";
+import { resolveLocalLabels } from "../asm/local-labels";
 import { directiveDefinitions, opcodeDefinitions, directiveTable } from "../asm/metadata";
 import { collectSymbols } from "../asm/symbols";
 
@@ -14,9 +15,11 @@ export function buildCompletionItems(
   character: number
 ): CompletionItem[] {
   let operandToken: { lexeme: string; kind: string } | null = null;
+  let replacementToken: { start: number; end: number } | null = null;
   let currentWordStart = character;
   const cached = openDocuments.get(uri);
   let enclosingMacro: { maxParameterIndex: number } | undefined;
+  const localScope = cached === undefined ? null : resolveLocalLabels(cached.parsed);
   if (cached !== undefined) {
     const lexedLine = cached.lexed.lines[line];
     if (lexedLine !== undefined) {
@@ -39,6 +42,14 @@ export function buildCompletionItems(
         }
         if (token.start <= character && character <= token.end) {
           currentWordStart = token.start;
+          if (
+            token.kind === "directive" ||
+            token.kind === "identifier" ||
+            token.kind === "localLabel" ||
+            token.kind === "mnemonic"
+          ) {
+            replacementToken = token;
+          }
         }
       }
     }
@@ -58,15 +69,32 @@ export function buildCompletionItems(
 
   const completions: CompletionItem[] = [];
   const seenSymbols = new Set<string>();
+  const createCompletionItem = (
+    label: string,
+    kind: CompletionItemKind
+  ): CompletionItem => {
+    if (replacementToken === null) {
+      return { label, kind };
+    }
+
+    return {
+      label,
+      kind,
+      textEdit: {
+        newText: label,
+        range: {
+          start: { line, character: replacementToken.start },
+          end: { line, character: replacementToken.end }
+        }
+      }
+    };
+  };
 
   if (exclusiveCompletions !== null) {
     for (const completion of exclusiveCompletions) {
       if (!seenSymbols.has(completion)) {
         seenSymbols.add(completion);
-        completions.push({
-          label: completion,
-          kind: CompletionItemKind.Value
-        });
+        completions.push(createCompletionItem(completion, CompletionItemKind.Value));
       }
     }
     return completions;
@@ -78,10 +106,7 @@ export function buildCompletionItems(
       const param = `]${i}`;
       if (!seenSymbols.has(param)) {
         seenSymbols.add(param);
-        completions.push({
-          label: param,
-          kind: CompletionItemKind.Variable
-        });
+        completions.push(createCompletionItem(param, CompletionItemKind.Variable));
       }
     }
   }
@@ -89,43 +114,55 @@ export function buildCompletionItems(
   for (const doc of openDocuments.values()) {
     const symbols = collectSymbols(doc.parsed);
     for (const symbol of symbols.values()) {
+      if (isLocalLabel(symbol.name)) {
+        continue;
+      }
+
       if (symbol.kind === "macro") {
         if (operandToken === null && !seenSymbols.has(symbol.name)) {
           seenSymbols.add(symbol.name);
-          completions.push({
-            label: symbol.name,
-            kind: CompletionItemKind.Function
-          });
+          completions.push(createCompletionItem(symbol.name, CompletionItemKind.Function));
         }
       } else {
         if (!seenSymbols.has(symbol.name)) {
           seenSymbols.add(symbol.name);
-          completions.push({
-            label: symbol.name,
-            kind: CompletionItemKind.Variable
-          });
+          completions.push(createCompletionItem(symbol.name, CompletionItemKind.Variable));
         }
       }
+    }
+  }
+
+  const currentAnchor = localScope?.anchors.get(line);
+  if (currentAnchor !== undefined && localScope !== null) {
+    for (const localDefinition of localScope.definitions.values()) {
+      if (
+        localDefinition.anchor !== currentAnchor ||
+        (localDefinition.name.startsWith("]") && localDefinition.line >= line) ||
+        seenSymbols.has(localDefinition.name)
+      ) {
+        continue;
+      }
+
+      seenSymbols.add(localDefinition.name);
+      completions.push(createCompletionItem(localDefinition.name, CompletionItemKind.Variable));
     }
   }
 
   if (operandToken === null) {
     if (currentWordStart > 0) {
       for (const opcode of opcodeDefinitions) {
-        completions.push({
-          label: opcode.mnemonic,
-          kind: CompletionItemKind.Keyword
-        });
+        completions.push(createCompletionItem(opcode.mnemonic, CompletionItemKind.Keyword));
       }
     }
 
     for (const directive of directiveDefinitions) {
-      completions.push({
-        label: directive.name,
-        kind: CompletionItemKind.Function
-      });
+      completions.push(createCompletionItem(directive.name, CompletionItemKind.Function));
     }
   }
 
   return completions;
+}
+
+function isLocalLabel(name: string): boolean {
+  return name.startsWith("]") || name.startsWith(":");
 }

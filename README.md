@@ -88,6 +88,8 @@ npm install -g @razdolbai/merls
 - `pwsh test/smoke/run-smoke.ps1`: run the headless Vim + coc.nvim smoke test (requires Vim with coc.nvim installed via vim-plug)
 - `cd vscode && npm test`: compile and run the VS Code extension unit tests
 
+When developing the VS Code extension, open `vscode/` and press **F5**. Its launch task builds the root language server before starting the extension watcher, so the Extension Development Host uses the current server build.
+
 The packaged CLI entry point now lives at `dist/src/cli.js`. For VS Code specific development, refer to `vscode/DEVELOPMENT.md`.
 
 ## CLI Contract
@@ -132,6 +134,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - The CLI entry point lives in `src/cli.ts` and compiles to `dist/src/cli.js`.
 - The VS Code extension contributes `Pearls: Compile Current File with Merlin32` and `Pearls: Assemble Project with Merlin32` commands and exposes `pearls.merlin32Executable`, `pearls.compileArgs`, `pearls.merlin32MacroFolder`, and `pearls.merlin32ProjectEntryFile` settings for assembler invocation.
 - When the Pearls extension is active for the `6502` language in Visual Studio Code, it sets the language-scoped defaults `editor.tabSize = 8` and `editor.indentSize = 8`, and the extension also reapplies `tabSize = 8` to visible `6502` editors at runtime.
+- The Pearls extension enables `editor.quickSuggestions` for the `6502` language so completions appear while typing.
 - The `test/fixtures/valid/` directory contains supported 6502 Merlin32-style syntax samples, including dedicated macro-coverage fixtures for nested calls, zero-argument macros, local labels, and conditional assembly forms.
 - The `test/fixtures/invalid/` directory contains unknown-syntax negative samples plus negative macro fixtures such as macro-generated unresolved references.
 - Parser tests now explicitly lock down current macro-call parsing and the existing `mac`/`eom`/`<<<` line behavior before macro-structure refactors.
@@ -151,6 +154,9 @@ An example configuration lives in `examples/coc-settings.json`.
 - Rename planning now propagates through macro-expanded call-site symbol references, so renaming a concrete symbol updates both its definition and the macro call arguments that expand to that symbol.
 - Rename coverage now includes nested macro-call expansion paths, ensuring the propagated edit set still targets only the concrete symbol definition and call-site argument tokens rather than macro placeholders.
 - Local-label resolution is limited to ordinary Merlin anchor-based locals; local labels inside macros are rejected to match Merlin32 behavior.
+- Completion items replace the active token explicitly, so accepting `]local` or `:loop` after typing its prefix does not duplicate the prefix.
+- Completion is triggered automatically while typing Merlin identifier characters, including the `]` and `:` prefixes of local labels.
+- Local-label completion candidates are limited to the current global-label anchor, and backward `]label` candidates must already be defined.
 - Local-label tests now also cover that macro-local labels remain unresolved while ordinary Merlin anchor-based locals before or after a macro call still resolve normally.
 - Hover now recognizes macro call sites directly, showing parsed positional signatures and macro definition lines instead of only falling back to generic symbol hover text.
 - Caching and invalidation rules for macro indexes and expansion-analysis results ensure that open-document updates do not unnecessarily re-expand the entire workspace.

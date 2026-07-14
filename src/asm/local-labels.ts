@@ -20,6 +20,7 @@ export type LocalLabelReference = {
 export type LocalLabelScope = {
   definitions: Map<string, LocalLabelDefinition>;
   references: Map<string, LocalLabelReference>;
+  anchors: Map<number, string>;
 };
 
 type AnchorState = {
@@ -30,12 +31,16 @@ type AnchorState = {
 export function resolveLocalLabels(document: ParsedDocument): LocalLabelScope {
   const definitions = new Map<string, LocalLabelDefinition>();
   const references = new Map<string, LocalLabelReference>();
+  const anchors = new Map<number, string>();
   const definitionsByAnchor = new Map<string, Map<string, LocalLabelDefinition[]>>();
 
   let currentAnchor: AnchorState | null = null;
 
   for (const line of document.lines) {
     currentAnchor = updateAnchor(currentAnchor, line.node, line.line);
+    if (currentAnchor !== null) {
+      anchors.set(line.line, currentAnchor.name);
+    }
 
     const localDefinition = getLocalDefinition(line.node);
     if (currentAnchor === null || localDefinition === null) {
@@ -107,7 +112,8 @@ export function resolveLocalLabels(document: ParsedDocument): LocalLabelScope {
 
   return {
     definitions,
-    references
+    references,
+    anchors
   };
 }
 

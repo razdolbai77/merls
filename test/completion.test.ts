@@ -63,6 +63,14 @@ function positionOfLast(text: string, needle: string): { line: number; character
   };
 }
 
+function positionAfterLast(text: string, needle: string): { line: number; character: number } {
+  const position = positionOfLast(text, needle);
+  return {
+    line: position.line,
+    character: position.character + needle.length
+  };
+}
+
 export async function runCompletionTest(): Promise<void> {
   const serverPath = path.resolve(__dirname, "../src/server.js");
   const mainPath = path.resolve(
@@ -70,7 +78,7 @@ export async function runCompletionTest(): Promise<void> {
     "test/fixtures/valid/merlin32-main-6502.S"
   );
   const mainUri = `file://${mainPath.replace(/\\/g, "/")}`;
-  const text = `${fs.readFileSync(mainPath, "utf8")}\n        ld\n        du\n        bpl G\n_END_`;
+  const text = `${fs.readFileSync(mainPath, "utf8")}\n        ld\n        du\n        bpl G\nCompletionStart nop\n]local nop\n:loop   nop\n        bne ]l\n        bne :l\nCompletionOther nop\n]other nop\n:other nop\n        bne ]o\n        bne :o\n_END_`;
 
   const macroPath = path.resolve(
     process.cwd(),
@@ -164,6 +172,76 @@ export async function runCompletionTest(): Promise<void> {
     });
     const symbolItems = symbolResponse.result as Array<{ label: string; kind: number }>;
     assert.equal(symbolItems.some((item) => item.label === "GetKey"), true);
+
+    const bracketLocalLabelPosition = positionAfterLast(text, "]l");
+    const bracketLocalLabelResponse = await sendRequest("textDocument/completion", {
+      textDocument: { uri: mainUri },
+      position: bracketLocalLabelPosition
+    });
+    const bracketLocalLabelItems = bracketLocalLabelResponse.result as Array<{
+      label: string;
+      textEdit?: {
+        newText: string;
+        range: { start: { character: number }; end: { character: number } };
+      };
+    }>;
+    const bracketLocalLabel = bracketLocalLabelItems.find((item) => item.label === "]local");
+    assert.equal(bracketLocalLabelItems.some((item) => item.label === "]other"), false);
+    assert.deepEqual(bracketLocalLabel?.textEdit, {
+      newText: "]local",
+      range: {
+        start: {
+          line: bracketLocalLabelPosition.line,
+          character: bracketLocalLabelPosition.character - 2
+        },
+        end: bracketLocalLabelPosition
+      }
+    });
+
+    const colonLocalLabelPosition = positionAfterLast(text, ":l");
+    const colonLocalLabelResponse = await sendRequest("textDocument/completion", {
+      textDocument: { uri: mainUri },
+      position: colonLocalLabelPosition
+    });
+    const colonLocalLabelItems = colonLocalLabelResponse.result as Array<{
+      label: string;
+      textEdit?: {
+        newText: string;
+        range: { start: { character: number }; end: { character: number } };
+      };
+    }>;
+    const colonLocalLabel = colonLocalLabelItems.find((item) => item.label === ":loop");
+    assert.equal(colonLocalLabelItems.some((item) => item.label === ":other"), false);
+    assert.deepEqual(colonLocalLabel?.textEdit, {
+      newText: ":loop",
+      range: {
+        start: {
+          line: colonLocalLabelPosition.line,
+          character: colonLocalLabelPosition.character - 2
+        },
+        end: colonLocalLabelPosition
+      }
+    });
+
+    const otherBracketLocalLabelResponse = await sendRequest("textDocument/completion", {
+      textDocument: { uri: mainUri },
+      position: positionAfterLast(text, "]o")
+    });
+    const otherBracketLocalLabelItems = otherBracketLocalLabelResponse.result as Array<{
+      label: string;
+    }>;
+    assert.equal(otherBracketLocalLabelItems.some((item) => item.label === "]other"), true);
+    assert.equal(otherBracketLocalLabelItems.some((item) => item.label === "]local"), false);
+
+    const otherColonLocalLabelResponse = await sendRequest("textDocument/completion", {
+      textDocument: { uri: mainUri },
+      position: positionAfterLast(text, ":o")
+    });
+    const otherColonLocalLabelItems = otherColonLocalLabelResponse.result as Array<{
+      label: string;
+    }>;
+    assert.equal(otherColonLocalLabelItems.some((item) => item.label === ":other"), true);
+    assert.equal(otherColonLocalLabelItems.some((item) => item.label === ":loop"), false);
 
     const column1Response = await sendRequest("textDocument/completion", {
       textDocument: { uri: mainUri },

@@ -38,9 +38,7 @@ export function activate(context: ExtensionContext) {
       debug: {
         module: localServerPath,
         args: ['--stdio'],
-        transport: TransportKind.stdio,
-        // allow attaching debugger to the language server
-        options: { execArgv: ['--nolazy', '--inspect=6009'] }
+        transport: TransportKind.stdio
       }
     };
   } else {

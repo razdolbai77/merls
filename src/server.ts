@@ -29,6 +29,8 @@ import { buildCodeLenses } from "./lsp/code-lens";
 import { buildSelectionRanges } from "./lsp/selection-range";
 import { indexWorkspace } from "./asm/workspace";
 
+const completionTriggerCharacters = "]:_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".split("");
+
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
   outputStream: NodeJS.WritableStream = process.stdout
@@ -54,7 +56,9 @@ export function startServer(
 
   connection.onInitialize(() => ({
     capabilities: {
-      completionProvider: {},
+      completionProvider: {
+        triggerCharacters: completionTriggerCharacters
+      },
       definitionProvider: true,
       documentSymbolProvider: true,
       hoverProvider: true,

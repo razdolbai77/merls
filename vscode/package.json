@@ -26,7 +26,8 @@
     "configurationDefaults": {
       "[6502]": {
         "editor.indentSize": 8,
-        "editor.tabSize": 8
+        "editor.tabSize": 8,
+        "editor.quickSuggestions": true
       }
     },
     "commands": [
