@@ -15,33 +15,33 @@ export function runLocalLabelScopeTest(): void {
   const document = parseDocument(source);
   const scope = resolveLocalLabels(document);
 
-  assert.deepEqual(scope.definitions.get("]loop@70"), {
+  assert.deepEqual(scope.definitions.get("]loop@72"), {
     name: "]loop",
     line: 72,
     anchor: "GetKey",
-    qualifiedName: "]loop@70"
+    qualifiedName: "]loop@72"
   });
 
   assert.deepEqual(scope.references.get("]loop@74"), {
     name: "]loop",
     line: 74,
     anchor: "GetKey",
-    qualifiedName: "]loop@70",
+    qualifiedName: "]loop@72",
     targetLine: 72
   });
 
-  assert.deepEqual(scope.definitions.get(":err@70"), {
+  assert.deepEqual(scope.definitions.get(":err@83"), {
     name: ":err",
     line: 83,
     anchor: "GetKey",
-    qualifiedName: ":err@70"
+    qualifiedName: ":err@83"
   });
 
   assert.deepEqual(scope.references.get(":good@82"), {
     name: ":good",
     line: 82,
     anchor: "GetKey",
-    qualifiedName: ":good@70",
+    qualifiedName: ":good@85",
     targetLine: 85
   });
 
@@ -75,11 +75,11 @@ export function runLocalLabelScopeTest(): void {
   ].join("\n"));
   const mixedScope = resolveLocalLabels(mixedScopeDocument);
 
-  assert.deepEqual(mixedScope.definitions.get("]loop@0"), {
+  assert.deepEqual(mixedScope.definitions.get("]loop@1"), {
     name: "]loop",
     line: 1,
     anchor: "HostLabel",
-    qualifiedName: "]loop@0"
+    qualifiedName: "]loop@1"
   });
 
   assert.equal(mixedScope.definitions.get("]loop@7"), undefined);

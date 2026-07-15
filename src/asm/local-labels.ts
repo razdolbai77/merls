@@ -47,7 +47,7 @@ export function resolveLocalLabels(document: ParsedDocument): LocalLabelScope {
       continue;
     }
 
-    const qualifiedName = qualifyName(localDefinition, currentAnchor.line);
+    const qualifiedName = qualifyName(localDefinition, line.line);
     const definition: LocalLabelDefinition = {
       name: localDefinition,
       line: line.line,
@@ -93,7 +93,7 @@ export function resolveLocalLabels(document: ParsedDocument): LocalLabelScope {
       if (localName.startsWith("]")) {
         target = targets.slice().reverse().find(d => d.line < line.line);
       } else {
-        target = targets[targets.length - 1];
+        target = targets.find(d => d.line > line.line);
       }
 
       if (target === undefined) {
