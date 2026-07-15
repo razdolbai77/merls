@@ -279,8 +279,8 @@ export function startServer(
     buildSelectionRanges(getIndexedDocuments(), params.textDocument.uri, params.positions)
   );
 
-  connection.onDidChangeWatchedFiles((params) => {
-    for (const change of params.changes) {
+  connection.onDidChangeWatchedFiles(async (params) => {
+    await Promise.all(params.changes.map(async (change) => {
       if (change.type === FileChangeType.Deleted) {
         watchedDocuments.delete(change.uri);
       } else {
@@ -289,13 +289,13 @@ export function startServer(
           if (filePath.startsWith("file://")) {
             filePath = fileURLToPath(filePath);
           }
-          const source = fs.readFileSync(filePath, "utf8");
+          const source = await fs.promises.readFile(filePath, "utf8");
           watchedDocuments.set(change.uri, buildCachedDocument(source));
         } catch {
           watchedDocuments.delete(change.uri);
         }
       }
-    }
+    }));
     publishDiagnostics();
   });
 
