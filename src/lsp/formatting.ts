@@ -14,7 +14,10 @@ export function formatRange(
   options: FormattingOptions,
   range: Range
 ): TextEdit[] {
-  return formatLines(cached, options, range.start.line, range.end.line);
+  const endLine = range.end.character === 0 && range.end.line > range.start.line
+    ? range.end.line - 1
+    : range.end.line;
+  return formatLines(cached, options, range.start.line, endLine);
 }
 
 export function formatOnType(
