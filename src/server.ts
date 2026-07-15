@@ -46,6 +46,7 @@ export function startServer(
   const openDocuments = new Map<string, CachedDocument>();
   const watchedDocuments = new Map<string, CachedDocument>();
 
+  let cachedIndexedDocuments: Map<string, CachedDocument> | null = null;
   function getAllDocuments(): Map<string, CachedDocument> {
     const all = new Map(watchedDocuments);
     for (const [uri, doc] of openDocuments.entries()) {
@@ -96,6 +97,7 @@ export function startServer(
     }
   }));
   connection.onDidOpenTextDocument((params) => {
+    cachedIndexedDocuments = null;
     openDocuments.set(params.textDocument.uri, buildCachedDocument(params.textDocument.text));
     publishDiagnostics();
   });
@@ -105,10 +107,12 @@ export function startServer(
       return;
     }
 
+    cachedIndexedDocuments = null;
     openDocuments.set(params.textDocument.uri, buildCachedDocument(nextText));
     publishDiagnostics();
   });
   connection.onDidCloseTextDocument((params) => {
+    cachedIndexedDocuments = null;
     openDocuments.delete(params.textDocument.uri);
     void connection.sendDiagnostics({
       uri: params.textDocument.uri,
@@ -126,6 +130,9 @@ export function startServer(
   });
 
   function getIndexedDocuments(): Map<string, CachedDocument> {
+    if (cachedIndexedDocuments !== null) {
+      return cachedIndexedDocuments;
+    }
     const all = getAllDocuments();
     const overrides = new Map<string, CachedDocument>();
     
@@ -158,6 +165,7 @@ export function startServer(
         }
       }
     }
+    cachedIndexedDocuments = combined;
     return combined;
   }
 
@@ -280,6 +288,7 @@ export function startServer(
   );
 
   connection.onDidChangeWatchedFiles(async (params) => {
+    cachedIndexedDocuments = null;
     await Promise.all(params.changes.map(async (change) => {
       if (change.type === FileChangeType.Deleted) {
         watchedDocuments.delete(change.uri);
