@@ -210,6 +210,9 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
     }
 
     const parsed = parseExpression(tokens, index + 1);
+    if (parsed.nextTokenIndex < tokens.length) {
+      throw new Error(`unexpected token after equate expression: ${tokens[parsed.nextTokenIndex]?.lexeme}`);
+    }
     return {
       shape: "equate",
       text,
@@ -220,7 +223,14 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
 
   if (token.kind === "mnemonic") {
     const operandTokens = tokens.slice(index + 1);
-    const operand = operandTokens.length > 0 ? parseOperand(operandTokens).operand : null;
+    let operand = null;
+    if (operandTokens.length > 0) {
+      const parsed = parseOperand(operandTokens);
+      if (parsed.nextTokenIndex < operandTokens.length) {
+        throw new Error(`unexpected token after instruction operand: ${operandTokens[parsed.nextTokenIndex]?.lexeme}`);
+      }
+      operand = parsed.operand;
+    }
     return {
       shape: "instruction",
       text,
@@ -251,9 +261,14 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
       throw new Error(`unexpected operand for ${directiveName}`);
     }
 
-    const operand = operandTokens.length > 0
-      ? parseExpression(operandTokens).expression
-      : null;
+    let operand = null;
+    if (operandTokens.length > 0) {
+      const parsed = parseExpression(operandTokens);
+      if (parsed.nextTokenIndex < operandTokens.length) {
+        throw new Error(`unexpected token after directive operand: ${operandTokens[parsed.nextTokenIndex]?.lexeme}`);
+      }
+      operand = parsed.expression;
+    }
     return {
       shape: "directive",
       text,
