@@ -31,7 +31,6 @@ const tokenTypeMap: Record<TokenKind, number> = {
   expressionOperator: tokenTypesList.indexOf(SemanticTokenTypes.operator),
   identifier: tokenTypesList.indexOf(SemanticTokenTypes.variable)
 };
-import { collectSymbols } from "../asm/symbols";
 import { directiveTable } from "../asm/metadata";
 
 export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Map<string, CachedDocument>): SemanticTokens {
@@ -42,7 +41,7 @@ export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Ma
   const allMacros = new Set<string>();
   
   for (const doc of indexedDocuments.values()) {
-    const docSymbols = collectSymbols(doc.parsed);
+    const docSymbols = doc.symbols;
     for (const [name, definition] of docSymbols.entries()) {
       allSymbols.add(name);
       if (definition.kind === "macro") {

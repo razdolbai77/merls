@@ -1,4 +1,5 @@
 import { type LexedSource, type Token, lexSource } from "./lexer";
+import { collectSymbols, type SymbolDefinition } from "./symbols";
 import {
   parseSourceStructure,
   type MacroBodyLine,
@@ -45,12 +46,14 @@ export type CachedDocument = {
   source: string;
   lexed: LexedSource;
   parsed: ParsedDocument;
+  symbols: Map<string, SymbolDefinition>;
 };
 
 export function buildCachedDocument(source: string): CachedDocument {
   const lexed = lexSource(source);
   const parsed = parseDocument(lexed);
-  return { source, lexed, parsed };
+  const symbols = collectSymbols(parsed);
+  return { source, lexed, parsed, symbols };
 }
 
 export function parseDocument(source: string | LexedSource): ParsedDocument {
