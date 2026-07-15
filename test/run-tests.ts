@@ -35,7 +35,6 @@ import { runDocumentHighlightsTest } from "./document-highlights.test";
 import { runInlayHintsTest } from "./inlay-hints.test";
 import { runSignatureHelpTest } from "./signature-help.test";
 import { runCallHierarchyTest } from "./call-hierarchy.test";
-import { runCodeActionsTest } from "./code-actions.test";
 import { runCodeLensTest } from "./code-lens.test";
 import { runSelectionRangeTest } from "./selection-range.test";
 import { runWatchedFilesTest } from "./watched-files.test";
@@ -194,10 +193,6 @@ const tests: TestCase[] = [
   {
     name: "server computes call hierarchy",
     run: runCallHierarchyTest
-  },
-  {
-    name: "server provides code actions for quick fixes",
-    run: runCodeActionsTest
   },
   {
     name: "server computes code lenses for reference counts",
