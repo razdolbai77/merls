@@ -30,6 +30,9 @@ import { indexWorkspace } from "./asm/workspace";
 
 const completionTriggerCharacters = "]:_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".split("");
 
+function normalizeUriToPath(uri: string): string {
+  return uri.startsWith("file://") ? fileURLToPath(uri) : uri;
+}
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
   outputStream: NodeJS.WritableStream = process.stdout
@@ -137,9 +140,8 @@ export function startServer(
     // Normalize paths to prevent duplicate entries (e.g. file:///c:/ vs file:///C:/)
     const addedPaths = new Set<string>();
     for (const [uri, doc] of all.entries()) {
-      let filePath = uri;
-      if (filePath.startsWith("file://")) {
-        filePath = fileURLToPath(filePath);
+      const filePath = normalizeUriToPath(uri);
+      if (uri.startsWith("file://")) {
         addedPaths.add(filePath.toLowerCase());
       }
       overrides.set(filePath, doc);
@@ -147,10 +149,7 @@ export function startServer(
 
     const combined = new Map(all);
     for (const uri of openDocuments.keys()) {
-      let filePath = uri;
-      if (filePath.startsWith("file://")) {
-        filePath = fileURLToPath(filePath);
-      }
+      const filePath = normalizeUriToPath(uri);
       const workspace = indexWorkspace(filePath, overrides);
       for (const [docPath, cached] of workspace.documents.entries()) {
         const normalizedDocPath = docPath.toLowerCase();
@@ -289,10 +288,7 @@ export function startServer(
         watchedDocuments.delete(change.uri);
       } else {
         try {
-          let filePath = change.uri;
-          if (filePath.startsWith("file://")) {
-            filePath = fileURLToPath(filePath);
-          }
+          const filePath = normalizeUriToPath(change.uri);
           const source = await fs.promises.readFile(filePath, "utf8");
           watchedDocuments.set(change.uri, buildCachedDocument(source));
         } catch {
