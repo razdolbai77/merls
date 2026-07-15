@@ -260,10 +260,10 @@ export function startServer(
   );
 
   connection.languages.callHierarchy.onPrepare((params) =>
-    prepareCallHierarchy(openDocuments, params.textDocument.uri, params.position.line, params.position.character)
+    prepareCallHierarchy(getIndexedDocuments(), params.textDocument.uri, params.position.line, params.position.character)
   );
   connection.languages.callHierarchy.onIncomingCalls((params) =>
-    provideCallHierarchyIncomingCalls(openDocuments, params.item)
+    provideCallHierarchyIncomingCalls(getIndexedDocuments(), params.item)
   );
   connection.languages.callHierarchy.onOutgoingCalls((params) =>
     provideCallHierarchyOutgoingCalls(getIndexedDocuments(), params.item)
