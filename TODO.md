@@ -1,33 +1,21 @@
-# Macro Expansion Awareness TODO
+# Codebase Improvement Plan
 
-- [x] Add fixture coverage for Merlin32 macro definitions, macro calls, nested macro calls, zero-argument macros, variadic-like comma-heavy arguments, local labels inside macros, conditional assembly inside macros, and macro-generated unresolved references.
-- [x] Add parser tests that lock down current macro-call and `mac`/`eom` behavior before refactoring.
-- [x] Introduce explicit AST/document-model types for macro definitions, macro bodies, macro parameters, and macro call sites instead of inferring macro structure from raw line text.
-- [x] Extend the parser to recognize macro-definition regions as first-class structures, including start line, end line, body lines, and parameter placeholders referenced as `]1`, `]2`, etc.
-- [x] Record macro body token usage in a structured form so parameter references, symbol references, nested macro calls, and local-label definitions/references can be distinguished without regex scans.
-- [x] Add a macro index module in `src/asm/` that collects macro definitions per document and workspace, including definition location, body range, max positional parameter, referenced symbols, nested calls, and local-label usage.
-- [x] Refactor existing symbol collection so macro definitions and normal symbols share a consistent indexed representation rather than being partially split across `symbols.ts`, `signature-help.ts`, and `symbol-navigation.ts`.
-- [x] Replace the current signature-help implementation with one driven by the macro index so parameter counts and documentation come from parsed macro structure instead of line-text regex matching.
-- [x] Add signature-help tests for macro arity, active-parameter selection, zero-argument macros, nested expressions as arguments, and commas inside more complex argument forms.
-- [x] Implement macro-call diagnostics for unsupported-instruction-or-undefined-macro call sites, missing `eom`/`<<<`, duplicate macro definitions, invalid macro re-entry/nesting rules, and obvious arity mismatches.
-- [x] Add diagnostics tests that verify macro-definition and macro-call failures report stable ranges and messages.
-- [x] Build a parameter-substitution model that maps each macro call argument to the parameter placeholders used inside the referenced macro body.
-- [x] Add tests for parameter-substitution mapping, including repeated parameter use, unused parameters, nested identifiers inside expressions, and argument expressions containing multiple referenced symbols.
-- [x] Extend reference collection so symbol references contributed by macro expansions are attributed back to the originating macro call site and the concrete argument symbols passed there.
-- [x] Extend definition lookup so identifier uses inside macro-expanded contexts can resolve through parameter substitution to the real symbol definitions supplied at the call site.
-- [x] Add definition/reference integration tests covering symbols passed through macros, symbols referenced multiple times inside one macro body, and nested macro calls.
-- [x] Refactor rename planning so renames propagate safely through macro-expanded references while avoiding accidental edits to parameter placeholders or unrelated macro definitions.
-- [x] Add rename tests for symbols passed into macros, symbols referenced from nested macro calls, and rename rejection in ambiguous expansion cases.
-- [x] Introduce an expansion-aware local-label model for macros so labels defined inside macro bodies are scoped per expansion instance rather than treated as globally shared text.
-- [x] Add tests for local labels inside macros, repeated macro invocations that define the same local labels, and interactions between macro-local labels and existing Merlin local-label rules.
-- [x] Extend hover output so macro calls show parsed parameter signatures, macro definition locations, and expansion-aware symbol information when hovering arguments or substituted references.
-- [x] Extend completion so macro names, macro parameters where appropriate, and expansion-aware symbol candidates behave consistently at macro call sites and inside macro bodies.
-- [x] Extend semantic tokens so macro definitions, macro invocations, macro parameters, and expansion-resolved symbol uses are tokenized distinctly and consistently across files.
-- [x] Add semantic-token, hover, and completion tests focused on macro-heavy fixtures.
-- [x] Introduce a dedicated expansion-analysis layer that can produce a bounded virtual expansion view for one macro call, including substituted identifiers and remapped source locations.
-- [x] Reuse that expansion-analysis layer in navigation, diagnostics, highlights, call hierarchy, code lens, and inlay hints so macro-aware behavior is implemented once rather than separately in each LSP handler.
-- [x] Add caching and invalidation rules for macro indexes and expansion-analysis results so open-document updates do not re-expand the entire workspace unnecessarily.
-- [x] Add performance tests or at least regression benchmarks for large macro-heavy fixture files to keep navigation and diagnostics responsive.
-- [x] Add guardrails for unsupported or ambiguous cases such as recursive macros, deeply nested expansions, token-pasted/generated names, and conditionals that cannot be resolved statically.
-- [x] Define fallback behavior and diagnostics for those unsupported cases so the server fails predictably instead of returning incorrect navigation results.
-- [x] Update `README.md` and `AGENTS.md` to document macro expansion awareness, its supported scope, known limitations, and the new test coverage once implementation lands.
+## High Priority - Bug Fixes & Correctness
+
+- [ ] Fix token dropping in `src/asm/parser.ts`: verify `parsed.nextIndex === tokens.length` after parsing instructions and directives.
+- [ ] Fix `parsePrefix` in `src/asm/expression.ts`: handle keywords (like `mnemonic`, `directive`) gracefully when they are used as identifiers/labels.
+- [ ] Fix local label scoping in `src/asm/local-labels.ts`: change `qualifyName(localDefinition, currentAnchor.line)` to use the label's own definition line instead of the anchor's line to prevent duplicate labels overwriting each other.
+- [ ] Fix LSP Formatting range in `src/lsp/formatting.ts`: adjust `range.end.line` subtraction logic in `formatRange` to account for `range.end.character === 0` (exclusive end line).
+- [ ] Fix Call Hierarchy `openDocuments` vs `workspace` in `src/server.ts`: pass `getIndexedDocuments()` instead of `openDocuments` to `prepareCallHierarchy` and `provideCallHierarchyIncomingCalls` to support cross-file analysis.
+
+## Medium Priority - Performance & Architecture
+
+- [ ] Fix LSP server event loop block in `src/server.ts`: replace `fs.readFileSync` inside `onDidChangeWatchedFiles` with asynchronous `fs.promises.readFile`.
+- [ ] Fix synchronous workspace reindexing in `src/server.ts`: refactor `getIndexedDocuments()` to avoid calling `indexWorkspace` from scratch on every LSP request. Cache the workspace index and invalidate it intelligently on document changes.
+- [ ] Fix O(workspace_size) latency in `src/lsp/semantic-tokens.ts`: stop calling `collectSymbols` on all `indexedDocuments.values()` synchronously per keystroke. Use a globally maintained symbol/macro cache instead.
+- [ ] Improve `src/lsp/code-lens.ts` performance: resolve the O(N * M * K) complexity bottleneck and ensure the returned `command` object is fully implemented rather than an empty string.
+
+## Low Priority - Refactoring & Inconsistencies
+
+- [ ] Implement Code Actions stub: `src/lsp/code-actions.ts` is currently an empty, unimplemented stub returning `[]`. Implement relevant quick-fixes or remove the provider advertisement.
+- [ ] Clean up redundant path normalization in `src/server.ts`: extract `if (filePath.startsWith("file://")) filePath = fileURLToPath(filePath);` into a shared helper function instead of repeating it in multiple places.
