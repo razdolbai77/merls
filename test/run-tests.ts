@@ -20,6 +20,7 @@ import { runMacroReferencesTest } from "./macro-references.test";
 import { runLocalLabelScopeTest } from "./local-labels.test";
 import { runMetadataTableTest } from "./metadata.test";
 import { runPublishDiagnosticsTest } from "./publish-diagnostics.test";
+import { runJsonRpcClientTest } from "./json-rpc-client.test";
 import { runInitializeHandshakeTest } from "./server-initialize.test";
 import { runServerEntrypointTest } from "./server-entrypoint.test";
 import { runSymbolsTest } from "./symbols.test";
@@ -205,6 +206,10 @@ const tests: TestCase[] = [
   {
     name: "server handles watched files changes",
     run: runWatchedFilesTest
+  },
+  {
+    name: "JSON-RPC test client rejects timed out and failed requests",
+    run: runJsonRpcClientTest
   },
   {
     name: "parser and diagnostic layer processes large macro-heavy files responsively",

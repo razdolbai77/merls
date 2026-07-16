@@ -51,6 +51,7 @@ The current `textDocument/publishDiagnostics` path is wired through `src/server.
 Additional advanced LSP handlers for rename, formatting, folding, document highlights, inlay hints, signature help, call hierarchy, code lenses, document links, and selection ranges are also fully wired through `src/server.ts` to their respective modules in `src/lsp/`.
 Auto-formatting now uppercases known instructions and directives while preserving labels, macro-call identifiers, and operand text as written.
 The current packaged CLI entrypoint lives under `src/cli.ts` and is covered by a compiled stdio launch-contract integration test.
+The integration tests share `test/helpers/json-rpc-client.ts`; use it for stdio JSON-RPC servers so requests reject on child-process exit/error and time out rather than hanging `npm test`.
 The coc.nvim smoke test now lives under `test/smoke/` with a headless Vim runner (`run-smoke.ps1`) and a minimal vimrc that isolates the test from the user's real Vim configuration.
 A fully standalone Visual Studio Code extension is located under the `vscode/` directory, which relies on the bundled server codebase and TextMate fallbacks.
 The VS Code extension's F5 development launch builds the root language server before starting the extension watcher, ensuring the Extension Development Host runs the current `dist/src/cli.js`.

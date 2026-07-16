@@ -163,3 +163,4 @@ An example configuration lives in `examples/coc-settings.json`.
 - Guardrails catch and diagnose unresolvable or ambiguous cases: recursion (`macro-recursion`), deep nesting (`deep-macro-expansion`), token-pasted/generated names (`token-pasted-name`), and conditionals (`unresolved-conditional`), failing predictably without returning incorrect results.
 - Auto-formatting now uppercases known instructions and directives while preserving labels, macro-call identifiers, and operand text as written.
 - The integration test suite covers stdio `initialize`, the CLI contract, and core LSP features.
+- Integration tests share `test/helpers/json-rpc-client.ts`, which frames stdio messages, rejects requests when the server exits or errors, and enforces request deadlines so a failed server cannot stall the suite indefinitely.
