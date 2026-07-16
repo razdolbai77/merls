@@ -200,6 +200,43 @@ export async function runPublishDiagnosticsTest(): Promise<void> {
     const secondPublish = await changedDiagnostics;
     assert.equal(secondPublish.uri, documentUri);
     assert.deepEqual(secondPublish.diagnostics, []);
+
+    // Multi-entry workspace test
+    const secondUri = `file://${path.resolve(process.cwd(), "test/fixtures/invalid/publish-diagnostics-2.S").replace(/\\/g, "/")}`;
+    const firstUpdateWait = waitForDiagnostics();
+    const secondUpdateWait = waitForDiagnostics();
+
+    sendNotification("textDocument/didOpen", {
+      textDocument: {
+        uri: secondUri,
+        languageId: "asm",
+        version: 1,
+        text: "otherLabel equ 1"
+      }
+    });
+
+    // We expect TWO publish diagnostics events
+    const p1 = await firstUpdateWait;
+    const p2 = await secondUpdateWait;
+
+    const uris = [p1.uri, p2.uri].sort();
+    const expectedUris = [documentUri, secondUri].sort();
+    assert.deepEqual(uris, expectedUris, "Expected diagnostics published for both open documents");
+
+    const closeUpdateWait1 = waitForDiagnostics();
+    const closeUpdateWait2 = waitForDiagnostics();
+
+    sendNotification("textDocument/didClose", {
+      textDocument: {
+        uri: secondUri
+      }
+    });
+
+    const c1 = await closeUpdateWait1;
+    const c2 = await closeUpdateWait2;
+    
+    const closeUris = [c1.uri, c2.uri].sort();
+    assert.deepEqual(closeUris, expectedUris, "Expected clearing diagnostics and remaining document update");
   } finally {
     child.kill();
   }
