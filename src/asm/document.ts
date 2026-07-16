@@ -20,13 +20,9 @@ export type DocumentError = {
 };
 
 export type MacroDefinition = MacroDefinitionRegion & {
-  body: readonly DocumentMacroBodyLine[];
+  body: readonly MacroBodyLine[];
 };
 
-export type DocumentMacroBodyLine = Omit<MacroBodyLine, "node"> & {
-  node: ParsedLine;
-  tokens: readonly Token[];
-};
 
 export type MacroCallSite = {
   line: number;
@@ -92,10 +88,7 @@ export function parseDocument(source: string | LexedSource): ParsedDocument {
 
   const macroDefinitions = parsed.macroDefinitions.map((macroDefinition) => ({
     ...macroDefinition,
-    body: macroDefinition.body.map((bodyLine) => ({
-      ...bodyLine,
-      tokens: lexed.lines[bodyLine.line]?.tokens ?? []
-    }))
+    body: macroDefinition.body
   }));
 
   return {

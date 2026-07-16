@@ -101,6 +101,7 @@ export type MacroLocalLabelReference = {
 export type MacroBodyLine = {
   line: number;
   node: ParsedLine;
+  tokens: readonly Token[];
   parameterReferences: readonly MacroParameterReference[];
   symbolReferences: readonly MacroSymbolReference[];
   nestedMacroCalls: readonly MacroNestedCall[];
@@ -142,7 +143,7 @@ export function parseSourceStructure(source: string | LexedSource): ParsedSource
 
   return {
     lines,
-    macroDefinitions: collectMacroDefinitionRegions(lines)
+    macroDefinitions: collectMacroDefinitionRegions(lines, lexed.lines)
   };
 }
 
@@ -290,8 +291,7 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
 
   throw new Error(`unsupported line start: ${token.lexeme}`);
 }
-
-function stripTrailingComment(tokens: readonly Token[]): readonly Token[] {
+export function stripTrailingComment(tokens: readonly Token[]): readonly Token[] {
   const commentIndex = tokens.findIndex((token) => token.kind === "comment");
   if (commentIndex === -1) {
     return tokens;
@@ -300,7 +300,7 @@ function stripTrailingComment(tokens: readonly Token[]): readonly Token[] {
   return tokens.slice(0, commentIndex);
 }
 
-function collectMacroDefinitionRegions(lines: readonly ParsedLine[]): readonly MacroDefinitionRegion[] {
+function collectMacroDefinitionRegions(lines: readonly ParsedLine[], lexedLines: readonly LexedLine[]): readonly MacroDefinitionRegion[] {
   const macroDefinitions: MacroDefinitionRegion[] = [];
 
   for (let index = 0; index < lines.length; index += 1) {
@@ -345,6 +345,7 @@ function collectMacroDefinitionRegions(lines: readonly ParsedLine[]): readonly M
       body.push({
         line: bodyIndex,
         node: currentNode,
+        tokens: lexedLines[bodyIndex]?.tokens ?? [],
         ...bodyUsage
       });
     }
@@ -371,8 +372,7 @@ function collectMacroDefinitionRegions(lines: readonly ParsedLine[]): readonly M
 
   return macroDefinitions;
 }
-
-function collectMacroBodyUsage(node: ParsedLine): Omit<MacroBodyLine, "line" | "node"> {
+function collectMacroBodyUsage(node: ParsedLine): Omit<MacroBodyLine, "line" | "node" | "tokens"> {
   const parameterReferences: MacroParameterReference[] = [];
   const symbolReferences: MacroSymbolReference[] = [];
   const nestedMacroCalls: MacroNestedCall[] = [];

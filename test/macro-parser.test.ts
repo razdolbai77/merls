@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 
 import { parseSourceStructure } from "../src/asm/parser";
-
+import { lexSource, type LexedLine } from "../src/asm/lexer";
 export function runMacroParserTest(): void {
   const source = [
     "MacroDef mac",
@@ -14,6 +14,7 @@ export function runMacroParserTest(): void {
   ].join("\n");
 
   const parsed = parseSourceStructure(source);
+  const lexedTokens = lexSource(source).lines.map((l: LexedLine) => l.tokens);
 
   assert.equal(parsed.lines.length, 7);
   assert.equal(parsed.macroDefinitions.length, 1);
@@ -29,6 +30,7 @@ export function runMacroParserTest(): void {
       {
         line: 1,
         node: parsed.lines[1],
+        tokens: lexedTokens[1],
         parameterReferences: [
           {
             token: { kind: "localLabel", lexeme: "]1", start: 18, end: 20 },
@@ -45,6 +47,7 @@ export function runMacroParserTest(): void {
       {
         line: 2,
         node: parsed.lines[2],
+        tokens: lexedTokens[2],
         parameterReferences: [
           {
             token: { kind: "localLabel", lexeme: "]2", start: 25, end: 27 },
@@ -69,6 +72,7 @@ export function runMacroParserTest(): void {
       {
         line: 3,
         node: parsed.lines[3],
+        tokens: lexedTokens[3],
         parameterReferences: [],
         symbolReferences: [],
         nestedMacroCalls: [],
@@ -80,6 +84,7 @@ export function runMacroParserTest(): void {
       {
         line: 4,
         node: parsed.lines[4],
+        tokens: lexedTokens[4],
         parameterReferences: [],
         symbolReferences: [
           { token: { kind: "identifier", lexeme: "Target", start: 12, end: 18 } }

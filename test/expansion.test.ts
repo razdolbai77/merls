@@ -51,4 +51,25 @@ export async function runExpansionTest(): Promise<void> {
   // Verify getEffectiveLines cache invalidation
   const effectiveLines3 = getEffectiveLines(parsed, [otherDef]);
   assert.notEqual(effectiveLines, effectiveLines3, "effectiveLines should be invalidated if definitions change");
+
+  // Verify preservation of original tokens including operators, punctuation, and data payloads
+  const complexSource = [
+    "Complex mac",
+    "     lda (]1,x)",
+    "     sta ]1+1",
+    "     hex 00,]1,02",
+    "     eom",
+    "     Complex $12"
+  ].join("\n");
+
+  const complexLexed = lexSource(complexSource);
+  const complexParsed = parseDocument(complexLexed);
+  const complexCallLine = complexParsed.lines.find(line => line.node.shape === "macroCall");
+  assert.ok(complexCallLine !== undefined && complexCallLine.node.shape === "macroCall");
+
+  const complexExpansion = expandMacroCall(complexCallLine.node, complexParsed.macroDefinitions);
+  assert.equal(complexExpansion.lines.length, 3);
+  assert.equal(complexExpansion.lines[0]?.text.trim(), "lda ($12,x)");
+  assert.equal(complexExpansion.lines[1]?.text.trim(), "sta $12+1");
+  assert.equal(complexExpansion.lines[2]?.text.trim(), "hex 00,$12,02");
 }

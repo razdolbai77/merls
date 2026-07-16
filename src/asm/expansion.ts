@@ -1,6 +1,6 @@
+import { stripTrailingComment } from "./parser";
 import { type MacroCallLine, type MacroDefinitionRegion, type ParsedLine, parseLexedLine } from "./parser";
 import { type Token } from "./lexer";
-import { type Expression } from "./expression";
 import { type ParsedDocument } from "./document";
 
 export type ExpandedToken = Token & {
@@ -69,7 +69,8 @@ export function expandMacroCall(
   for (const bodyLine of definition.body) {
     // Collect all tokens from the original line, and substitute parameters
     const expandedTokens: ExpandedToken[] = [];
-    const nodeTokens = extractTokensFromNode(bodyLine.node);
+    const nodeTokens = stripTrailingComment(bodyLine.tokens);
+    let lastTokenEnd = nodeTokens[0]?.start ?? 0;
     
     let expandedText = "";
 
@@ -82,7 +83,7 @@ export function expandMacroCall(
           // If there are arg tokens, replace this placeholder with them
           for (let i = 0; i < argTokens.length; i++) {
             const argToken = argTokens[i]!;
-            const spaceBefore = i === 0 ? " " : ""; // simplified spacing
+            const spaceBefore = i === 0 ? " ".repeat(token.start - lastTokenEnd) : "";
             expandedText += spaceBefore + argToken.lexeme;
             expandedTokens.push({
               ...argToken,
@@ -93,14 +94,16 @@ export function expandMacroCall(
         } else {
           // Empty argument, skip
         }
+        lastTokenEnd = token.end;
       } else {
-        const spaceBefore = expandedTokens.length > 0 && token.kind !== "expressionOperator" ? " " : "";
+        const spaceBefore = " ".repeat(token.start - lastTokenEnd);
         expandedText += spaceBefore + token.lexeme;
         expandedTokens.push({
           ...token,
           start: expandedText.length - token.lexeme.length,
           sourceToken: token // Maps back to macro definition body
         });
+        lastTokenEnd = token.end;
       }
     }
 
@@ -128,43 +131,6 @@ export function expandMacroCall(
   return result;
 }
 
-function extractTokensFromNode(node: ParsedLine): Token[] {
-  // Rough extraction since we just want tokens in order
-  const tokens: Token[] = [];
-  if ("label" in node && node.label) tokens.push(node.label);
-  if ("directive" in node && node.directive) tokens.push(node.directive);
-  if ("mnemonic" in node && node.mnemonic) tokens.push(node.mnemonic);
-  if ("macro" in node && node.macro) tokens.push(node.macro);
-  
-  if ("operand" in node && node.operand && "expression" in node.operand) {
-    collectExpressionTokens(node.operand.expression, tokens);
-  } else if ("operand" in node && node.operand) {
-    collectExpressionTokens(node.operand as Expression, tokens);
-  } else if ("expression" in node && node.expression) {
-    collectExpressionTokens(node.expression, tokens);
-  }
-  
-  if ("args" in node && node.args) {
-    tokens.push(...node.args);
-  }
-  
-  return tokens.sort((a, b) => a.start - b.start);
-}
-
-function collectExpressionTokens(expr: Expression, tokens: Token[]) {
-  if ("token" in expr && expr.token) {
-    tokens.push(expr.token);
-  }
-  if ("expression" in expr && expr.expression) {
-    collectExpressionTokens(expr.expression, tokens);
-  }
-  if ("left" in expr && expr.left) {
-    collectExpressionTokens(expr.left, tokens);
-  }
-  if ("right" in expr && expr.right) {
-    collectExpressionTokens(expr.right, tokens);
-  }
-}
 
 export function splitMacroCallArguments(tokens: readonly Token[]): readonly (readonly Token[])[] {
   if (tokens.length === 0) {
