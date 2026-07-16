@@ -50,5 +50,5 @@ export function runPerformanceTest(): void {
   assert.ok(duration < 5000, `Performance test took too long: ${duration}ms`);
   assert.ok(workspace.macros.size === 50, `Expected 50 macros, got ${workspace.macros.size}`);
   assert.ok(workspace.symbols.size >= 10000, `Expected >= 10000 symbols, got ${workspace.symbols.size}`);
-  assert.ok(diagnostics.length >= 0, "Evaluated diagnostics");
+  assert.deepEqual(diagnostics, [], "Generated macro-heavy document must be diagnostic-free");
 }
