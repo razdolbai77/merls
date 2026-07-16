@@ -292,6 +292,7 @@ export function startServer(
         }
       }
     }));
+    cachedIndexedDocuments = null;
     publishDiagnostics();
   });
 

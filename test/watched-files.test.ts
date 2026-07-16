@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 import { startJsonRpcClient } from "./helpers/json-rpc-client";
 
 
@@ -19,7 +20,7 @@ export async function runWatchedFilesTest(): Promise<void> {
 
   fs.writeFileSync(testFilePath, "NewSymbol  equ $1234\n");
 
-  const client = startJsonRpcClient(process.execPath, [serverPath]);
+  const client = startJsonRpcClient(process.execPath, [serverPath], { requestTimeoutMs: 1_000 });
   const { notify: sendNotification, request: sendRequest, stop } = client;
   try {
     await sendRequest("initialize", {
@@ -40,17 +41,22 @@ export async function runWatchedFilesTest(): Promise<void> {
       ]
     });
 
-    // Wait a bit for processing
-    await new Promise(r => setTimeout(r, 100));
+    const deadline = Date.now() + 1_000;
+    let symbolIndexed = false;
+    do {
+      const symbolsResponse = await sendRequest("workspace/symbol", {
+        query: "NewSymbol"
+      });
+      const symbols = symbolsResponse.result as Array<{ name: string }>;
+      assert.equal(Array.isArray(symbols), true);
+      symbolIndexed = symbols.some((symbol) => symbol.name === "NewSymbol");
 
-    // Request workspace symbols and see if NewSymbol is found
-    const symbolsResponse = await sendRequest("workspace/symbol", {
-      query: "NewSymbol"
-    });
+      if (!symbolIndexed && Date.now() < deadline) {
+        await delay(20);
+      }
+    } while (!symbolIndexed && Date.now() < deadline);
 
-    const symbols = symbolsResponse.result as Array<{ name: string }>;
-    assert.equal(Array.isArray(symbols), true);
-    assert.equal(symbols.some(s => s.name === "NewSymbol"), true);
+    assert.equal(symbolIndexed, true, "Expected NewSymbol to be indexed within one second");
 
   } finally {
     stop();

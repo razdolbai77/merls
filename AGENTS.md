@@ -60,6 +60,7 @@ The current Visual Studio Code extension also sets the language-scoped defaults 
 Cross-file symbol and macro resolution for semantic tokens ensures robust syntax highlighting without relying purely on TextMate scopes.
 URI normalization is strictly enforced inside `getIndexedDocuments()` to prevent duplicate workspace index entries on Windows due to case mismatches.
 The macro index and expansion-analysis layer now incorporate targeted caching and invalidation logic so that unaffected macro calls are not wastefully re-expanded during typing.
+The workspace index cache is invalidated after watched-file reloads complete as well as before they start, preventing requests that race the asynchronous read from preserving stale index contents.
 Performance regression benchmarks now lock down responsiveness on massive, macro-heavy synthetic documents.
 Strict guardrails and distinct diagnostics (`macro-recursion`, `deep-macro-expansion`, `token-pasted-name`, `unresolved-conditional`) prevent infinite loops and ensure predictably degraded fallback behavior when the parser encounters unsupported macro techniques.
 
