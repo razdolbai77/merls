@@ -82,7 +82,7 @@ npm install -g @razdolbai/merls
 
 - `npm install`: install project dependencies
 - `npm run build`: compile the TypeScript sources into `dist/`
-- `npm test`: build the project and run the current test suite
+- `npm test`: lint, build, and run both language-server and VS Code extension test suites
 - `npm run dev`: run the TypeScript compiler in watch mode during bootstrap work
 - `pwsh test/smoke/run-smoke.ps1`: run the headless Vim + coc.nvim smoke test (requires Vim with coc.nvim installed via vim-plug)
 - `cd vscode && npm test`: compile and run the VS Code extension unit tests

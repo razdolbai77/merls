@@ -71,7 +71,7 @@ The repository now includes the initial Node/TypeScript workspace scaffold:
 - `npm install`: install project dependencies.
 - `npm run lint`: run ESLint on the project to check for linting errors and warnings.
 - `npm run build`: compile TypeScript sources to `dist/`.
-- `npm test`: run linting, build the project, and run the current test suite.
+- `npm test`: run linting, build the project, and run both language-server and Visual Studio Code extension test suites.
 - `npm run dev`: run the TypeScript compiler in watch mode during bootstrap work.
 - `cd vscode && npm test`: compile the Visual Studio Code extension and run its unit tests.
 

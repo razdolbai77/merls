@@ -20,7 +20,7 @@
 - [x] Extract the repeated JSON-RPC child-process harness from integration tests such as `test/code-lens.test.ts:6-88` and `test/watched-files.test.ts:6-100` into a shared test helper that rejects on process exit/error and applies a request deadline, so failed server requests cannot hang `npm test` indefinitely.
 - [x] Replace the tautological `diagnostics.length >= 0` assertion in `test/performance.test.ts:41-53` with an observable expected result for the generated macro-heavy document.
 - [x] Remove the fixed 100 ms race in `test/watched-files.test.ts:111-131`; wait for the watched-file update through a bounded condition instead of assuming asynchronous indexing has completed.
-- [ ] Add the VS Code extension's `npm test` (`vscode/package.json:123-128`) to the root verification workflow or CI script, so `npm test` validates both published artifacts rather than only the language server.
+- [x] Add the VS Code extension's `npm test` (`vscode/package.json:123-128`) to the root verification workflow or CI script, so `npm test` validates both published artifacts rather than only the language server.
 
 ## Low Priority — Maintainability
 

@@ -20,7 +20,7 @@
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "dev": "tsc -p tsconfig.json --watch",
     "lint": "eslint . --max-warnings 0",
-    "test": "npm run lint && npm run build && node dist/test/run-tests.js"
+    "test": "npm run lint && npm run build && node dist/test/run-tests.js && npm --prefix vscode test"
   },
   "engines": {
     "node": ">=20.0.0"
