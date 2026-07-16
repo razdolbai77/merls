@@ -1,3 +1,4 @@
+import { resolveLocalLabels, type LocalLabelScope } from "../asm/local-labels";
 import { SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokenTypes } from "vscode-languageserver";
 import { type TokenKind } from "../asm/lexer";
 import { type CachedDocument } from "../asm/document";
@@ -40,6 +41,8 @@ type SemanticSymbolsCache = {
 
 const semanticSymbolsCache = new WeakMap<Map<string, CachedDocument>, SemanticSymbolsCache>();
 
+const localScopeCache = new WeakMap<CachedDocument, LocalLabelScope>();
+
 export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Map<string, CachedDocument>): SemanticTokens {
   const builder = new SemanticTokensBuilder();
 
@@ -64,9 +67,20 @@ export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Ma
   const { allSymbols, allMacros } = cache;
 
   // Also collect local labels from the current document
-  // (In a real scenario, you'd use resolveLocalLabels, but for simple highlighting, matching the text is often enough)
-  const isResolved = (name: string) => allSymbols.has(name) || name.startsWith("]") || name.startsWith(":");
+  let localScope = localScopeCache.get(cached);
+  if (localScope === undefined) {
+    localScope = resolveLocalLabels(cached.parsed);
+    localScopeCache.set(cached, localScope);
+  }
 
+  const isResolved = (name: string, line: number) => {
+    if (allSymbols.has(name)) return true;
+    if (name.startsWith("]") || name.startsWith(":")) {
+      const qualified = `${name}@${line}`;
+      return localScope.definitions.has(qualified) || localScope.references.has(qualified);
+    }
+    return false;
+  };
 
 
   for (const line of cached.lexed.lines) {
@@ -103,7 +117,7 @@ export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Ma
         } else if (/^\]\d+$/.test(token.lexeme)) {
           // Macro parameter placeholder
           typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.parameter);
-        } else if (isResolved(token.lexeme)) {
+        } else if (isResolved(token.lexeme, line.line)) {
           if (allMacros.has(token.lexeme)) {
             typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.macro);
           } else {
