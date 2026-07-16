@@ -3,7 +3,7 @@
 ## High Priority — Correctness
 
 - [x] Preserve the original lexical token stream when expanding macro body lines in `src/asm/expansion.ts:69-151`; the AST reconstruction drops binary operators, parentheses, index commas, and every data-line token, so expanded arithmetic/indexed/data statements are reparsed incorrectly. Add regression coverage in `test/expansion.test.ts` for `]1+1`, `(]1,x)`, and data directives.
-- [ ] Make code-action support truthful in `src/server.ts:60-99`, `README.md:26-45`, and `AGENTS.md:51`: either register and implement a supported `textDocument/codeAction` provider with a focused diagnostic quick-fix, or remove the unsupported feature from the advertised capability set and documentation.
+- [x] Make code-action support truthful in `src/server.ts:60-99`, `README.md:26-45`, and `AGENTS.md:51`: either register and implement a supported `textDocument/codeAction` provider with a focused diagnostic quick-fix, or remove the unsupported feature from the advertised capability set and documentation.
 
 ## Medium Priority — LSP Behavior and Performance
 

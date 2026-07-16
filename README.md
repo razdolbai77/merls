@@ -39,7 +39,6 @@ The LSP feature set for Merlin32-style 6502 assembly is comprehensive and fully 
   - inlay hints
   - signature help
   - call hierarchy
-  - code actions
   - code lens
   - document links
   - selection ranges
