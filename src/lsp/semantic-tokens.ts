@@ -33,22 +33,35 @@ const tokenTypeMap: Record<TokenKind, number> = {
 };
 import { directiveTable } from "../asm/metadata";
 
+type SemanticSymbolsCache = {
+  allSymbols: Set<string>;
+  allMacros: Set<string>;
+};
+
+const semanticSymbolsCache = new WeakMap<Map<string, CachedDocument>, SemanticSymbolsCache>();
+
 export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Map<string, CachedDocument>): SemanticTokens {
   const builder = new SemanticTokensBuilder();
 
-  // Pre-collect all symbols across all indexed documents
-  const allSymbols = new Set<string>();
-  const allMacros = new Set<string>();
-  
-  for (const doc of indexedDocuments.values()) {
-    const docSymbols = doc.symbols;
-    for (const [name, definition] of docSymbols.entries()) {
-      allSymbols.add(name);
-      if (definition.kind === "macro") {
-        allMacros.add(name);
+  let cache = semanticSymbolsCache.get(indexedDocuments);
+  if (cache === undefined) {
+    const allSymbols = new Set<string>();
+    const allMacros = new Set<string>();
+    
+    for (const doc of indexedDocuments.values()) {
+      const docSymbols = doc.symbols;
+      for (const [name, definition] of docSymbols.entries()) {
+        allSymbols.add(name);
+        if (definition.kind === "macro") {
+          allMacros.add(name);
+        }
       }
     }
+    cache = { allSymbols, allMacros };
+    semanticSymbolsCache.set(indexedDocuments, cache);
   }
+
+  const { allSymbols, allMacros } = cache;
 
   // Also collect local labels from the current document
   // (In a real scenario, you'd use resolveLocalLabels, but for simple highlighting, matching the text is often enough)
