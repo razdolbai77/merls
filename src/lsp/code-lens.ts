@@ -37,7 +37,7 @@ export function buildCodeLenses(
       range: definition.location.range,
       command: {
         title,
-        command: "merls.showReferences"
+        command: ""
       }
     });
   }

@@ -131,6 +131,7 @@ export async function runCodeLensTest(): Promise<void> {
 
     const codeLensCount = lenses.find(l => l.command.title.includes("reference"));
     assert.ok(codeLensCount !== undefined, "Expected at least one lens with reference count");
+    assert.equal(codeLensCount.command.command, "");
 
   } finally {
     child.kill();
