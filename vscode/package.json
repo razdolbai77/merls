@@ -2,7 +2,7 @@
   "name": "pearls",
   "displayName": "Pearls",
   "description": "VS Code extension for 6502 assembly, powered by merls",
-  "version": "4.1.21",
+  "version": "4.1.22",
   "publisher": "razdolbai",
   "icon": "images/icon.png",
   "license": "MIT",
@@ -127,7 +127,7 @@
     "test": "npm run compile && node --test out/**/*.test.js"
   },
   "dependencies": {
-    "@razdolbai/merls": "^4.1.21",
+    "@razdolbai/merls": "^4.1.22",
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
