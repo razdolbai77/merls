@@ -172,9 +172,9 @@ export function runDiagnosticsTest(): void {
     diagnostics.some(
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<macro>" &&
-        diagnostic.code === "macro-arity-mismatch" &&
+        diagnostic.code === "unsupported-instruction" &&
         diagnostic.line === 10 &&
-        diagnostic.message.includes("expected 1")
+        diagnostic.message.includes("SecondMac")
     ),
     true
   );

@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 
 import { parseSourceStructure } from "../src/asm/parser";
+import { parseDocument } from "../src/asm/document";
+import { collectWorkspaceDiagnostics } from "../src/asm/diagnostics";
 import { lexSource, type LexedLine } from "../src/asm/lexer";
 export function runMacroParserTest(): void {
   const source = [
@@ -126,4 +128,30 @@ export function runMacroParserTest(): void {
     ],
     maxParameterIndex: 2
   });
+
+  const nestedMacroSource = [
+    "OuterMacro mac",
+    "InnerMacro mac",
+    "        nop",
+    "        eom",
+    "        eom",
+    "        OuterMacro"
+  ].join("\n");
+  const nestedParsed = parseSourceStructure(nestedMacroSource);
+  assert.deepEqual(
+    nestedParsed.macroDefinitions.map((definition) => definition.name),
+    ["OuterMacro"]
+  );
+  assert.equal(nestedParsed.macroDefinitions[0]?.endLine, 3);
+
+  const nestedDiagnostics = collectWorkspaceDiagnostics([
+    {
+      filePath: "<nested-macro>",
+      document: parseDocument(nestedMacroSource)
+    }
+  ]);
+  assert.equal(
+    nestedDiagnostics.some((diagnostic) => diagnostic.code === "invalid-macro-nesting"),
+    true
+  );
 }

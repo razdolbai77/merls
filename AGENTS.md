@@ -17,7 +17,7 @@ Shared token-kind and line-shape metadata now lives under `src/asm/syntax.ts`.
 The current lexer implementation now lives under `src/asm/lexer.ts` and is covered by fixture-driven unit tests.
 The current expression parser now lives under `src/asm/expression.ts` and is covered by unit tests for numeric forms, modifiers, arithmetic, and indexed operands.
 The current line parser now lives under `src/asm/parser.ts` and classifies equates, instructions, directives, data lines, and malformed input.
-The current parser also exposes first-class macro definition regions with body lines, closing directives, positional parameter placeholder references, nested macro-call usage, symbol references, and invalid macro-local label definitions/references for diagnostics.
+The current parser also exposes first-class macro definition regions with body lines, closing directives, positional parameter placeholder references, nested macro-call usage, symbol references, and invalid macro-local label definitions/references for diagnostics; illegal nested `mac` definitions are diagnostic-only and excluded from macro navigation/indexing.
 The current document model now lives under `src/asm/document.ts` and preserves line-by-line structure while collecting malformed-line errors.
 The current document model also exposes explicit macro definition, macro body, parameter-reference, nested-macro-call, symbol-reference, and invalid macro-local-label structures for downstream macro-aware analysis.
 The current expansion analysis layer now lives under `src/asm/expansion.ts` and provides a virtual macro expansion view mapping substituted identifiers and source locations back to macro body definitions and call sites.

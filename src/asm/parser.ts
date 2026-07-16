@@ -368,6 +368,11 @@ function collectMacroDefinitionRegions(lines: readonly ParsedLine[], lexedLines:
         0
       )
     });
+
+    if (endLine === null) {
+      break;
+    }
+    index = endLine;
   }
 
   return macroDefinitions;
