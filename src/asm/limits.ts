@@ -1,0 +1,1 @@
+export const MAX_MACRO_EXPANSION_DEPTH = 50;

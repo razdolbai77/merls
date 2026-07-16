@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import { parseDocument } from "../src/asm/document";
+import { MAX_MACRO_EXPANSION_DEPTH } from "../src/asm/limits";
 import { collectWorkspaceDiagnostics, type Diagnostic } from "../src/asm/diagnostics";
 
 export function runMacroDiagnosticsTest(): void {
@@ -109,6 +110,28 @@ export function runMacroDiagnosticsTest(): void {
     startCharacter: 8,
     endCharacter: 10
   });
+
+  const deepMacroLines: string[] = [];
+  for (let index = 0; index <= MAX_MACRO_EXPANSION_DEPTH; index++) {
+    deepMacroLines.push(`Macro${index} mac`);
+    deepMacroLines.push(
+      index === MAX_MACRO_EXPANSION_DEPTH ? "        nop" : `        Macro${index + 1}`
+    );
+    deepMacroLines.push("        eom");
+  }
+  deepMacroLines.push("        Macro0");
+
+  const deepDiagnostics = collectWorkspaceDiagnostics([
+    {
+      filePath: "<deep-macro-expansion>",
+      document: parseDocument(deepMacroLines.join("\n"))
+    }
+  ]);
+  assert.equal(
+    deepDiagnostics.some((diagnostic) => diagnostic.code === "deep-macro-expansion"),
+    true,
+    `Expected macro expansion to stop at depth ${MAX_MACRO_EXPANSION_DEPTH}`
+  );
 }
 
 function findDiagnostic(

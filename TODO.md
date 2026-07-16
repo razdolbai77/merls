@@ -24,5 +24,5 @@
 
 ## Low Priority — Maintainability
 
-- [ ] Centralize macro-expansion limits in `src/asm/diagnostics.ts:234` and `src/asm/expansion.ts:257` as one named constant shared by diagnostics and expansion, preventing the recursion guard and diagnostic threshold from drifting.
+- [x] Centralize macro-expansion limits in `src/asm/diagnostics.ts:234` and `src/asm/expansion.ts:257` as one named constant shared by diagnostics and expansion, preventing the recursion guard and diagnostic threshold from drifting.
 - [ ] Add a parser test for a nested `mac` definition that verifies invalid nested definitions are not exposed through macro navigation/indexing after `invalid-macro-nesting` is diagnosed; `src/asm/parser.ts:303-372` currently indexes every `mac` line independently.

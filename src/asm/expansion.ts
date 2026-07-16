@@ -2,6 +2,7 @@ import { stripTrailingComment } from "./parser";
 import { type MacroCallLine, type MacroDefinitionRegion, type ParsedLine, parseLexedLine } from "./parser";
 import { type Token } from "./lexer";
 import { type ParsedDocument } from "./document";
+import { MAX_MACRO_EXPANSION_DEPTH } from "./limits";
 
 export type ExpandedToken = Token & {
   sourceToken: Token;
@@ -220,7 +221,7 @@ export function getEffectiveLines(
       });
 
       const macroName = node.macro.lexeme;
-      if (callStack.has(macroName) || depth >= 50) {
+      if (callStack.has(macroName) || depth >= MAX_MACRO_EXPANSION_DEPTH) {
         return;
       }
 

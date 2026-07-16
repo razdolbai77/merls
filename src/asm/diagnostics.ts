@@ -5,6 +5,7 @@ import { resolveLocalLabels } from "./local-labels";
 import { directiveTable, opcodeTable, type AddressingMode } from "./metadata";
 import { type ParsedLine, type MacroDefinitionRegion } from "./parser";
 import { getEffectiveLines } from "./expansion";
+import { MAX_MACRO_EXPANSION_DEPTH } from "./limits";
 
 export type DiagnosticCode =
   | "duplicate-symbol"
@@ -231,7 +232,7 @@ function collectMacroStructureDiagnostics(
       });
       return;
     }
-    if (depth >= 50) {
+    if (depth >= MAX_MACRO_EXPANSION_DEPTH) {
       diagnostics.push({
         filePath,
         line: callLine,
