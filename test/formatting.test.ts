@@ -89,4 +89,28 @@ export function runFormattingTest(): void {
     assert.equal(edits.length, 1);
     assert.equal(edits[0].newText, "label1  ADC     #1");
   }
+
+  // formats with tabs (tabSize: 8)
+  {
+    const source = "label adc #0 ; comment\n sta _num1+dum0,x";
+    const cached = buildCachedDocument(source);
+    const edits = formatDocument(cached, { insertSpaces: false, tabSize: 8 });
+
+    assert.equal(edits.length, 2);
+    assert.equal(edits[0].newText, "label\tADC\t#0\t; comment");
+    assert.equal(edits[1].newText, "\tSTA\t_num1+dum0,x");
+  }
+
+  // formats with tabs (tabSize: 4)
+  {
+    const source = "label adc #0 ; comment";
+    const cached = buildCachedDocument(source);
+    const edits = formatDocument(cached, { insertSpaces: false, tabSize: 4 });
+
+    assert.equal(edits.length, 1);
+    // label (5) + 1 tab -> 8
+    // ADC (3) -> total 11 + 2 tabs (to 16) -> \t\t
+    // #0 (2) -> total 18 + 2 tabs (to 24) -> \t\t
+    assert.equal(edits[0].newText, "label\tADC\t\t#0\t\t; comment");
+  }
 }

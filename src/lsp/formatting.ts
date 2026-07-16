@@ -39,11 +39,6 @@ function formatLines(
   endLine: number
 ): TextEdit[] {
   const edits: TextEdit[] = [];
-  const { insertSpaces } = options;
-
-  const col1 = 8;
-  const col2 = 16;
-  const col3 = 24;
 
   for (let lineIndex = startLine; lineIndex <= endLine; lineIndex++) {
     const line = cached.parsed.lines[lineIndex];
@@ -60,10 +55,7 @@ function formatLines(
       line.node.shape,
       lexedLine.tokens,
       lexedLine.text,
-      insertSpaces,
-      col1,
-      col2,
-      col3
+      options
     );
 
     if (newText !== null && newText !== lexedLine.text) {
@@ -86,11 +78,13 @@ function formatLine(
   shape: string,
   tokens: readonly Token[],
   originalText: string,
-  insertSpaces: boolean,
-  col1: number,
-  col2: number,
-  col3: number
+  options: FormattingOptions
 ): string | null {
+  const { insertSpaces, tabSize } = options;
+  const col1 = 8;
+  const col2 = 16;
+  const col3 = 24;
+
   if (shape === "empty") {
     return "";
   }
@@ -104,7 +98,7 @@ function formatLine(
     const comment = getCommentToken(tokens);
     let result = tokens[0]?.lexeme ?? "";
     if (comment) {
-      result = padTo(result, col3, insertSpaces) + comment.lexeme;
+      result = padTo(result, col3, insertSpaces, tabSize) + comment.lexeme;
     }
     return result.trimEnd();
   }
@@ -135,7 +129,7 @@ function formatLine(
     index += 1;
 
     let result = label;
-    result = padTo(result, col1, insertSpaces);
+    result = padTo(result, col1, insertSpaces, tabSize);
     result += operation;
 
     // Find operands and comment
@@ -150,13 +144,13 @@ function formatLine(
     }
 
     if (operandText.length > 0) {
-      result = padTo(result, col2, insertSpaces);
+      result = padTo(result, col2, insertSpaces, tabSize);
       result += operandText;
     }
 
     if (commentToken) {
       // align comment
-      result = padTo(result, col3, insertSpaces);
+      result = padTo(result, col3, insertSpaces, tabSize);
       result += commentToken.lexeme;
     }
 
@@ -171,26 +165,38 @@ function getCommentToken(tokens: readonly Token[]): Token | null {
   return last?.kind === "comment" ? last : null;
 }
 
-function padTo(currentText: string, targetCol: number, insertSpaces: boolean): string {
+function getVisualColumn(text: string, tabSize: number): number {
+  let col = 0;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === "\t") {
+      col += tabSize - (col % tabSize);
+    } else {
+      col++;
+    }
+  }
+  return col;
+}
+
+function padTo(currentText: string, targetCol: number, insertSpaces: boolean, tabSize: number): string {
+  const currentVisualCol = getVisualColumn(currentText, tabSize);
+
   if (!insertSpaces) {
-    // A simple tab-based padding strategy.
-    // Assuming each tab advances to the next multiple of targetCol / col_units?
-    // If we want to reach col1 (8), and the currentText length is 4, we need 1 tab.
-    // If the length is 8, we need 1 tab to reach 16.
-    // Let's just use a simple heuristic for tabs:
-    // If targetCol > currentText.length, we insert enough tabs.
-    // But the requirements are mostly around spaces. Let's assume standard spaces first.
-    if (targetCol > currentText.length) {
-      // targetCol is in spaces, e.g. 8, 16, 24
-      // how many tabs to reach targetCol?
-      // For simplicity, just append \t.
+    if (currentVisualCol >= targetCol) {
       return currentText + "\t";
     }
-    return currentText + "\t";
+    
+    let tabsToInsert = 0;
+    let col = currentVisualCol;
+    while (col < targetCol) {
+      tabsToInsert++;
+      col += tabSize - (col % tabSize);
+    }
+    
+    return currentText + "\t".repeat(tabsToInsert);
   }
 
-  if (currentText.length >= targetCol) {
+  if (currentVisualCol >= targetCol) {
     return currentText + " ";
   }
-  return currentText + " ".repeat(targetCol - currentText.length);
+  return currentText + " ".repeat(targetCol - currentVisualCol);
 }
