@@ -36,7 +36,7 @@ export function runPerformanceTest(): void {
     [fixturePath, document]
   ]);
 
-  const workspace = indexWorkspace(fixturePath, overrides);
+  const workspace = indexWorkspace(fixturePath, new Map(), overrides);
   
   const diagnostics = collectWorkspaceDiagnostics([
     {

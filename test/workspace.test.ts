@@ -13,7 +13,7 @@ export function runWorkspaceGraphTest(): void {
     "test/fixtures/valid/merlin32-main-6502.S"
   );
 
-  const workspace = indexWorkspace(entryPath);
+  const workspace = indexWorkspace(entryPath, new Map());
 
   assert.deepEqual(workspace.loadOrder, [entryPath, mainPath]);
   assert.deepEqual(workspace.dependencies.get(entryPath), [mainPath]);
@@ -33,7 +33,7 @@ export function runWorkspaceGraphTest(): void {
     process.cwd(),
     "test/fixtures/valid/non-existent.S"
   );
-  const emptyWorkspace = indexWorkspace(missingPath);
+  const emptyWorkspace = indexWorkspace(missingPath, new Map());
   assert.deepEqual(emptyWorkspace.loadOrder, []);
   assert.equal(emptyWorkspace.documents.has(missingPath), false);
 }

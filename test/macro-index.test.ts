@@ -83,7 +83,7 @@ export function runMacroIndexTest(): void {
     }
   ]);
 
-  const workspace = indexWorkspace(entryPath, new Map([
+  const workspace = indexWorkspace(entryPath, new Map(), new Map([
     [entryPath, entryDocument],
     [helperPath, helperDocument]
   ]));

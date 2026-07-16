@@ -25,6 +25,7 @@ const includeDirectives = new Set(["asm", "put", "use"]);
 
 export function indexWorkspace(
   entryPath: string,
+  diskCache: Map<string, CachedDocument>,
   overrides?: ReadonlyMap<string, CachedDocument>
 ): IndexedWorkspace {
   const documents = new Map<string, CachedDocument>();
@@ -35,7 +36,7 @@ export function indexWorkspace(
   const resolvedEntry = entryPath.startsWith("untitled:") 
     ? entryPath 
     : path.resolve(entryPath);
-  visitFile(resolvedEntry, documents, dependencies, loadOrder, overrides);
+  visitFile(resolvedEntry, documents, dependencies, loadOrder, diskCache, overrides);
 
   for (const filePath of loadOrder) {
     const document = documents.get(filePath);
@@ -67,17 +68,20 @@ function visitFile(
   documents: Map<string, CachedDocument>,
   dependencies: Map<string, readonly string[]>,
   loadOrder: string[],
+  diskCache: Map<string, CachedDocument>,
   overrides?: ReadonlyMap<string, CachedDocument>
 ): void {
   if (documents.has(filePath)) {
     return;
   }
 
-  let document: CachedDocument;
-  const override = overrides?.get(filePath);
-  if (override !== undefined) {
-    document = override;
-  } else {
+  let document: CachedDocument | undefined = overrides?.get(filePath);
+  
+  if (document === undefined) {
+    document = diskCache.get(filePath);
+  }
+  
+  if (document === undefined) {
     let source: string;
     try {
       source = fs.readFileSync(filePath, "utf8");
@@ -85,6 +89,7 @@ function visitFile(
       return;
     }
     document = buildCachedDocument(source);
+    diskCache.set(filePath, document);
   }
 
   documents.set(filePath, document);
@@ -108,7 +113,7 @@ function visitFile(
   dependencies.set(filePath, resolvedDependencies);
 
   for (const dependencyPath of resolvedDependencies) {
-    visitFile(dependencyPath, documents, dependencies, loadOrder, overrides);
+    visitFile(dependencyPath, documents, dependencies, loadOrder, diskCache, overrides);
   }
 }
 

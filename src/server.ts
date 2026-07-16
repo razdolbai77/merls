@@ -46,16 +46,10 @@ export function startServer(
 ): Connection {
   const connection = createServerConnection(inputStream, outputStream);
   const openDocuments = new Map<string, CachedDocument>();
-  const watchedDocuments = new Map<string, CachedDocument>();
+  const diskCache = new Map<string, CachedDocument>();
 
   let cachedIndexedDocuments: Map<string, CachedDocument> | null = null;
-  function getAllDocuments(): Map<string, CachedDocument> {
-    const all = new Map(watchedDocuments);
-    for (const [uri, doc] of openDocuments.entries()) {
-      all.set(uri, doc);
-    }
-    return all;
-  }
+  // (getAllDocuments removed since publishDiagnostics will use getIndexedDocuments)
 
   connection.onInitialize(() => ({
     capabilities: {
@@ -134,12 +128,11 @@ export function startServer(
     if (cachedIndexedDocuments !== null) {
       return cachedIndexedDocuments;
     }
-    const all = getAllDocuments();
     const overrides = new Map<string, CachedDocument>();
     
     // Normalize paths to prevent duplicate entries (e.g. file:///c:/ vs file:///C:/)
     const addedPaths = new Set<string>();
-    for (const [uri, doc] of all.entries()) {
+    for (const [uri, doc] of openDocuments.entries()) {
       const filePath = normalizeUriToPath(uri);
       if (uri.startsWith("file://")) {
         addedPaths.add(filePath.toLowerCase());
@@ -147,10 +140,13 @@ export function startServer(
       overrides.set(filePath, doc);
     }
 
-    const combined = new Map(all);
+    const combined = new Map<string, CachedDocument>(openDocuments);
+    for (const [filePath, doc] of diskCache.entries()) {
+      combined.set(pathToFileURL(filePath).href, doc);
+    }
     for (const uri of openDocuments.keys()) {
       const filePath = normalizeUriToPath(uri);
-      const workspace = indexWorkspace(filePath, overrides);
+      const workspace = indexWorkspace(filePath, diskCache, overrides);
       for (const [docPath, cached] of workspace.documents.entries()) {
         const normalizedDocPath = docPath.toLowerCase();
         if (!addedPaths.has(normalizedDocPath)) {
@@ -284,15 +280,15 @@ export function startServer(
   connection.onDidChangeWatchedFiles(async (params) => {
     cachedIndexedDocuments = null;
     await Promise.all(params.changes.map(async (change) => {
+      const filePath = normalizeUriToPath(change.uri);
       if (change.type === FileChangeType.Deleted) {
-        watchedDocuments.delete(change.uri);
+        diskCache.delete(filePath);
       } else {
         try {
-          const filePath = normalizeUriToPath(change.uri);
           const source = await fs.promises.readFile(filePath, "utf8");
-          watchedDocuments.set(change.uri, buildCachedDocument(source));
+          diskCache.set(filePath, buildCachedDocument(source));
         } catch {
-          watchedDocuments.delete(change.uri);
+          diskCache.delete(filePath);
         }
       }
     }));
@@ -300,7 +296,7 @@ export function startServer(
   });
 
   function publishDiagnostics(): void {
-    for (const [uri, diagnostics] of collectDiagnosticsByUri(openDocuments, getAllDocuments()).entries()) {
+    for (const [uri, diagnostics] of collectDiagnosticsByUri(openDocuments, getIndexedDocuments()).entries()) {
       void connection.sendDiagnostics({
         uri,
         diagnostics: [...diagnostics]

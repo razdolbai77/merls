@@ -9,7 +9,7 @@
 
 - [x] Build each call-hierarchy incoming caller item from its enclosing label's line in `src/lsp/call-hierarchy.ts:88-104`, not the `jsr`/`jmp` reference line; add an assertion for the caller item's range in `test/call-hierarchy.test.ts`.
 - [x] Make code-lens reference counts actionable in `src/lsp/code-lens.ts:36-42`: register the client command and pass the target URI/locations, or omit the command until navigation can be performed. Cover command id and arguments in `test/code-lens.test.ts`.
-- [ ] Replace per-request synchronous recursive workspace reads in `src/server.ts:133-167` and `src/asm/workspace.ts:76-88` with an invalidation-aware workspace cache. Reuse parsed include dependencies until an open or watched document changes.
+- [x] Replace per-request synchronous recursive workspace reads in `src/server.ts:133-167` and `src/asm/workspace.ts:76-88` with an invalidation-aware workspace cache. Reuse parsed include dependencies until an open or watched document changes.
 - [ ] Cache the global symbol and macro-name sets consumed by `buildSemanticTokens` in `src/lsp/semantic-tokens.ts:36-55`; the current request path scans every indexed document on each semantic-token refresh.
 - [ ] Pass the already indexed workspace into diagnostics collection instead of rebuilding an include graph once for every open entry in `src/lsp/diagnostics.ts:36-47`; retain diagnostics for all open documents and add a multi-entry workspace regression test.
 - [ ] Resolve local labels through `resolveLocalLabels` in `src/lsp/semantic-tokens.ts:53-55`; the current prefix-only check highlights every `]name` and `:name` as resolved, including undefined or out-of-anchor references.

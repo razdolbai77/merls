@@ -6,7 +6,6 @@ import {
 } from "vscode-languageserver/node";
 
 import { type CachedDocument } from "../asm/document";
-import { indexWorkspace } from "../asm/workspace";
 import {
   collectWorkspaceDiagnostics,
   type Diagnostic as AsmDiagnostic,
@@ -15,35 +14,25 @@ import {
 
 export function collectDiagnosticsByUri(
   openDocuments: ReadonlyMap<string, CachedDocument>,
-  allDocuments: ReadonlyMap<string, CachedDocument>
+  indexedDocuments: ReadonlyMap<string, CachedDocument>
 ): Map<string, readonly LspDiagnostic[]> {
   const sourcesByFilePath = new Map<string, string>();
   const uriByFilePath = new Map<string, string>();
   const openEntries = new Set<string>();
-  const overrides = new Map<string, CachedDocument>();
 
-  for (const [uri, cached] of allDocuments.entries()) {
+  for (const [uri, cached] of indexedDocuments.entries()) {
     const filePath = uriToFilePath(uri);
     sourcesByFilePath.set(filePath, cached.source);
     uriByFilePath.set(filePath, uri);
-    overrides.set(filePath, cached);
 
     if (openDocuments.has(uri)) {
       openEntries.add(filePath);
     }
   }
 
-  const combinedDocuments = new Map<string, CachedDocument>();
-  for (const filePath of openEntries) {
-    const workspace = indexWorkspace(filePath, overrides);
-    for (const [docPath, doc] of workspace.documents.entries()) {
-      combinedDocuments.set(docPath, doc);
-    }
-  }
-
   const entries: DocumentEntry[] = [];
-  for (const [filePath, document] of combinedDocuments.entries()) {
-    entries.push({ filePath, document: document.parsed });
+  for (const [uri, cached] of indexedDocuments.entries()) {
+    entries.push({ filePath: uriToFilePath(uri), document: cached.parsed });
   }
 
   const diagnosticsByFilePath = new Map<string, LspDiagnostic[]>();
