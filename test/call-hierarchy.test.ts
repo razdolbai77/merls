@@ -32,6 +32,10 @@ baz
   assert.ok(incoming);
   assert.equal(incoming.length, 1);
   assert.equal(incoming[0].from.name, "foo");
+  assert.deepEqual(incoming[0].from.range, {
+    start: { line: 1, character: 0 },
+    end: { line: 1, character: 3 }
+  });
 
   // outgoing from foo
   const preparedFoo = prepareCallHierarchy(map, "file:///test.S", 1, 0); // "foo"

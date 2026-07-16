@@ -4,12 +4,12 @@ import { ParsedLine } from "../asm/parser";
 import { getSymbolAtPosition, collectDefinitions, collectReferences, getReferencedTokens } from "./symbol-navigation";
 import { getEffectiveLines, type ExpandedToken } from "../asm/expansion";
 
-function getEnclosingGlobalLabel(parsed: CachedDocument["parsed"], lineIndex: number): ParsedLine | null {
+function getEnclosingGlobalLabel(parsed: CachedDocument["parsed"], lineIndex: number): { line: number, node: ParsedLine } | null {
   for (let i = lineIndex; i >= 0; i--) {
     const pLine = parsed.lines[i];
     if (pLine && "label" in pLine.node && pLine.node.label) {
       if (pLine.node.label.kind === "label") {
-        return pLine.node;
+        return { line: pLine.line, node: pLine.node };
       }
     }
   }
@@ -86,9 +86,9 @@ export function provideCallHierarchyIncomingCalls(
         if (mnemonic !== "jsr" && mnemonic !== "jmp") continue;
 
         const enclosing = getEnclosingGlobalLabel(docCached.parsed, refLineIndex);
-        if (!enclosing || !("label" in enclosing) || !enclosing.label) continue;
+        if (!enclosing || !("label" in enclosing.node) || !enclosing.node.label) continue;
 
-        const callerName = enclosing.label.lexeme;
+        const callerName = enclosing.node.label.lexeme;
         const callerUri = docUri;
         const key = `${callerUri}#${callerName}`;
 
@@ -98,8 +98,8 @@ export function provideCallHierarchyIncomingCalls(
             from: createCallHierarchyItem(
               callerUri,
               callerName,
-              refLineIndex, // Actually this should be the enclosing label's line, we don't have it easily. Let's use refLineIndex for now
-              enclosing.label.start,
+              enclosing.line,
+              enclosing.node.label.start,
               callerName.length
             ),
             fromRanges: []
