@@ -113,6 +113,38 @@ export async function runHoverTest(): Promise<void> {
         : macroHover.contents.value;
     assert.equal(macroHoverText.includes("Wrap(]1, ]2)"), true);
     assert.equal(macroHoverText.includes("defined at line 1"), true);
+
+    const regUri = "file:///workspace/registers.S";
+    const regText = [
+      "a       EQU $00",
+      "        lsr a",
+      "        lda foo, x",
+      "        lda foo, y",
+      "        lda a",
+      "foo     nop"
+    ].join("\n");
+    const regCached = buildCachedDocument(regText);
+    const openDocuments = new Map([[regUri, regCached]]);
+    
+    // LSR a (Accumulator mode)
+    const hoverLsrA = buildHover(openDocuments, regUri, 1, 12);
+    assert.ok(hoverLsrA);
+    assert.equal((hoverLsrA.contents as string).includes("Register A"), true);
+    
+    // LDA foo, x (Index register X)
+    const hoverLdaX = buildHover(openDocuments, regUri, 2, 17);
+    assert.ok(hoverLdaX);
+    assert.equal((hoverLdaX.contents as string).includes("Register X"), true);
+    
+    // LDA foo, y (Index register Y)
+    const hoverLdaY = buildHover(openDocuments, regUri, 3, 17);
+    assert.ok(hoverLdaY);
+    assert.equal((hoverLdaY.contents as string).includes("Register Y"), true);
+    
+    // LDA a (Variable 'a', not accumulator)
+    const hoverLdaVarA = buildHover(openDocuments, regUri, 4, 12);
+    assert.ok(hoverLdaVarA);
+    assert.equal(typeof hoverLdaVarA.contents === "string" ? hoverLdaVarA.contents.includes("Register A") : false, false);
   } finally {
     stop();
   }

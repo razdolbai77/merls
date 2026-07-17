@@ -44,7 +44,26 @@ export function buildHover(
 
   if (token?.kind === "identifier" || token?.kind === "label" || token?.kind === "localLabel") {
     const lexemeLower = token.lexeme.toLowerCase();
-    if (lexemeLower === "a" || lexemeLower === "x" || lexemeLower === "y") {
+    let isRegister = false;
+
+    if (lexemeLower === "x" || lexemeLower === "y") {
+      const tokenIndex = lexedLine.tokens.indexOf(token);
+      if (tokenIndex > 0 && lexedLine.tokens[tokenIndex - 1].lexeme === ",") {
+        isRegister = true;
+      }
+    } else if (lexemeLower === "a" && documentLine.node.shape === "instruction") {
+      const node = documentLine.node;
+      if (
+        node.operand &&
+        node.operand.expression.kind === "identifier" &&
+        node.operand.expression.token === token &&
+        opcodeTable.get(node.mnemonic.lexeme.toLowerCase())?.modes.includes("accumulator")
+      ) {
+        isRegister = true;
+      }
+    }
+
+    if (isRegister) {
       return {
         contents: `Register ${token.lexeme.toUpperCase()}`
       };
