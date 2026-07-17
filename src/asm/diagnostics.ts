@@ -532,7 +532,16 @@ function getGlobalDefinitionToken(node: ParsedLine): Token | null {
 
 function findExpressionReferences(node: ParsedLine): readonly Token[] {
   if (node.shape === "instruction" && node.operand !== null) {
-    return findReferencesInOperand(node.operand);
+    const refs = findReferencesInOperand(node.operand);
+    if (refs.length === 1 && refs[0].lexeme.toLowerCase() === "a") {
+      const def = opcodeTable.get(node.mnemonic.lexeme.toLowerCase());
+      if (def?.modes.includes("accumulator")) {
+        if (node.operand.expression.kind === "identifier" && node.operand.expression.token === refs[0]) {
+          return [];
+        }
+      }
+    }
+    return refs;
   }
 
   if (node.shape === "directive" && node.operand !== null) {
