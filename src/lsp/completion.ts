@@ -59,6 +59,10 @@ export function buildCompletionItems(
     );
   }
 
+  if (currentWordStart === 0) {
+    return [];
+  }
+
   let exclusiveCompletions: readonly string[] | null = null;
   if (operandToken !== null && operandToken.kind === "directive") {
     const directive = directiveTable.get(operandToken.lexeme.toLowerCase());
@@ -69,6 +73,12 @@ export function buildCompletionItems(
 
   const completions: CompletionItem[] = [];
   const seenSymbols = new Set<string>();
+  seenSymbols.add("A");
+  seenSymbols.add("a");
+  seenSymbols.add("X");
+  seenSymbols.add("x");
+  seenSymbols.add("Y");
+  seenSymbols.add("y");
   const createCompletionItem = (
     label: string,
     kind: CompletionItemKind

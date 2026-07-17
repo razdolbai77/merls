@@ -76,21 +76,21 @@ export async function runCompletionTest(): Promise<void> {
 
     const opcodeResponse = await sendRequest("textDocument/completion", {
       textDocument: { uri: mainUri },
-      position: positionOf(text, "ld")
+      position: positionOfLast(text, "ld")
     });
     const opcodeItems = opcodeResponse.result as Array<{ label: string }>;
     assert.equal(opcodeItems.some((item) => item.label === "lda"), true);
 
     const directiveResponse = await sendRequest("textDocument/completion", {
       textDocument: { uri: mainUri },
-      position: positionOf(text, "du")
+      position: positionOfLast(text, "du")
     });
     const directiveItems = directiveResponse.result as Array<{ label: string }>;
     assert.equal(directiveItems.some((item) => item.label === "dum"), true);
 
     const symbolResponse = await sendRequest("textDocument/completion", {
       textDocument: { uri: mainUri },
-      position: positionOf(text, "bpl G")
+      position: positionOfLast(text, "bpl G")
     });
     const symbolItems = symbolResponse.result as Array<{ label: string; kind: number }>;
     assert.equal(symbolItems.some((item) => item.label === "GetKey"), true);
