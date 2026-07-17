@@ -52,7 +52,7 @@ StartRoutine
         STRL    'foobar'
         STRL    "foobar"
         DA      StartRoutine
-        DS      10,$FF  ; Define storage
+        DS      10      ; Define storage
 
 * Macro Calls
         WaitLoop #$FF
