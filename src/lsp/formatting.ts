@@ -1,3 +1,5 @@
+import { opcodeTable } from "../asm/metadata";
+import { ParsedLine } from "../asm/parser";
 import { TextEdit, FormattingOptions, Range, Position } from "vscode-languageserver/node";
 import { CachedDocument } from "../asm/document";
 import { Token } from "../asm/lexer";
@@ -52,7 +54,7 @@ function formatLines(
     }
 
     const newText = formatLine(
-      line.node.shape,
+      line.node,
       lexedLine.tokens,
       lexedLine.text,
       options
@@ -75,11 +77,12 @@ function formatLines(
 }
 
 function formatLine(
-  shape: string,
+  node: ParsedLine,
   tokens: readonly Token[],
   originalText: string,
   options: FormattingOptions
 ): string | null {
+  const shape = node.shape;
   const { insertSpaces, tabSize } = options;
   const col1 = 8;
   const col2 = 16;
@@ -139,7 +142,23 @@ function formatLine(
     let operandText = "";
     if (index <= endTokenIndex) {
       for (let i = index; i <= endTokenIndex; i++) {
-        operandText += tokens[i].lexeme;
+        let lexeme = tokens[i].lexeme;
+        if (node.shape === "instruction") {
+          const lower = lexeme.toLowerCase();
+          if (lower === "x" || lower === "y") {
+            if (i > 0 && tokens[i - 1].lexeme === ",") {
+              lexeme = lexeme.toUpperCase();
+            }
+          } else if (lower === "a") {
+            if (index === endTokenIndex) {
+              const def = opcodeTable.get(node.mnemonic.lexeme.toLowerCase());
+              if (def?.modes.includes("accumulator")) {
+                lexeme = lexeme.toUpperCase();
+              }
+            }
+          }
+        }
+        operandText += lexeme;
       }
     }
 

@@ -10,8 +10,8 @@ export function runFormattingTest(): void {
     const edits = formatDocument(cached, { insertSpaces: true, tabSize: 8 });
 
     assert.equal(edits.length, 2);
-    assert.equal(edits[0].newText, "label   ADC     (0,x)   ; comment");
-    assert.equal(edits[1].newText, "        STA     _num1+dum0,x");
+    assert.equal(edits[0].newText, "label   ADC     (0,X)   ; comment");
+    assert.equal(edits[1].newText, "        STA     _num1+dum0,X");
   }
 
   // handles labels without operands
@@ -98,7 +98,7 @@ export function runFormattingTest(): void {
 
     assert.equal(edits.length, 2);
     assert.equal(edits[0].newText, "label\tADC\t#0\t; comment");
-    assert.equal(edits[1].newText, "\tSTA\t_num1+dum0,x");
+    assert.equal(edits[1].newText, "\tSTA\t_num1+dum0,X");
   }
 
   // formats with tabs (tabSize: 4)
