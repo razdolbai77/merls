@@ -26,6 +26,7 @@ AnotherMacro MAC
 StartRoutine
         CLC
         ADC     #10     ; Immediate
+        LSR     A       ; Accumulator
         LDA     TargetValue ; Absolute
         STA     $00,x   ; Zero Page Indexed
         JMP     (TargetValue) ; Indirect
