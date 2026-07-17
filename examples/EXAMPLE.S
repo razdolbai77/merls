@@ -28,7 +28,8 @@ StartRoutine
         ADC     #10     ; Immediate
         LSR     A       ; Accumulator
         LDA     TargetValue ; Absolute
-        STA     $00,x   ; Zero Page Indexed
+        STA     $00,X   ; Zero Page Indexed
+        STA     $00,Y   ; Zero Page Indexed
         JMP     (TargetValue) ; Indirect
 
 * Data Directives
@@ -62,13 +63,13 @@ StartRoutine
 * Ordinary Local Labels
 Subroutine
         LDY     #5
-a
+b
         NOP
 :loop                   ; ordinary local label
         DEY
         BNE     :loop
         NOP
-b
+c
 ]local
         DEY
         BNE     ]local
@@ -129,11 +130,12 @@ BadMacro MAC            ; Error: Missing eom/<<< terminator
         blah            ; Error: Unsupported instruction or undefined macro: blah
 
 * Diagnostic: Valid instruction, incorrect addressing mode
+        LDA     a
         DEX     #10     ; Error: Invalid addressing mode for 'dex'
         CLC     $1000   ; Error: Invalid addressing mode for 'clc'
         JMP     #$1000  ; Error: Invalid addressing mode for 'jmp'
         STA     #10     ; Error: Invalid addressing mode for 'sta'
 
 * Diagnostic: Incorrect index register placement in indirect addressing
-        LDA     ($10),x ; Error: Invalid addressing mode for 'lda'
-        STA     ($10,y) ; Error: Invalid addressing mode for 'sta'
+        LDA     ($10),X ; Error: Invalid addressing mode for 'lda'
+        STA     ($10,Y) ; Error: Invalid addressing mode for 'sta'
