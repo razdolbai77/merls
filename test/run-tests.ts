@@ -5,6 +5,7 @@ import { runCompletionTest } from "./completion.test";
 import { runDefinitionReferencesTest } from "./definition-references.test";
 import { runMacroDefinitionReferencesIntegrationTest } from "./macro-definition-references.test";
 import { runDiagnosticsTest } from "./diagnostics.test";
+import { runLspDiagnosticsTest } from "./lsp-diagnostics.test";
 import { runDocumentModelTest } from "./document-model.test";
 import { runDocumentSymbolTest } from "./document-symbol.test";
 import { runExpressionTest } from "./expression.test";
@@ -118,6 +119,10 @@ const tests: TestCase[] = [
   {
     name: "diagnostics report duplicates unresolved refs malformed lines and unknown syntax",
     run: runDiagnosticsTest
+  },
+  {
+    name: "LSP diagnostics deduplicate URI aliases for one file",
+    run: runLspDiagnosticsTest
   },
   {
     name: "macro diagnostics report stable messages and ranges",

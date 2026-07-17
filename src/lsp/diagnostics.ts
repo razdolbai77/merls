@@ -16,24 +16,28 @@ export function collectDiagnosticsByUri(
   openDocuments: ReadonlyMap<string, CachedDocument>,
   indexedDocuments: ReadonlyMap<string, CachedDocument>
 ): Map<string, readonly LspDiagnostic[]> {
+  const entriesByFilePath = new Map<string, DocumentEntry>();
   const sourcesByFilePath = new Map<string, string>();
   const uriByFilePath = new Map<string, string>();
   const openEntries = new Set<string>();
 
   for (const [uri, cached] of indexedDocuments.entries()) {
     const filePath = uriToFilePath(uri);
-    sourcesByFilePath.set(filePath, cached.source);
-    uriByFilePath.set(filePath, uri);
+    const isOpen = openDocuments.has(uri);
 
-    if (openDocuments.has(uri)) {
+    if (!entriesByFilePath.has(filePath) || isOpen) {
+      entriesByFilePath.set(filePath, { filePath, document: cached.parsed });
+      sourcesByFilePath.set(filePath, cached.source);
+      uriByFilePath.set(filePath, uri);
+    }
+
+    if (isOpen) {
       openEntries.add(filePath);
+      uriByFilePath.set(filePath, uri);
     }
   }
 
-  const entries: DocumentEntry[] = [];
-  for (const [uri, cached] of indexedDocuments.entries()) {
-    entries.push({ filePath: uriToFilePath(uri), document: cached.parsed });
-  }
+  const entries = [...entriesByFilePath.values()];
 
   const diagnosticsByFilePath = new Map<string, LspDiagnostic[]>();
   for (const filePath of openEntries) {
@@ -87,9 +91,6 @@ function toLspDiagnostic(source: string, diagnostic: AsmDiagnostic): LspDiagnost
 }
 
 function uriToFilePath(uri: string): string {
-  if (uri.startsWith("file://")) {
-    return fileURLToPath(uri);
-  }
-
-  return uri;
+  const filePath = uri.startsWith("file://") ? fileURLToPath(uri) : uri;
+  return process.platform === "win32" ? filePath.toLowerCase() : filePath;
 }

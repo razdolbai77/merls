@@ -59,6 +59,7 @@ The current Visual Studio Code extension now contributes `Pearls: Compile Curren
 The current Visual Studio Code extension also sets the language-scoped defaults `editor.tabSize = 8`, `editor.indentSize = 8`, and `editor.quickSuggestions = true` for files using the `6502` language, and it actively reapplies `tabSize = 8` to visible `6502` editors at runtime.
 Cross-file symbol and macro resolution for semantic tokens ensures robust syntax highlighting without relying purely on TextMate scopes.
 URI normalization is strictly enforced inside `getIndexedDocuments()` to prevent duplicate workspace index entries on Windows due to case mismatches.
+LSP diagnostics also deduplicate indexed URI aliases by normalized file path and retain the open-document URI for publication, preventing a cached alias from producing a duplicate symbol on its own definition line.
 The macro index and expansion-analysis layer now incorporate targeted caching and invalidation logic so that unaffected macro calls are not wastefully re-expanded during typing.
 The workspace index cache is invalidated after watched-file reloads complete as well as before they start, preventing requests that race the asynchronous read from preserving stale index contents.
 Performance regression benchmarks now lock down responsiveness on massive, macro-heavy synthetic documents.
