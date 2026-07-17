@@ -45,6 +45,59 @@ export function runLocalLabelScopeTest(): void {
     targetLine: 85
   });
 
+  const colonDocument = parseDocument([
+    "Host",
+    ":loop   nop",
+    "        bne :loop",
+    ":loop   nop",
+    "        bne :loop",
+    "        jmp :loop"
+  ].join("\n"));
+  const colonScope = resolveLocalLabels(colonDocument);
+
+  // bne :loop at line 2 targets :loop at line 1 (backward first)
+  assert.deepEqual(colonScope.references.get(":loop@2"), {
+    name: ":loop",
+    line: 2,
+    anchor: "Host",
+    qualifiedName: ":loop@1",
+    targetLine: 1
+  });
+
+  // bne :loop at line 4 targets :loop at line 3 (backward first)
+  assert.deepEqual(colonScope.references.get(":loop@4"), {
+    name: ":loop",
+    line: 4,
+    anchor: "Host",
+    qualifiedName: ":loop@3",
+    targetLine: 3
+  });
+
+  // jmp :loop at line 5 has no backward target after the latest :loop? Wait.
+  // jmp :loop at line 5 targets :loop at line 3 (backward)
+  assert.deepEqual(colonScope.references.get(":loop@5"), {
+    name: ":loop",
+    line: 5,
+    anchor: "Host",
+    qualifiedName: ":loop@3",
+    targetLine: 3
+  });
+
+  const forwardFallbackDocument = parseDocument([
+    "Host",
+    "        bne :loop",
+    ":loop   nop"
+  ].join("\n"));
+  const forwardFallbackScope = resolveLocalLabels(forwardFallbackDocument);
+
+  assert.deepEqual(forwardFallbackScope.references.get(":loop@1"), {
+    name: ":loop",
+    line: 1,
+    anchor: "Host",
+    qualifiedName: ":loop@2",
+    targetLine: 2
+  });
+
   const macroDocument = parseDocument([
     "Wrap mac",
     "        ]loop lda ]1",

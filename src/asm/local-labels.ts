@@ -93,7 +93,9 @@ export function resolveLocalLabels(document: ParsedDocument): LocalLabelScope {
       if (localName.startsWith("]")) {
         target = targets.slice().reverse().find(d => d.line < line.line);
       } else {
-        target = targets.find(d => d.line > line.line);
+        // For ':', search backward first, then forward
+        target = targets.slice().reverse().find(d => d.line < line.line) 
+              ?? targets.find(d => d.line > line.line);
       }
 
       if (target === undefined) {
