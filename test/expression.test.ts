@@ -90,6 +90,32 @@ export function runExpressionTest(): void {
     }
   });
 
+  for (const operator of ["<", "=", ">", "#", "&", ".", "!"]) {
+    const tokens = lexSource(`1${operator}2`).lines[0]?.tokens ?? [];
+    const parsed = parseExpression(tokens);
+    assert.equal(parsed.nextTokenIndex, tokens.length);
+    assert.deepEqual(summarizeExpression(parsed.expression), {
+      kind: "binary",
+      operator,
+      left: { kind: "numericLiteral", value: "1" },
+      right: { kind: "numericLiteral", value: "2" }
+    });
+  }
+
+  const logicalPrecedenceTokens = lexSource("{1+2&3}").lines[0]?.tokens ?? [];
+  const logicalPrecedence = parseExpression(logicalPrecedenceTokens);
+  assert.deepEqual(summarizeExpression(logicalPrecedence.expression), {
+    kind: "binary",
+    operator: "+",
+    left: { kind: "numericLiteral", value: "1" },
+    right: {
+      kind: "binary",
+      operator: "&",
+      left: { kind: "numericLiteral", value: "2" },
+      right: { kind: "numericLiteral", value: "3" }
+    }
+  });
+
   const numericForms = ["$10", "%1010", "42"];
   for (const numericForm of numericForms) {
     const tokens = lexSource(numericForm).lines[0]?.tokens ?? [];
@@ -144,6 +170,14 @@ export function runExpressionTest(): void {
   assert.deepEqual(summarizeExpression(immediateOperand.operand.expression), {
     kind: "identifier",
     value: "_LFT"
+  });
+
+  const immediateModifierOperand = parseOperand(operandTokens("        ldx #<value"));
+  assert.equal(immediateModifierOperand.operand.immediate, true);
+  assert.deepEqual(summarizeExpression(immediateModifierOperand.operand.expression), {
+    kind: "modifier",
+    operator: "<",
+    expression: { kind: "identifier", value: "value" }
   });
 
   const indexedOperand = parseOperand(

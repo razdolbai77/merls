@@ -8,7 +8,7 @@ Reference: <https://brutaldeluxe.fr/products/crossdevtools/merlin/>
 
 - [x] Add current-address `*` as an expression atom in `src/asm/lexer.ts` and `src/asm/expression.ts`; cover `dumSize = *` so `test/fixtures/valid/merlin32-main-6502.S:21` parses without an unresolved `dumSize`.
 - [x] Make unbraced Merlin expressions evaluate left-to-right in `src/asm/expression.ts`, then add `{...}` algebraic precedence; cover the documented `1+2*3 = 9` and `{1+2*3} = 7` cases.
-- [ ] Tokenize and parse Merlin comparison/logical operators `<`, `=`, `>`, `#`, `&`, `.`, and `!` without confusing prefix byte selectors or immediate markers; add focused expression tests for each operator.
+- [x] Tokenize and parse Merlin comparison/logical operators `<`, `=`, `>`, `#`, `&`, `.`, and `!` without confusing prefix byte selectors or immediate markers; add focused expression tests for each operator.
 - [ ] Accept `_` separators in binary literals in `src/asm/lexer.ts`; add `%0000_1111_0000_1111` lexer and parser coverage.
 - [ ] Model `]name = expression` as a reassignable Merlin variable, not an anchor-scoped backward local label; update symbols, diagnostics, navigation, semantic tokens, and completion with before-definition and redefinition tests.
 - [ ] Treat `;` inside a macro operand as the documented parameter separator instead of an unconditional comment start; preserve real trailing comments and test `Move #$00;$02`.

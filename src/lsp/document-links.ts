@@ -1,7 +1,14 @@
 import { DocumentLink } from "vscode-languageserver/node";
 import { CachedDocument } from "../asm/document";
+import { type Expression } from "../asm/expression";
 
 const includeDirectives = new Set(["asm", "put", "use"]);
+
+type IncludeTarget = {
+  path: string;
+  startChar: number;
+  endChar: number;
+};
 
 export function buildDocumentLinks(uri: string, cached: CachedDocument): DocumentLink[] {
   const links: DocumentLink[] = [];
@@ -16,35 +23,56 @@ export function buildDocumentLinks(uri: string, cached: CachedDocument): Documen
       continue;
     }
 
-    let targetPath: string | null = null;
-    let startChar = 0;
-    let endChar = 0;
-
-    if (node.operand.kind === "identifier") {
-      targetPath = node.operand.value;
-      startChar = node.operand.token.start;
-      endChar = node.operand.token.end;
-    } else if (node.operand.kind === "string") {
-      targetPath = node.operand.value;
-      startChar = node.operand.token.start;
-      endChar = node.operand.token.end;
+    const includeTarget = getIncludeTarget(node.operand);
+    if (includeTarget === null) {
+      continue;
     }
 
-    if (targetPath !== null) {
-      try {
-        const targetUri = new URL(targetPath, uri).href;
-        links.push({
-          range: {
-            start: { line: line.line, character: startChar },
-            end: { line: line.line, character: endChar }
-          },
-          target: targetUri
-        });
-      } catch {
-        // Ignore invalid URLs
-      }
+    try {
+      const targetUri = new URL(includeTarget.path, uri).href;
+      links.push({
+        range: {
+          start: { line: line.line, character: includeTarget.startChar },
+          end: { line: line.line, character: includeTarget.endChar }
+        },
+        target: targetUri
+      });
+    } catch {
+      // Ignore invalid URLs
     }
   }
 
   return links;
+}
+
+function getIncludeTarget(expression: Expression): IncludeTarget | null {
+  if (expression.kind === "identifier") {
+    return {
+      path: expression.value,
+      startChar: expression.token.start,
+      endChar: expression.token.end
+    };
+  }
+
+  if (expression.kind === "string") {
+    return {
+      path: expression.value,
+      startChar: expression.token.start,
+      endChar: expression.token.end
+    };
+  }
+
+  if (expression.kind === "binary") {
+    const left = getIncludeTarget(expression.left);
+    const right = getIncludeTarget(expression.right);
+    if (left !== null && right !== null) {
+      return {
+        path: `${left.path}${expression.operator}${right.path}`,
+        startChar: left.startChar,
+        endChar: right.endChar
+      };
+    }
+  }
+
+  return null;
 }

@@ -15,7 +15,7 @@ The parser test suite now explicitly locks down current macro-call parsing and t
 Shared 6502 opcode and Merlin32 directive metadata now lives under `src/asm/metadata.ts`.
 Shared token-kind and line-shape metadata now lives under `src/asm/syntax.ts`.
 The current lexer implementation now lives under `src/asm/lexer.ts` and is covered by fixture-driven unit tests.
-The current expression parser recognizes numeric forms, current-address `*`, left-to-right Merlin arithmetic, brace-controlled algebraic precedence, modifiers, and indexed operands; `test/expression.test.ts` covers each form.
+The current expression parser recognizes numeric forms, current-address `*`, left-to-right Merlin arithmetic, brace-controlled algebraic precedence, comparison/logical operators, modifiers, and indexed operands; `test/expression.test.ts` covers each form.
 The current line parser now lives under `src/asm/parser.ts` and classifies equates, instructions, directives, data lines, and malformed input.
 The current parser also exposes first-class macro definition regions with body lines, closing directives, positional parameter placeholder references, nested macro-call usage, symbol references, and invalid macro-local label definitions/references for diagnostics; illegal nested `mac` definitions are diagnostic-only and excluded from macro navigation/indexing.
 The current document model now lives under `src/asm/document.ts` and preserves line-by-line structure while collecting malformed-line errors.

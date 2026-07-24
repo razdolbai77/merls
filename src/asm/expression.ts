@@ -35,7 +35,7 @@ export type UnaryExpression = {
 
 export type BinaryExpression = {
   kind: "binary";
-  operator: "+" | "-" | "*" | "/";
+  operator: "+" | "-" | "*" | "/" | "<" | "=" | ">" | "#" | "&" | "." | "!";
   left: Expression;
   right: Expression;
 };
@@ -68,10 +68,17 @@ export type Operand = {
 };
 
 const binaryPrecedence: Record<string, number> = {
-  "+": 10,
-  "-": 10,
-  "*": 20,
-  "/": 20
+  "<": 10,
+  "=": 10,
+  ">": 10,
+  "#": 10,
+  "+": 20,
+  "-": 20,
+  "*": 30,
+  "/": 30,
+  "&": 40,
+  ".": 40,
+  "!": 40
 };
 
 type ExpressionPrecedence = "leftToRight" | "algebraic";
@@ -86,7 +93,16 @@ export function parseExpression(
 
   while (nextTokenIndex < tokens.length) {
     const operatorToken = tokens[nextTokenIndex];
-    if (operatorToken?.kind !== "expressionOperator") {
+    if (
+      operatorToken === undefined ||
+      (
+        operatorToken.kind !== "expressionOperator" &&
+        (
+          operatorToken.kind !== "modifier" ||
+          (operatorToken.lexeme !== "<" && operatorToken.lexeme !== ">")
+        )
+      )
+    ) {
       break;
     }
 
@@ -295,9 +311,6 @@ function parsePrefix(
     };
   }
 
-  if (token.kind === "expressionOperator" && token.lexeme === "#") {
-    return parsePrefix(tokens, startIndex + 1, precedence);
-  }
 
   throw new Error(`unexpected expression token: ${token.lexeme}`);
 }

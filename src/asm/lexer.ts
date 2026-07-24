@@ -42,6 +42,9 @@ const operatorCharacters: Record<string, true> = {
   "<": true,
   ">": true,
   "^": true,
+  "&": true,
+  ".": true,
+  "!": true,
   "{": true,
   "}": true
 };
@@ -88,7 +91,10 @@ function lexLine(text: string, line: number): LexedLine {
       continue;
     }
 
-    if (operatorCharacters[char] === true) {
+    const startsRelativePath = char === "." &&
+      (text[index + 1] === "." || text[index + 1] === "/" || text[index + 1] === "\\") &&
+      (index === 0 || text[index - 1] === " " || text[index - 1] === "\t");
+    if (operatorCharacters[char] === true && !startsRelativePath) {
       if (char === "<" && text.slice(index, index + 3) === "<<<") {
         tokens.push(createToken("directive", "<<<", index, index + 3));
         sawOperation = true;
@@ -155,7 +161,7 @@ function consumeString(text: string, start: number): number {
 }
 
 function consumeNumericLiteral(text: string, start: number): { lexeme: string; end: number } | null {
-  const prefixed = text.slice(start).match(/^#?(?:\$[0-9A-Fa-f]+|%[01]+|\d+)/);
+  const prefixed = text.slice(start).match(/^(?:\$[0-9A-Fa-f]+|%[01]+|\d+)/);
   if (prefixed !== null) {
     return {
       lexeme: prefixed[0],
@@ -167,11 +173,18 @@ function consumeNumericLiteral(text: string, start: number): { lexeme: string; e
 }
 
 function consumeWord(text: string, start: number): number {
+  const isRelativePath = text[start] === "." &&
+    (text[start + 1] === "." || text[start + 1] === "/" || text[start + 1] === "\\");
   let index = start;
 
   while (index < text.length) {
     const char = text[index];
-    if (char === " " || char === "\t" || char === ";" || operatorCharacters[char] === true) {
+    if (
+      char === " " ||
+      char === "\t" ||
+      char === ";" ||
+      (operatorCharacters[char] === true && !(isRelativePath && char === "."))
+    ) {
       break;
     }
     index += 1;

@@ -7,12 +7,13 @@ export function runDocumentLinksTest(): void {
   put main.S
   use "lib.S"
   asm other.S
+  use ../lib.S
   `;
 
   const cached = buildCachedDocument(source);
   const links = buildDocumentLinks("file:///workspace/src/index.S", cached);
 
-  assert.equal(links.length, 3);
+  assert.equal(links.length, 4);
 
   assert.equal(links[0].target, "file:///workspace/src/main.S");
   assert.equal(links[0].range.start.line, 1);
@@ -22,4 +23,6 @@ export function runDocumentLinksTest(): void {
 
   assert.equal(links[2].target, "file:///workspace/src/other.S");
   assert.equal(links[2].range.start.line, 3);
+  assert.equal(links[3].target, "file:///workspace/lib.S");
+  assert.equal(links[3].range.start.line, 4);
 }
