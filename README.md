@@ -132,6 +132,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - `src/asm/expression.ts` recognizes Merlin's current-address `*` expression atom.
 - Merlin expressions evaluate left-to-right by default; braces (`{...}`) enable algebraic operator precedence.
 - Comparison (`<`, `=`, `>`, `#`) and logical (`&`, `.`, `!`) expressions preserve Merlin syntax, prefix byte selectors, and immediate operands.
+- Binary literals accept `_` digit separators, including `%0000_1111_0000_1111`.
 - LSP handlers (hover, completion, diagnostics, etc.) are located in `src/lsp/`.
 - The CLI entry point lives in `src/cli.ts` and compiles to `dist/src/cli.js`.
 - The VS Code extension contributes `Pearls: Compile Current File with Merlin32` and `Pearls: Assemble Project with Merlin32` commands and exposes `pearls.merlin32Executable`, `pearls.compileArgs`, `pearls.merlin32MacroFolder`, and `pearls.merlin32ProjectEntryFile` settings for assembler invocation.

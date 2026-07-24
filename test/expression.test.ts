@@ -116,9 +116,10 @@ export function runExpressionTest(): void {
     }
   });
 
-  const numericForms = ["$10", "%1010", "42"];
+  const numericForms = ["$10", "%1010", "%0000_1111_0000_1111", "42"];
   for (const numericForm of numericForms) {
     const tokens = lexSource(numericForm).lines[0]?.tokens ?? [];
+    assert.equal(tokens[0]?.kind, "numericLiteral");
     const parsed = parseExpression(tokens);
     assert.deepEqual(summarizeExpression(parsed.expression), {
       kind: "numericLiteral",

@@ -161,7 +161,7 @@ function consumeString(text: string, start: number): number {
 }
 
 function consumeNumericLiteral(text: string, start: number): { lexeme: string; end: number } | null {
-  const prefixed = text.slice(start).match(/^(?:\$[0-9A-Fa-f]+|%[01]+|\d+)/);
+  const prefixed = text.slice(start).match(/^(?:\$[0-9A-Fa-f]+|%[01]+(?:_[01]+)*|\d+)/);
   if (prefixed !== null) {
     return {
       lexeme: prefixed[0],
@@ -216,7 +216,7 @@ function classifyWord(
     return "localLabel";
   }
 
-  if (/^(?:\$[0-9A-Fa-f]+|%[01]+|\d+)$/.test(lexeme)) {
+  if (/^(?:\$[0-9A-Fa-f]+|%[01]+(?:_[01]+)*|\d+)$/.test(lexeme)) {
     return "numericLiteral";
   }
 
