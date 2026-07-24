@@ -59,6 +59,10 @@ export function runDiagnosticsTest(): void {
     process.cwd(),
     "test/fixtures/invalid/unknown-addressing-modifiers.S"
   );
+  const mainFixturePath = path.resolve(
+    process.cwd(),
+    "test/fixtures/valid/merlin32-main-6502.S"
+  );
 
   const diagnostics = collectWorkspaceDiagnostics([
     {
@@ -378,5 +382,21 @@ export function runDiagnosticsTest(): void {
         diagnostic.message.includes("lda")
     ),
     true
+  );
+  const mainFixtureDocument = parseDocument(fs.readFileSync(mainFixturePath, "utf8"));
+  const mainFixtureDiagnostics = collectWorkspaceDiagnostics([
+    {
+      filePath: mainFixturePath,
+      document: mainFixtureDocument
+    }
+  ]);
+  assert.equal(mainFixtureDocument.errors.length, 0);
+  assert.equal(
+    mainFixtureDiagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.code === "unresolved-reference" &&
+        diagnostic.message.includes("dumSize")
+    ),
+    false
   );
 }

@@ -28,6 +28,10 @@ function summarizeExpression(expression: Expression): unknown {
         operator: expression.operator,
         expression: summarizeExpression(expression.expression)
       };
+    case "currentAddress":
+      return {
+        kind: expression.kind
+      };
     default:
       return {
         kind: expression.kind,
@@ -67,6 +71,13 @@ export function runExpressionTest(): void {
       value: numericForm
     });
   }
+
+  const currentAddressTokens = lexSource("dumSize = *").lines[0]?.tokens.slice(2) ?? [];
+  const currentAddress = parseExpression(currentAddressTokens);
+  assert.equal(currentAddress.nextTokenIndex, currentAddressTokens.length);
+  assert.deepEqual(summarizeExpression(currentAddress.expression), {
+    kind: "currentAddress"
+  });
 
   const unaryTokens = lexSource("-$10 + +42").lines[0]?.tokens ?? [];
   const unaryParsed = parseExpression(unaryTokens);

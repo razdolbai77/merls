@@ -17,6 +17,10 @@ export type StringExpression = {
   token: Token;
 };
 
+export type CurrentAddressExpression = {
+  kind: "currentAddress";
+};
+
 export type ModifierExpression = {
   kind: "modifier";
   operator: "<" | ">" | "^";
@@ -40,6 +44,7 @@ export type Expression =
   | NumericLiteralExpression
   | IdentifierExpression
   | StringExpression
+  | CurrentAddressExpression
   | ModifierExpression
   | UnaryExpression
   | BinaryExpression;
@@ -222,6 +227,15 @@ function parsePrefix(tokens: readonly Token[], startIndex: number): ParsedExpres
         kind: "string",
         value: token.lexeme.slice(1, -1),
         token
+      },
+      nextTokenIndex: startIndex + 1
+    };
+  }
+
+  if (token.kind === "expressionOperator" && token.lexeme === "*") {
+    return {
+      expression: {
+        kind: "currentAddress"
       },
       nextTokenIndex: startIndex + 1
     };
