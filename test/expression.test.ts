@@ -62,6 +62,34 @@ export function runExpressionTest(): void {
     right: { kind: "numericLiteral", value: "1" }
   });
 
+  const merlinArithmeticTokens = lexSource("1+2*3").lines[0]?.tokens ?? [];
+  const merlinArithmetic = parseExpression(merlinArithmeticTokens);
+  assert.deepEqual(summarizeExpression(merlinArithmetic.expression), {
+    kind: "binary",
+    operator: "*",
+    left: {
+      kind: "binary",
+      operator: "+",
+      left: { kind: "numericLiteral", value: "1" },
+      right: { kind: "numericLiteral", value: "2" }
+    },
+    right: { kind: "numericLiteral", value: "3" }
+  });
+
+  const bracedArithmeticTokens = lexSource("{1+2*3}").lines[0]?.tokens ?? [];
+  const bracedArithmetic = parseExpression(bracedArithmeticTokens);
+  assert.deepEqual(summarizeExpression(bracedArithmetic.expression), {
+    kind: "binary",
+    operator: "+",
+    left: { kind: "numericLiteral", value: "1" },
+    right: {
+      kind: "binary",
+      operator: "*",
+      left: { kind: "numericLiteral", value: "2" },
+      right: { kind: "numericLiteral", value: "3" }
+    }
+  });
+
   const numericForms = ["$10", "%1010", "42"];
   for (const numericForm of numericForms) {
     const tokens = lexSource(numericForm).lines[0]?.tokens ?? [];

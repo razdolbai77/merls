@@ -67,19 +67,22 @@ export type Operand = {
   expression: Expression;
 };
 
-const binaryPrecedence = new Map<string, number>([
-  ["+", 10],
-  ["-", 10],
-  ["*", 20],
-  ["/", 20]
-]);
+const binaryPrecedence: Record<string, number> = {
+  "+": 10,
+  "-": 10,
+  "*": 20,
+  "/": 20
+};
+
+type ExpressionPrecedence = "leftToRight" | "algebraic";
 
 export function parseExpression(
   tokens: readonly Token[],
   startIndex = 0,
-  minimumPrecedence = 0
+  minimumPrecedence = 0,
+  precedence: ExpressionPrecedence = "leftToRight"
 ): ParsedExpression {
-  let { expression: left, nextTokenIndex } = parsePrefix(tokens, startIndex);
+  let { expression: left, nextTokenIndex } = parsePrefix(tokens, startIndex, precedence);
 
   while (nextTokenIndex < tokens.length) {
     const operatorToken = tokens[nextTokenIndex];
@@ -87,12 +90,17 @@ export function parseExpression(
       break;
     }
 
-    const precedence = binaryPrecedence.get(operatorToken.lexeme);
-    if (precedence === undefined || precedence < minimumPrecedence) {
+    const algebraicPrecedence = binaryPrecedence[operatorToken.lexeme];
+    const operatorPrecedence = algebraicPrecedence === undefined
+      ? undefined
+      : precedence === "algebraic"
+        ? algebraicPrecedence
+        : 10;
+    if (operatorPrecedence === undefined || operatorPrecedence < minimumPrecedence) {
       break;
     }
 
-    const parsedRight = parseExpression(tokens, nextTokenIndex + 1, precedence + 1);
+    const parsedRight = parseExpression(tokens, nextTokenIndex + 1, operatorPrecedence + 1, precedence);
     left = {
       kind: "binary",
       operator: operatorToken.lexeme as BinaryExpression["operator"],
@@ -186,7 +194,11 @@ export function parseOperand(tokens: readonly Token[], startIndex = 0): ParsedOp
   };
 }
 
-function parsePrefix(tokens: readonly Token[], startIndex: number): ParsedExpression {
+function parsePrefix(
+  tokens: readonly Token[],
+  startIndex: number,
+  precedence: ExpressionPrecedence
+): ParsedExpression {
   const token = tokens[startIndex];
   if (token === undefined) {
     throw new Error("expected expression token");
@@ -242,7 +254,7 @@ function parsePrefix(tokens: readonly Token[], startIndex: number): ParsedExpres
   }
 
   if (token.kind === "modifier") {
-    const parsedInner = parsePrefix(tokens, startIndex + 1);
+    const parsedInner = parsePrefix(tokens, startIndex + 1, precedence);
     return {
       expression: {
         kind: "modifier",
@@ -253,8 +265,17 @@ function parsePrefix(tokens: readonly Token[], startIndex: number): ParsedExpres
     };
   }
 
+  if (token.kind === "expressionOperator" && token.lexeme === "{") {
+    const parsedInner = parseExpression(tokens, startIndex + 1, 0, "algebraic");
+    expectOperator(tokens[parsedInner.nextTokenIndex], "}");
+    return {
+      expression: parsedInner.expression,
+      nextTokenIndex: parsedInner.nextTokenIndex + 1
+    };
+  }
+
   if (token.kind === "expressionOperator" && token.lexeme === "(") {
-    const parsedInner = parseExpression(tokens, startIndex + 1);
+    const parsedInner = parseExpression(tokens, startIndex + 1, 0, precedence);
     expectOperator(tokens[parsedInner.nextTokenIndex], ")");
     return {
       expression: parsedInner.expression,
@@ -263,7 +284,7 @@ function parsePrefix(tokens: readonly Token[], startIndex: number): ParsedExpres
   }
 
   if (token.kind === "expressionOperator" && (token.lexeme === "+" || token.lexeme === "-")) {
-    const parsedInner = parsePrefix(tokens, startIndex + 1);
+    const parsedInner = parsePrefix(tokens, startIndex + 1, precedence);
     return {
       expression: {
         kind: "unary",
@@ -275,7 +296,7 @@ function parsePrefix(tokens: readonly Token[], startIndex: number): ParsedExpres
   }
 
   if (token.kind === "expressionOperator" && token.lexeme === "#") {
-    return parsePrefix(tokens, startIndex + 1);
+    return parsePrefix(tokens, startIndex + 1, precedence);
   }
 
   throw new Error(`unexpected expression token: ${token.lexeme}`);

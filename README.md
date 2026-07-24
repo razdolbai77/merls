@@ -130,6 +130,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - TDD is mandatory for implementation work in this repository.
 - Core syntax, parsing, and document model logic are located in `src/asm/`.
 - `src/asm/expression.ts` recognizes Merlin's current-address `*` expression atom.
+- Merlin expressions evaluate left-to-right by default; braces (`{...}`) enable algebraic operator precedence.
 - LSP handlers (hover, completion, diagnostics, etc.) are located in `src/lsp/`.
 - The CLI entry point lives in `src/cli.ts` and compiles to `dist/src/cli.js`.
 - The VS Code extension contributes `Pearls: Compile Current File with Merlin32` and `Pearls: Assemble Project with Merlin32` commands and exposes `pearls.merlin32Executable`, `pearls.compileArgs`, `pearls.merlin32MacroFolder`, and `pearls.merlin32ProjectEntryFile` settings for assembler invocation.

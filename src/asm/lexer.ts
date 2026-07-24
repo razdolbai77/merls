@@ -29,7 +29,22 @@ export type LexedSource = {
   lines: readonly LexedLine[];
 };
 
-const operatorCharacters = new Set(["(", ")", ",", "#", "+", "-", "*", "/", "=", "<", ">", "^"]);
+const operatorCharacters: Record<string, true> = {
+  "(": true,
+  ")": true,
+  ",": true,
+  "#": true,
+  "+": true,
+  "-": true,
+  "*": true,
+  "/": true,
+  "=": true,
+  "<": true,
+  ">": true,
+  "^": true,
+  "{": true,
+  "}": true
+};
 
 export function lexSource(source: string): LexedSource {
   const lines = source.split(/\r?\n/).map((text, index) => lexLine(text, index));
@@ -73,7 +88,7 @@ function lexLine(text: string, line: number): LexedLine {
       continue;
     }
 
-    if (operatorCharacters.has(char)) {
+    if (operatorCharacters[char] === true) {
       if (char === "<" && text.slice(index, index + 3) === "<<<") {
         tokens.push(createToken("directive", "<<<", index, index + 3));
         sawOperation = true;
@@ -156,7 +171,7 @@ function consumeWord(text: string, start: number): number {
 
   while (index < text.length) {
     const char = text[index];
-    if (char === " " || char === "\t" || char === ";" || operatorCharacters.has(char)) {
+    if (char === " " || char === "\t" || char === ";" || operatorCharacters[char] === true) {
       break;
     }
     index += 1;
