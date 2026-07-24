@@ -3,7 +3,7 @@ import { type ParsedDocument } from "./document";
 import { type Token } from "./lexer";
 import { collectDocumentMacros, type DocumentMacroDefinition } from "./macros";
 
-export type SymbolKind = "label" | "equate" | "data" | "macro";
+export type SymbolKind = "label" | "equate" | "variable" | "data" | "macro";
 
 export type SymbolDefinition = {
   name: string;
@@ -27,7 +27,7 @@ export function collectSymbols(document: ParsedDocument): Map<string, SymbolDefi
     const node = line.node;
 
     if (node.shape === "equate") {
-      addSymbol(node.label.lexeme, "equate", line.line, node.label);
+      addSymbol(node.label.lexeme, node.isVariable ? "variable" : "equate", line.line, node.label);
       continue;
     }
 

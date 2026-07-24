@@ -36,6 +36,7 @@ import { directiveTable } from "../asm/metadata";
 
 type SemanticSymbolsCache = {
   allSymbols: Set<string>;
+  allVariables: Set<string>;
   allMacros: Set<string>;
 };
 
@@ -50,6 +51,7 @@ export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Ma
   if (cache === undefined) {
     const allSymbols = new Set<string>();
     const allMacros = new Set<string>();
+    const allVariables = new Set<string>();
     
     for (const doc of indexedDocuments.values()) {
       const docSymbols = doc.symbols;
@@ -58,13 +60,16 @@ export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Ma
         if (definition.kind === "macro") {
           allMacros.add(name);
         }
+        if (definition.kind === "variable") {
+          allVariables.add(name);
+        }
       }
     }
-    cache = { allSymbols, allMacros };
+    cache = { allSymbols, allMacros, allVariables };
     semanticSymbolsCache.set(indexedDocuments, cache);
   }
 
-  const { allSymbols, allMacros } = cache;
+  const { allSymbols, allMacros, allVariables } = cache;
 
   // Also collect local labels from the current document
   let localScope = localScopeCache.get(cached);
@@ -117,6 +122,8 @@ export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Ma
         } else if (/^\]\d+$/.test(token.lexeme)) {
           // Macro parameter placeholder
           typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.parameter);
+        } else if (allVariables.has(token.lexeme)) {
+          typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.variable);
         } else if (isResolved(token.lexeme, line.line)) {
           if (allMacros.has(token.lexeme)) {
             typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.macro);

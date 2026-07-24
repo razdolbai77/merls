@@ -385,6 +385,13 @@ function collectUnresolvedDiagnostics(
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
   const localScope = resolveLocalLabels(document);
+  const variableDefinitionLines = new Map<string, number>();
+  for (const line of document.lines) {
+    if (line.node.shape === "equate" && line.node.isVariable && !variableDefinitionLines.has(line.node.label.lexeme)) {
+      variableDefinitionLines.set(line.node.label.lexeme, line.line);
+    }
+  }
+
   const macroParameterLines = new Map<number, Set<string>>();
 
   for (const macroDefinition of document.macroDefinitions) {
@@ -405,9 +412,26 @@ function collectUnresolvedDiagnostics(
         continue;
       }
 
+      if (reference.lexeme.startsWith("]")) {
+        const definitionLine = variableDefinitionLines.get(reference.lexeme);
+        if (definitionLine !== undefined) {
+          if (line.line < definitionLine && !line.isExpanded) {
+            diagnostics.push({
+              filePath,
+              line: line.line,
+              code: "unresolved-reference",
+              message: `Unresolved variable reference ${reference.lexeme}`,
+              startCharacter: reference.start,
+              endCharacter: reference.end
+            });
+          }
+          continue;
+        }
+      }
+
       if (reference.lexeme.startsWith("]") || reference.lexeme.startsWith(":")) {
         const localKey = `${reference.lexeme}@${line.line}`;
-        
+
         if (!localScope.references.has(localKey)) {
           if (!line.isExpanded) {
             diagnostics.push({

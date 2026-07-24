@@ -25,6 +25,7 @@ import { runJsonRpcClientTest } from "./json-rpc-client.test";
 import { runInitializeHandshakeTest } from "./server-initialize.test";
 import { runServerEntrypointTest } from "./server-entrypoint.test";
 import { runSymbolsTest } from "./symbols.test";
+import { runVariableTest } from "./variables.test";
 import { runSyntaxShapeTest } from "./syntax-shape.test";
 import { runWorkspaceGraphTest } from "./workspace.test";
 import { runWorkspaceSymbolTest } from "./workspace-symbol.test";
@@ -111,6 +112,10 @@ const tests: TestCase[] = [
   {
     name: "local label scope resolves Merlin local definitions and references",
     run: runLocalLabelScopeTest
+  },
+  {
+    name: "Merlin variables are reassignable symbols",
+    run: runVariableTest
   },
   {
     name: "workspace indexing follows Merlin include directives and merges symbols",

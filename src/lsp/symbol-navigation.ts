@@ -73,6 +73,19 @@ export function findDefinition(
     }
   }
 
+  const variableSymbol = cached === undefined
+    ? undefined
+    : collectSymbols(cached.parsed).get(targetName);
+  if (variableSymbol?.kind === "variable") {
+    return {
+      uri,
+      range: {
+        start: { line: variableSymbol.line, character: variableSymbol.token.start },
+        end: { line: variableSymbol.line, character: variableSymbol.token.end }
+      }
+    };
+  }
+
   const isLocal = targetName.startsWith("]") || targetName.startsWith(":");
 
   if (isLocal && cached !== undefined) {
@@ -132,10 +145,17 @@ export function findReferences(
   if (targetName === null) {
     return [];
   }
+  const targetCached = openDocuments.get(uri);
+  const isVariable = targetCached !== undefined &&
+    collectSymbols(targetCached.parsed).get(targetName)?.kind === "variable";
+
 
   const locations: Location[] = [];
 
   for (const [documentUri, cached] of openDocuments.entries()) {
+    if (isVariable && documentUri !== uri) {
+      continue;
+    }
     if (includeDeclaration) {
       for (const definition of collectDefinitions(documentUri, cached)) {
         if (definition.name === targetName) {

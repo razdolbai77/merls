@@ -34,6 +34,13 @@ export function resolveLocalLabels(document: ParsedDocument): LocalLabelScope {
   const anchors = new Map<number, string>();
   const definitionsByAnchor = new Map<string, Map<string, LocalLabelDefinition[]>>();
 
+  const variableNames = new Set<string>();
+  for (const line of document.lines) {
+    if (line.node.shape === "equate" && line.node.isVariable) {
+      variableNames.add(line.node.label.lexeme);
+    }
+  }
+
   let currentAnchor: AnchorState | null = null;
 
   for (const line of document.lines) {
@@ -84,6 +91,10 @@ export function resolveLocalLabels(document: ParsedDocument): LocalLabelScope {
     }
 
     for (const localName of findLocalReferences(line.node)) {
+      if (variableNames.has(localName)) {
+        continue;
+      }
+
       const targets = anchorDefinitions.get(localName);
       if (targets === undefined) {
         continue;
@@ -177,7 +188,7 @@ function getLocalDefinition(node: ParsedLine): string | null {
     return node.label.lexeme;
   }
 
-  if (node.shape === "equate" && isLocalLabel(node.label.lexeme)) {
+  if (node.shape === "equate" && !node.isVariable && isLocalLabel(node.label.lexeme)) {
     return node.label.lexeme;
   }
 

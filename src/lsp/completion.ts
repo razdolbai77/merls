@@ -124,7 +124,7 @@ export function buildCompletionItems(
   for (const doc of openDocuments.values()) {
     const symbols = collectSymbols(doc.parsed);
     for (const symbol of symbols.values()) {
-      if (isLocalLabel(symbol.name)) {
+      if (isLocalLabel(symbol.name) && symbol.kind !== "variable") {
         continue;
       }
 

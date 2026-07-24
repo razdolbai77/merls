@@ -34,6 +34,7 @@ export type EquateLine = {
   shape: "equate";
   text: string;
   label: Token;
+  isVariable: boolean;
   expression: Expression;
 };
 
@@ -218,6 +219,7 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
       shape: "equate",
       text,
       label,
+      isVariable: label.lexeme.startsWith("]"),
       expression: parsed.expression
     };
   }
@@ -424,7 +426,7 @@ function collectMacroBodyUsage(node: ParsedLine): Omit<MacroBodyLine, "line" | "
       }
       break;
     case "equate":
-      if (node.label.kind === "localLabel") {
+      if (node.label.kind === "localLabel" && !node.isVariable) {
         localLabelDefinitions.push({ token: node.label });
       }
       collectExpressionUsage(node.expression, collectTokenUsage);

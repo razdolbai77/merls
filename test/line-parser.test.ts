@@ -21,11 +21,18 @@ export function runLineParserTest(): void {
     shape: "equate",
     text: "TEXT    =   $FB39",
     label: { kind: "label", lexeme: "TEXT", start: 0, end: 4 },
+    isVariable: false,
     expression: {
       kind: "numericLiteral",
       value: "$FB39"
     }
   });
+
+  const variableLine = parseSourceLines("]count = 0")[0];
+  assert.equal(variableLine?.shape, "equate");
+  if (variableLine?.shape === "equate") {
+    assert.equal(variableLine.isVariable, true);
+  }
 
   assert.deepEqual(lines[1], {
     shape: "instruction",

@@ -8,7 +8,7 @@ import { collectSymbols } from "./symbols";
 
 export type WorkspaceSymbol = {
   name: string;
-  kind: "label" | "equate" | "data" | "macro";
+  kind: "label" | "equate" | "variable" | "data" | "macro";
   line: number;
   filePath: string;
 };
