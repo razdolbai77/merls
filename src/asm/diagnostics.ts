@@ -54,6 +54,7 @@ type MacroRecord = {
   startCharacter: number;
   endCharacter: number;
   maxParameterIndex: number;
+  usesArgumentCountParameter: boolean;
 };
 
 export function collectWorkspaceDiagnostics(
@@ -78,7 +79,10 @@ export function collectWorkspaceDiagnostics(
         filePath: entry.filePath,
         startCharacter: macroDefinition.nameToken.start,
         endCharacter: macroDefinition.nameToken.end,
-        maxParameterIndex: macroDefinition.maxParameterIndex
+        maxParameterIndex: macroDefinition.maxParameterIndex,
+        usesArgumentCountParameter: macroDefinition.parameterReferences.some(
+          (parameterReference) => parameterReference.index === 0
+        ),
       });
       macrosByName.set(macroDefinition.name, current);
     }
@@ -488,7 +492,7 @@ function collectMacroCallDiagnostics(
 
     const requiredArity = definition.maxParameterIndex;
     const actualArity = splitMacroCallArguments(macroCall.args).length;
-    if (requiredArity !== actualArity) {
+    if (!definition.usesArgumentCountParameter && requiredArity !== actualArity) {
       diagnostics.push({
         filePath,
         line: macroCall.line,

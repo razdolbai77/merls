@@ -119,6 +119,24 @@ export function runMacroDiagnosticsTest(): void {
     false
   );
 
+  const countDiagnostics = collectWorkspaceDiagnostics([
+    {
+      filePath: "<macro-argument-count>",
+      document: parseDocument([
+        "CountArgs mac",
+        "        dfb ]0",
+        "        eom",
+        "        CountArgs",
+        "        CountArgs VALUE",
+        "        CountArgs A;B;C;D;E;F;G;H"
+      ].join("\n"))
+    }
+  ]);
+  assert.equal(
+    countDiagnostics.some((diagnostic) => diagnostic.code === "macro-arity-mismatch"),
+    false
+  );
+
   assert.deepEqual(findDiagnostic(diagnostics, "unresolved-conditional", 19), {
     filePath: "<macro-ranges>",
     line: 19,

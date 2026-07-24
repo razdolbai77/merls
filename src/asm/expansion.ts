@@ -56,6 +56,23 @@ export function expandMacroCall(
       const match = /^\](\d+)$/u.exec(token.lexeme);
       if (token.kind === "localLabel" && match !== null) {
         const paramIndex = Number.parseInt(match[1]!, 10);
+        if (paramIndex === 0) {
+          const countLexeme = String(args.length);
+          const spaceBefore = " ".repeat(token.start - lastTokenEnd);
+          const start = expandedText.length + spaceBefore.length;
+          expandedText += spaceBefore + countLexeme;
+          expandedTokens.push({
+            ...token,
+            kind: "numericLiteral",
+            lexeme: countLexeme,
+            start,
+            end: start + countLexeme.length,
+            sourceToken: token
+          });
+          lastTokenEnd = token.end;
+          continue;
+        }
+
         const argTokens = args[paramIndex - 1] ?? [];
         if (argTokens.length > 0) {
           // If there are arg tokens, replace this placeholder with them

@@ -13,7 +13,7 @@ Reference: <https://brutaldeluxe.fr/products/crossdevtools/merlin/>
 - [x] Model `]name = expression` as a reassignable Merlin variable, not an anchor-scoped backward local label; update symbols, diagnostics, navigation, semantic tokens, and completion with before-definition and redefinition tests.
 - [x] Treat `;` inside a macro operand as the documented parameter separator instead of an unconditional comment start; preserve real trailing comments and test `Move #$00;$02`.
 - [x] Replace comma-based macro arity, expansion, signature-help, and navigation splitting with shared Merlin parameter splitting in `src/asm/expansion.ts`, `src/asm/diagnostics.ts`, and `src/lsp/signature-help.ts`.
-- [ ] Implement macro parameter `]0` as the supplied-argument count during expansion; cover zero-, one-, and eight-argument calls.
+- [x] Implement macro parameter `]0` as the supplied-argument count during expansion; cover zero-, one-, and eight-argument calls.
 - [ ] Limit positional macro parameters to documented `]1` through `]8`; make completion include `]0` and stop suggesting invalid `]9`/multi-digit placeholders in `src/lsp/completion.ts`.
 - [ ] Enforce definition-before-use for macros and `EQU` symbols using workspace load order; add forward-call and forward-equate diagnostics without breaking ordinary forward label references.
 - [ ] Support Merlin's documented nested macro-definition form instead of always emitting `invalid-macro-nesting`; keep nested definitions scoped to the enclosing macro and test the shared `<<<` terminator.

@@ -50,6 +50,7 @@ The current `textDocument/semanticTokens` handler is wired through `src/server.t
 The parser models `]name = expression` as a reassignable Merlin variable rather than an anchor-scoped local label; symbols, diagnostics, navigation, completion, and semantic tokens preserve that distinction.
 Macro call argument separators are adjacent semicolons (`Move #$00;$02`); whitespace before `;` keeps ordinary trailing-comment behavior.
 Macro parameter splitting is centralized in `src/asm/expansion.ts`, so expansion, arity diagnostics, signature help, and navigation all preserve comma-containing operands as one argument.
+Macro placeholder `]0` expands to the supplied argument count, and macros using it accept variable arity without `macro-arity-mismatch` diagnostics.
 The current `textDocument/publishDiagnostics` path is wired through `src/server.ts` and `src/lsp/diagnostics.ts`, with full-document sync on open/change so editor clients receive live parser and resolver diagnostics across the entire watched workspace.
 Additional advanced LSP handlers for rename, formatting, folding, document highlights, inlay hints, signature help, call hierarchy, code lenses, document links, and selection ranges are also fully wired through `src/server.ts` to their respective modules in `src/lsp/`.
 Auto-formatting now uppercases known instructions and directives while preserving labels, macro-call identifiers, and operand text as written.

@@ -136,6 +136,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - `]name = expression` declares a reassignable Merlin variable: it is distinct from anchor-scoped local labels, resolves across reassignments, and requires definition before use.
 - Macro call arguments use adjacent semicolons (`Move #$00;$02`); a semicolon preceded by whitespace remains a trailing comment.
 - Macro parameter splitting is shared by expansion, diagnostics, signature help, and navigation; commas remain part of a macro argument, including indexed operands.
+- Macro placeholder `]0` expands to the supplied argument count, allowing flexible macros to accept zero, one, or eight arguments without arity diagnostics.
 - LSP handlers (hover, completion, diagnostics, etc.) are located in `src/lsp/`.
 - The CLI entry point lives in `src/cli.ts` and compiles to `dist/src/cli.js`.
 - The VS Code extension contributes `Pearls: Compile Current File with Merlin32` and `Pearls: Assemble Project with Merlin32` commands and exposes `pearls.merlin32Executable`, `pearls.compileArgs`, `pearls.merlin32MacroFolder`, and `pearls.merlin32ProjectEntryFile` settings for assembler invocation.

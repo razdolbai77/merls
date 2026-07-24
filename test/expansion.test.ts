@@ -87,4 +87,28 @@ export async function runExpansionTest(): Promise<void> {
   const separatorExpansion = expandMacroCall(separatorCall.node, separatorDocument.macroDefinitions);
   assert.equal(separatorExpansion.lines[0]?.text.trim(), "lda #$00");
   assert.equal(separatorExpansion.lines[1]?.text.trim(), "sta $02");
+
+  const countSource = [
+    "CountArgs mac",
+    "     dfb ]0",
+    "     eom",
+    "     CountArgs",
+    "     CountArgs VALUE",
+    "     CountArgs A;B;C;D;E;F;G;H"
+  ].join("\n");
+  const countDocument = parseDocument(lexSource(countSource));
+  const countCalls = countDocument.lines.filter(
+    (line) => line.node.shape === "macroCall"
+  );
+  assert.equal(countCalls.length, 3);
+  const countExpansions = countCalls.map((line) => {
+    assert.equal(line.node.shape, "macroCall");
+    return expandMacroCall(line.node, countDocument.macroDefinitions);
+  });
+  assert.deepEqual(
+    countExpansions.map((expansion) => expansion.lines[0]?.text.trim()),
+    ["dfb 0", "dfb 1", "dfb 8"]
+  );
+  assert.equal(countExpansions[2]?.lines[0]?.tokens[1]?.kind, "numericLiteral");
+  assert.equal(countExpansions[2]?.lines[0]?.tokens[1]?.sourceToken.lexeme, "]0");
 }
