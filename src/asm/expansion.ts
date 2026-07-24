@@ -40,30 +40,7 @@ export function expandMacroCall(
     return result;
   }
 
-  // Use the substitution logic we already have?
-  // buildMacroSubstitution requires a ParsedDocument, which requires full ast.
-  // We can just extract the argument tokens here instead.
-
-  const args: Token[][] = [];
-  let currentArg: Token[] = [];
-  let depth = 0;
-  for (const token of callLine.args) {
-    if (token.kind === "expressionOperator" && token.lexeme === "(") {
-      depth++;
-      currentArg.push(token);
-    } else if (token.kind === "expressionOperator" && token.lexeme === ")") {
-      depth = Math.max(0, depth - 1);
-      currentArg.push(token);
-    } else if (token.kind === "expressionOperator" && (token.lexeme === "," || token.lexeme === ";") && depth === 0) {
-      args.push(currentArg);
-      currentArg = [];
-    } else {
-      currentArg.push(token);
-    }
-  }
-  if (currentArg.length > 0 || callLine.args.length > 0) {
-    args.push(currentArg);
-  }
+  const args = splitMacroCallArguments(callLine.args);
 
   const lines: ExpandedLine[] = [];
 
@@ -154,7 +131,7 @@ export function splitMacroCallArguments(tokens: readonly Token[]): readonly (rea
       continue;
     }
 
-    if (token.kind === "expressionOperator" && (token.lexeme === "," || token.lexeme === ";") && depth === 0) {
+    if (token.kind === "expressionOperator" && token.lexeme === ";" && depth === 0) {
       argumentsByIndex.push([]);
       continue;
     }
@@ -163,6 +140,37 @@ export function splitMacroCallArguments(tokens: readonly Token[]): readonly (rea
   }
 
   return argumentsByIndex;
+}
+
+export function getActiveMacroCallArgumentIndex(tokens: readonly Token[], character: number): number {
+  let activeArgumentIndex = 0;
+  let depth = 0;
+
+  for (const token of tokens) {
+    if (token.start >= character) {
+      break;
+    }
+
+    if (token.kind !== "expressionOperator") {
+      continue;
+    }
+
+    if (token.lexeme === "(") {
+      depth += 1;
+      continue;
+    }
+
+    if (token.lexeme === ")") {
+      depth = Math.max(0, depth - 1);
+      continue;
+    }
+
+    if (token.lexeme === ";" && depth === 0) {
+      activeArgumentIndex += 1;
+    }
+  }
+
+  return activeArgumentIndex;
 }
 
 export type EffectiveLine = {

@@ -51,7 +51,7 @@ exprMac mac
   eom
 
   zeroMac
-  exprMac (foo, x), bar+baz
+  exprMac (foo, x);bar+baz
   `;
   const edgeCaseCached = buildCachedDocument(edgeCaseSource);
   const edgeCaseMap = new Map([["file:///edge-cases.S", edgeCaseCached]]);

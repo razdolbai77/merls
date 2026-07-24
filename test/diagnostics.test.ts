@@ -42,7 +42,7 @@ export function runDiagnosticsTest(): void {
     "ZeroMac  mac",
     "        eom",
     "        ZeroMac VALUE",
-    "        FirstMac VALUE,OTHER",
+    "        FirstMac VALUE;OTHER",
     "LocalLabelMac mac",
     ":local",
     "        jmp :local",

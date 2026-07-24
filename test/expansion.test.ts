@@ -9,7 +9,7 @@ export async function runExpansionTest(): Promise<void> {
     "     lda ]1",
     "     sta ]2",
     "     eom",
-    "     Wrap $12,$34"
+    "     Wrap $12;$34"
   ].join("\n");
 
   const lexed = lexSource(source);

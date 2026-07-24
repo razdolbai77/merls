@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
 
+import {
+  getActiveMacroCallArgumentIndex,
+  splitMacroCallArguments
+} from "../src/asm/expansion";
 import { lexSource } from "../src/asm/lexer";
 
 export function runMacroSeparatorTest(): void {
@@ -16,4 +20,18 @@ export function runMacroSeparatorTest(): void {
       ["comment", "; preserve this comment"]
     ]
   );
+
+  const complexTokens = (lexSource("        Move (STRING),Y;$02").lines[0]?.tokens ?? []).slice(1);
+  assert.deepEqual(
+    splitMacroCallArguments(complexTokens).map((argument) =>
+      argument.map((token) => token.lexeme)
+    ),
+    [
+      ["(", "STRING", ")", ",", "Y"],
+      ["$02"]
+    ]
+  );
+  const separator = complexTokens.find((token) => token.lexeme === ";");
+  assert.ok(separator);
+  assert.equal(getActiveMacroCallArgumentIndex(complexTokens, separator.end), 1);
 }

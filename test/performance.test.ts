@@ -22,7 +22,7 @@ export function runPerformanceTest(): void {
   for (let i = 0; i < 10000; i++) {
     lines.push(`Label${i}`);
     const macroIndex = i % 50;
-    lines.push(`        Macro${macroIndex} #$00, Label${i}`);
+    lines.push(`        Macro${macroIndex} #$00;Label${i}`);
   }
 
   const source = lines.join("\n");

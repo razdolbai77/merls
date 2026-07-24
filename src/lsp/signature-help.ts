@@ -1,6 +1,6 @@
 import { SignatureHelp, SignatureInformation, ParameterInformation } from "vscode-languageserver/node";
 import { CachedDocument } from "../asm/document";
-import { type Token } from "../asm/lexer";
+import { getActiveMacroCallArgumentIndex } from "../asm/expansion";
 import { findSymbol } from "../asm/symbols";
 
 export function buildSignatureHelp(
@@ -28,7 +28,7 @@ export function buildSignatureHelp(
   }
 
   const maxParam = macroMatch.symbol.macroDefinition?.maxParameterIndex ?? 0;
-  const activeParameter = countActiveParameter(node.args, character);
+  const activeParameter = getActiveMacroCallArgumentIndex(node.args, character);
 
   const parameters: ParameterInformation[] = [];
   const displayMax = maxParam === 0 ? 0 : Math.max(maxParam, activeParameter + 1);
@@ -49,35 +49,4 @@ export function buildSignatureHelp(
     activeSignature: 0,
     activeParameter
   };
-}
-
-function countActiveParameter(args: readonly Token[], character: number): number {
-  let activeParameter = 0;
-  let depth = 0;
-
-  for (const token of args) {
-    if (token.start >= character) {
-      break;
-    }
-
-    if (token.kind !== "expressionOperator") {
-      continue;
-    }
-
-    if (token.lexeme === "(") {
-      depth += 1;
-      continue;
-    }
-
-    if (token.lexeme === ")") {
-      depth = Math.max(0, depth - 1);
-      continue;
-    }
-
-    if ((token.lexeme === "," || token.lexeme === ";") && depth === 0) {
-      activeParameter += 1;
-    }
-  }
-
-  return activeParameter;
 }

@@ -4,7 +4,7 @@ import { type Token } from "./lexer";
 import { resolveLocalLabels } from "./local-labels";
 import { directiveTable, opcodeTable, type AddressingMode } from "./metadata";
 import { type ParsedLine, type MacroDefinitionRegion } from "./parser";
-import { getEffectiveLines } from "./expansion";
+import { getEffectiveLines, splitMacroCallArguments } from "./expansion";
 import { MAX_MACRO_EXPANSION_DEPTH } from "./limits";
 
 export type DiagnosticCode =
@@ -487,7 +487,7 @@ function collectMacroCallDiagnostics(
     }
 
     const requiredArity = definition.maxParameterIndex;
-    const actualArity = countMacroCallArguments(macroCall.args);
+    const actualArity = splitMacroCallArguments(macroCall.args).length;
     if (requiredArity !== actualArity) {
       diagnostics.push({
         filePath,
@@ -721,38 +721,6 @@ function isLocalLabel(name: string): boolean {
   return name.startsWith("]") || name.startsWith(":");
 }
 
-function countMacroCallArguments(tokens: readonly Token[]): number {
-  if (tokens.length === 0) {
-    return 0;
-  }
-
-  let depth = 0;
-  let sawArgumentToken = false;
-  let argumentsCount = 1;
-
-  for (const token of tokens) {
-    if (token.kind === "expressionOperator" && token.lexeme === "(") {
-      depth += 1;
-      sawArgumentToken = true;
-      continue;
-    }
-
-    if (token.kind === "expressionOperator" && token.lexeme === ")") {
-      depth = Math.max(0, depth - 1);
-      sawArgumentToken = true;
-      continue;
-    }
-
-    if (token.kind === "expressionOperator" && (token.lexeme === "," || token.lexeme === ";") && depth === 0) {
-      argumentsCount += 1;
-      continue;
-    }
-
-    sawArgumentToken = true;
-  }
-
-  return sawArgumentToken ? argumentsCount : 0;
-}
 
 function getOperandAddressingModes(operand: Operand | null): readonly AddressingMode[] {
   if (operand === null) {

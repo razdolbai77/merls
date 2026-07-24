@@ -100,12 +100,12 @@ export function runLexerTest(): void {
   );
 
   assert.deepEqual(
-    summarizeTokens(findLine(macroLines, "        PrintPair #',' , ]1").tokens),
+    summarizeTokens(findLine(macroLines, "        PrintPair #',';]1").tokens),
     [
       ["identifier", "PrintPair"],
       ["expressionOperator", "#"],
       ["string", "','"],
-      ["expressionOperator", ","],
+      ["expressionOperator", ";"],
       ["localLabel", "]1"]
     ]
   );
