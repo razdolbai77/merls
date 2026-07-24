@@ -74,7 +74,7 @@ function countActiveParameter(args: readonly Token[], character: number): number
       continue;
     }
 
-    if (token.lexeme === "," && depth === 0) {
+    if ((token.lexeme === "," || token.lexeme === ";") && depth === 0) {
       activeParameter += 1;
     }
   }

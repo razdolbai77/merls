@@ -14,6 +14,7 @@ import { runHoverTest } from "./hover.test";
 import { runLexerTest } from "./lexer.test";
 import { runLineParserTest } from "./line-parser.test";
 import { runMacroParserTest } from "./macro-parser.test";
+import { runMacroSeparatorTest } from "./macro-separators.test";
 import { runMacroIndexTest } from "./macro-index.test";
 import { runMacroDiagnosticsTest } from "./macro-diagnostics.test";
 import { runExpansionTest } from "./expansion.test";
@@ -84,6 +85,10 @@ const tests: TestCase[] = [
   {
     name: "lexer tokenizes fixture comments labels mnemonics directives and literals",
     run: runLexerTest
+  },
+  {
+    name: "lexer distinguishes macro argument separators from comments",
+    run: runMacroSeparatorTest
   },
   {
     name: "expression parser handles numeric forms modifiers arithmetic and indexed operands",

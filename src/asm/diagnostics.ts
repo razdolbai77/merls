@@ -743,7 +743,7 @@ function countMacroCallArguments(tokens: readonly Token[]): number {
       continue;
     }
 
-    if (token.kind === "expressionOperator" && token.lexeme === "," && depth === 0) {
+    if (token.kind === "expressionOperator" && (token.lexeme === "," || token.lexeme === ";") && depth === 0) {
       argumentsCount += 1;
       continue;
     }

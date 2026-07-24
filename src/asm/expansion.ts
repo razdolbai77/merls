@@ -54,7 +54,7 @@ export function expandMacroCall(
     } else if (token.kind === "expressionOperator" && token.lexeme === ")") {
       depth = Math.max(0, depth - 1);
       currentArg.push(token);
-    } else if (token.kind === "expressionOperator" && token.lexeme === "," && depth === 0) {
+    } else if (token.kind === "expressionOperator" && (token.lexeme === "," || token.lexeme === ";") && depth === 0) {
       args.push(currentArg);
       currentArg = [];
     } else {
@@ -154,7 +154,7 @@ export function splitMacroCallArguments(tokens: readonly Token[]): readonly (rea
       continue;
     }
 
-    if (token.kind === "expressionOperator" && token.lexeme === "," && depth === 0) {
+    if (token.kind === "expressionOperator" && (token.lexeme === "," || token.lexeme === ";") && depth === 0) {
       argumentsByIndex.push([]);
       continue;
     }

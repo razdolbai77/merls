@@ -102,6 +102,23 @@ export function runMacroDiagnosticsTest(): void {
     endCharacter: 19
   });
 
+  const separatorDiagnostics = collectWorkspaceDiagnostics([
+    {
+      filePath: "<macro-separator>",
+      document: parseDocument([
+        "Move mac",
+        "        lda ]1",
+        "        sta ]2",
+        "        eom",
+        "        Move #$00;$02"
+      ].join("\n"))
+    }
+  ]);
+  assert.equal(
+    separatorDiagnostics.some((diagnostic) => diagnostic.code === "macro-arity-mismatch"),
+    false
+  );
+
   assert.deepEqual(findDiagnostic(diagnostics, "unresolved-conditional", 19), {
     filePath: "<macro-ranges>",
     line: 19,

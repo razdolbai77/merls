@@ -13,7 +13,7 @@ export function runMacroReferencesTest(): void {
     "Target   equ 1",
     "Offset   equ 2",
     "Other    equ 3",
-    "        UseTwice Target+Offset,Other"
+    "        UseTwice Target+Offset;Other"
   ].join("\n"));
 
   const references = collectReferences("file:///macro-test.S", cached);

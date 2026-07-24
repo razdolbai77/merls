@@ -9,7 +9,7 @@ myMac mac
   sta ]2
   eom
 
-  myMac foo, bar
+  myMac foo;bar
   `;
 
   const cached = buildCachedDocument(source);
@@ -22,8 +22,8 @@ myMac mac
   assert.equal(help1.signatures[0].label, "myMac(]1, ]2)");
   assert.equal(help1.activeParameter, 0);
 
-  // cursor after comma
-  const help2 = buildSignatureHelp(map, "file:///test.S", 6, 12); // "  myMac foo,"
+  // cursor after macro parameter separator
+  const help2 = buildSignatureHelp(map, "file:///test.S", 6, 12); // "  myMac foo;"
   assert.ok(help2);
   assert.equal(help2.activeParameter, 1);
 

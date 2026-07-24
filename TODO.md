@@ -11,7 +11,7 @@ Reference: <https://brutaldeluxe.fr/products/crossdevtools/merlin/>
 - [x] Tokenize and parse Merlin comparison/logical operators `<`, `=`, `>`, `#`, `&`, `.`, and `!` without confusing prefix byte selectors or immediate markers; add focused expression tests for each operator.
 - [x] Accept `_` separators in binary literals in `src/asm/lexer.ts`; add `%0000_1111_0000_1111` lexer and parser coverage.
 - [x] Model `]name = expression` as a reassignable Merlin variable, not an anchor-scoped backward local label; update symbols, diagnostics, navigation, semantic tokens, and completion with before-definition and redefinition tests.
-- [ ] Treat `;` inside a macro operand as the documented parameter separator instead of an unconditional comment start; preserve real trailing comments and test `Move #$00;$02`.
+- [x] Treat `;` inside a macro operand as the documented parameter separator instead of an unconditional comment start; preserve real trailing comments and test `Move #$00;$02`.
 - [ ] Replace comma-based macro arity, expansion, signature-help, and navigation splitting with shared Merlin parameter splitting in `src/asm/expansion.ts`, `src/asm/diagnostics.ts`, and `src/lsp/signature-help.ts`.
 - [ ] Implement macro parameter `]0` as the supplied-argument count during expansion; cover zero-, one-, and eight-argument calls.
 - [ ] Limit positional macro parameters to documented `]1` through `]8`; make completion include `]0` and stop suggesting invalid `]9`/multi-digit placeholders in `src/lsp/completion.ts`.

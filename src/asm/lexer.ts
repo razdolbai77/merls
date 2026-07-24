@@ -80,6 +80,12 @@ function lexLine(text: string, line: number): LexedLine {
     }
 
     if (char === ";") {
+      if (isMacroParameterSeparator(tokens, text, index)) {
+        tokens.push(createToken("expressionOperator", char, index, index + 1));
+        index += 1;
+        continue;
+      }
+
       tokens.push(createToken("comment", text.slice(index), index, text.length));
       break;
     }
@@ -135,6 +141,17 @@ function lexLine(text: string, line: number): LexedLine {
   }
 
   return { line, text, tokens };
+}
+
+function isMacroParameterSeparator(tokens: readonly Token[], text: string, index: number): boolean {
+  const operationIndex = tokens[0]?.kind === "label" || tokens[0]?.kind === "localLabel" ? 1 : 0;
+  const operation = tokens[operationIndex];
+
+  return operation?.kind === "identifier" &&
+    index > 0 &&
+    !/\s/u.test(text[index - 1] ?? "") &&
+    index + 1 < text.length &&
+    !/\s/u.test(text[index + 1] ?? "");
 }
 
 function createToken(kind: TokenKind, lexeme: string, start: number, end: number): Token {

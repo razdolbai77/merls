@@ -72,4 +72,19 @@ export async function runExpansionTest(): Promise<void> {
   assert.equal(complexExpansion.lines[0]?.text.trim(), "lda ($12,x)");
   assert.equal(complexExpansion.lines[1]?.text.trim(), "sta $12+1");
   assert.equal(complexExpansion.lines[2]?.text.trim(), "hex 00,$12,02");
+
+  const separatorSource = [
+    "Move mac",
+    "     lda ]1",
+    "     sta ]2",
+    "     <<<",
+    "     Move #$00;$02 ; store the value"
+  ].join("\n");
+  const separatorDocument = parseDocument(lexSource(separatorSource));
+  const separatorCall = separatorDocument.lines.find((line) => line.node.shape === "macroCall");
+  assert.ok(separatorCall !== undefined && separatorCall.node.shape === "macroCall");
+
+  const separatorExpansion = expandMacroCall(separatorCall.node, separatorDocument.macroDefinitions);
+  assert.equal(separatorExpansion.lines[0]?.text.trim(), "lda #$00");
+  assert.equal(separatorExpansion.lines[1]?.text.trim(), "sta $02");
 }
