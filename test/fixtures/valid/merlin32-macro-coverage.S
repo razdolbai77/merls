@@ -13,20 +13,22 @@ NoArgs  mac
         eom
 
 PrintPair mac
-        PrintPair #',';]1
         lda ]1
         ldx ]2
-]done   rts
         eom
 
 Outer   mac
-        EmitByte ]1
+        EmitByte ]2
         NoArgs
-        do ]2
-        PrintPair ]1;]3
-        fin
+        PrintPair #',';]1
+        ldx ]3
         eom
 
-Start   Outer VALUE;1;TARGET
 VALUE   = $20
 TARGET  = $40
+Start   Outer VALUE;1;TARGET
+Done
+]done   rts
+        do 1
+        nop
+        fin

@@ -11,6 +11,7 @@ The repository now includes `examples/coc-settings.json` as the baseline coc.nvi
 The initial positive fixture corpus now lives under `test/fixtures/valid/` and is transcribed from upstream Merlin32 sources.
 The initial negative fixture corpus now lives under `test/fixtures/invalid/` and captures invalid unknown-syntax coverage samples.
 The fixture corpus now also includes dedicated macro coverage samples under `test/fixtures/valid/merlin32-macro-coverage.S` and `test/fixtures/invalid/macro-generated-unresolved.S` for nested calls, zero-argument macros, local labels, conditional assembly, and macro-generated unresolved references.
+The fixture corpus test asserts that every valid fixture parses without errors and produces zero diagnostics, so `test/fixtures/valid/merlin32-macro-coverage.S` keeps recursive calls, macro-local labels, conditional directives, and forward equates out of its valid samples.
 The parser test suite now explicitly locks down current macro-call parsing and the present `mac`/`eom`/`<<<` line behavior before macro-parser refactors.
 Shared 6502 opcode and Merlin32 directive metadata now lives under `src/asm/metadata.ts`.
 Shared token-kind and line-shape metadata now lives under `src/asm/syntax.ts`.

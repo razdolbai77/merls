@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 
+import { parseDocument } from "../src/asm/document";
+import { collectWorkspaceDiagnostics } from "../src/asm/diagnostics";
+
 const validFixturePaths = [
   "test/fixtures/valid/merlin32-linkscript.S",
   "test/fixtures/valid/merlin32-macro-coverage.S",
@@ -22,6 +25,11 @@ export function runFixtureCorpusTest(): void {
     const content = fs.readFileSync(absolutePath, "utf8");
     assert.match(content, /Source: apple2accumulator\/merlin32/);
     assert.ok(content.trim().length > 0, `${fixturePath} should not be empty`);
+
+    const document = parseDocument(content);
+    assert.deepEqual(document.errors, [], `${fixturePath} should parse without errors`);
+    const diagnostics = collectWorkspaceDiagnostics([{ filePath: absolutePath, document }]);
+    assert.deepEqual(diagnostics, [], `${fixturePath} should produce no diagnostics`);
   }
 
   for (const fixturePath of invalidFixturePaths) {
