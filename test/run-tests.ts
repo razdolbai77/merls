@@ -25,18 +25,18 @@ import { runMacroParserTest } from "./macro-parser.test";
 import { runMacroSeparatorTest } from "./macro-separators.test";
 import { runMacroIndexTest } from "./macro-index.test";
 import { runMacroDiagnosticsTest } from "./macro-diagnostics.test";
+import { runPublishDiagnosticsTest } from "./publish-diagnostics.test";
 import { runExpansionTest } from "./expansion.test";
 import { runMacroReferencesTest } from "./macro-references.test";
 import { runLocalLabelScopeTest } from "./local-labels.test";
 import { runMetadataTableTest } from "./metadata.test";
-import { runPublishDiagnosticsTest } from "./publish-diagnostics.test";
+import { runWorkspaceGraphTest, runWorkspaceCaseInsensitiveLookupTest, runIncludeTargetTest } from "./workspace.test";
 import { runJsonRpcClientTest } from "./json-rpc-client.test";
 import { runInitializeHandshakeTest } from "./server-initialize.test";
 import { runServerEntrypointTest } from "./server-entrypoint.test";
 import { runSymbolsTest } from "./symbols.test";
 import { runVariableTest } from "./variables.test";
 import { runSyntaxShapeTest } from "./syntax-shape.test";
-import { runWorkspaceGraphTest, runWorkspaceCaseInsensitiveLookupTest } from "./workspace.test";
 import { runWorkspaceSymbolTest } from "./workspace-symbol.test";
 import { runSemanticTokensTest } from "./semantic-tokens.test";
 import { runFormattingTest } from "./formatting.test";
@@ -137,6 +137,10 @@ const tests: TestCase[] = [
   {
     name: "workspace indexing resolves include lookups case-insensitively on win32",
     run: runWorkspaceCaseInsensitiveLookupTest
+  },
+  {
+    name: "include targets parse paths with optional ranges",
+    run: runIncludeTargetTest
   },
   {
     name: "diagnostics report duplicates unresolved refs malformed lines and unknown syntax",

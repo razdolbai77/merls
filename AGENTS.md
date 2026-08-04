@@ -41,6 +41,7 @@ Hover now recognizes macro call sites directly, showing parsed positional signat
 The current local-label resolver now lives under `src/asm/local-labels.ts`, resolves Merlin32 `]local` and `:local` labels within the nearest global-label scope, exports the shared `isLocalLabel` predicate, and provides one `getGlobalLabelToken` shape walker (returning the global label token) shared by diagnostics, selection ranges, and call hierarchy.
 The current workspace indexer now lives under `src/asm/workspace.ts` and follows `asm`/`put`/`use` directives across the local fixture corpus.
 The current diagnostics pass now lives under `src/asm/diagnostics.ts` and reports duplicate symbols, unresolved references, malformed lines, unsupported-instruction cases, and unknown directive/syntax cases.
+Include handling shares `includeDirectives` and one `readIncludeTarget` reader in `src/asm/workspace.ts` between workspace indexing and document links, so both resolve identifier, string, numeric, and concatenated include operands the same way.
 The current `textDocument/documentSymbol` provider is wired through `src/server.ts` and `src/lsp/document-symbols.ts`.
 The current `workspace/symbol` provider is wired through `src/server.ts` and `src/lsp/workspace-symbols.ts` over the open-document symbol set.
 The current `textDocument/definition` and `textDocument/references` handlers are wired through `src/server.ts` and `src/lsp/symbol-navigation.ts`.

@@ -203,6 +203,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - Location and reference deduplication shares one generic `uniqueLocations` helper in `src/lsp/symbol-navigation.ts` instead of four `JSON.stringify`-keyed Map copies.
 - Macro parameter placeholder detection shares one `macroParameterPattern` regex in `src/asm/macros.ts` across the parser, expansion, diagnostics, navigation, rename, and semantic tokens.
 - Workspace include lookups compare paths case-insensitively on win32, so includes spelled with different drive or letter case resolve to open buffers and cached documents instead of stale disk content.
+- Include handling shares `includeDirectives` and one `readIncludeTarget` reader in `src/asm/workspace.ts` between workspace indexing and document links, so both resolve identifier, string, numeric, and concatenated include operands the same way.
 - Diagnostic notifications swallow transport rejections through `sendDiagnosticsSafely`, so a disposed client cannot surface unhandled promise rejections, and the disk cache evicts paths unreachable from any open document's include graph after watched-file updates and document closes.
 - Inlay hints resolve duplicate equ names deterministically: the first definition in workspace load order wins, matching duplicate-symbol diagnostics.
 - Performance tests and regression benchmarks validate that navigation and diagnostics remain responsive even for heavily macro-expanded fixture files.

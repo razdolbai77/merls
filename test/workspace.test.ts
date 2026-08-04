@@ -3,8 +3,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import { buildCachedDocument, CachedDocument } from "../src/asm/document";
-import { indexWorkspace } from "../src/asm/workspace";
+import { buildCachedDocument, CachedDocument, parseDocument } from "../src/asm/document";
+import { indexWorkspace, readIncludeTarget } from "../src/asm/workspace";
 
 export function runWorkspaceGraphTest(): void {
   const entryPath = path.resolve(
@@ -92,4 +92,24 @@ export function runWorkspaceCaseInsensitiveLookupTest(): void {
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
+}
+
+export function runIncludeTargetTest(): void {
+  const document = parseDocument(
+    ["  asm \"main.S\"", "  put dir/child.S", "  use 4/Int.Macs", "  asm pre+post"].join("\n")
+  );
+
+  const stringTarget = readIncludeTarget(document.lines[0].node.shape === "directive" ? document.lines[0].node.operand : null);
+  assert.deepEqual(stringTarget, { path: "main.S", range: { startCharacter: 6, endCharacter: 14 } });
+
+  const identifierTarget = readIncludeTarget(document.lines[1].node.shape === "directive" ? document.lines[1].node.operand : null);
+  assert.deepEqual(identifierTarget, { path: "dir/child.S", range: { startCharacter: 6, endCharacter: 17 } });
+
+  const numericTarget = readIncludeTarget(document.lines[2].node.shape === "directive" ? document.lines[2].node.operand : null);
+  assert.deepEqual(numericTarget, { path: "4/Int.Macs", range: null });
+
+  const binaryTarget = readIncludeTarget(document.lines[3].node.shape === "directive" ? document.lines[3].node.operand : null);
+  assert.deepEqual(binaryTarget, { path: "pre+post", range: { startCharacter: 6, endCharacter: 14 } });
+
+  assert.equal(readIncludeTarget(null), null);
 }

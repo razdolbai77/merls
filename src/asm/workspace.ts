@@ -21,7 +21,7 @@ export type IndexedWorkspace = {
   macros: ReadonlyMap<string, readonly WorkspaceMacroDefinition[]>;
 };
 
-const includeDirectives = new Set(["asm", "put", "use"]);
+export const includeDirectives = new Set(["asm", "put", "use"]);
 
 export function indexWorkspace(
   entryPath: string,
@@ -121,12 +121,12 @@ function visitFile(
         return [];
       }
 
-      const includePath = readIncludePath(node.operand);
-      if (includePath === null) {
+      const includeTarget = readIncludeTarget(node.operand);
+      if (includeTarget === null) {
         return [];
       }
 
-      return [path.resolve(path.dirname(filePath), includePath)];
+      return [path.resolve(path.dirname(filePath), includeTarget.path)];
     });
 
   dependencies.set(filePath, resolvedDependencies);
@@ -136,35 +136,45 @@ function visitFile(
   }
 }
 
-function readIncludePath(expression: Expression | null): string | null {
+export type IncludeTarget = {
+  path: string;
+  range: { startCharacter: number; endCharacter: number } | null;
+};
+
+export function readIncludeTarget(expression: Expression | null): IncludeTarget | null {
   if (expression === null) {
     return null;
   }
 
-  if (expression.kind === "identifier") {
-    return expression.value;
-  }
-
-  if (expression.kind === "string") {
-    return expression.value;
+  if (expression.kind === "identifier" || expression.kind === "string") {
+    return {
+      path: expression.value,
+      range: {
+        startCharacter: expression.token.start,
+        endCharacter: expression.token.end
+      }
+    };
   }
 
   if (expression.kind === "numericLiteral") {
-    return expression.value;
+    return { path: expression.value, range: null };
   }
 
   if (expression.kind === "binary") {
-    const left = readIncludePath(expression.left);
-    const right = readIncludePath(expression.right);
+    const left = readIncludeTarget(expression.left);
+    const right = readIncludeTarget(expression.right);
     if (left !== null && right !== null) {
-      return `${left}${expression.operator}${right}`;
+      const range = left.range !== null && right.range !== null
+        ? { startCharacter: left.range.startCharacter, endCharacter: right.range.endCharacter }
+        : null;
+      return { path: `${left.path}${expression.operator}${right.path}`, range };
     }
   }
 
   if (expression.kind === "unary") {
-    const inner = readIncludePath(expression.expression);
+    const inner = readIncludeTarget(expression.expression);
     if (inner !== null) {
-      return `${expression.operator}${inner}`;
+      return { path: `${expression.operator}${inner.path}`, range: null };
     }
   }
 
