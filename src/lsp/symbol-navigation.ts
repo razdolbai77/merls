@@ -18,6 +18,12 @@ type SymbolReference = {
   location: Location;
 };
 
+export function uniqueLocations<T>(items: readonly T[]): T[] {
+  return Array.from(
+    new Map(items.map((item) => [JSON.stringify(item), item])).values()
+  );
+}
+
 export function findDefinition(
   openDocuments: ReadonlyMap<string, CachedDocument>,
   uri: string,
@@ -64,10 +70,8 @@ export function findDefinition(
       }
 
       if (locations.length > 0) {
-        const uniqueLocations = Array.from(
-          new Map(locations.map((l) => [JSON.stringify(l), l])).values()
-        );
-        return uniqueLocations.length === 1 ? uniqueLocations[0] : uniqueLocations;
+        const deduped = uniqueLocations(locations);
+        return deduped.length === 1 ? deduped[0] : deduped;
       }
     }
   }
@@ -127,10 +131,8 @@ export function findDefinition(
     return null;
   }
 
-  const uniqueLocations = Array.from(
-    new Map(locations.map((l) => [JSON.stringify(l), l])).values()
-  );
-  return uniqueLocations.length === 1 ? uniqueLocations[0] : uniqueLocations;
+  const deduped = uniqueLocations(locations);
+  return deduped.length === 1 ? deduped[0] : deduped;
 }
 
 export function findReferences(
@@ -193,11 +195,7 @@ export function findReferences(
     }
   }
 
-  const uniqueLocations = Array.from(
-    new Map(locations.map((l) => [JSON.stringify(l), l])).values()
-  );
-
-  return uniqueLocations;
+  return uniqueLocations(locations);
 }
 
 export function getSymbolAtPosition(cached: CachedDocument | undefined, line: number, character: number): string | null {
@@ -264,11 +262,7 @@ export function collectReferences(uri: string, cached: CachedDocument): readonly
     }
   }
 
-  const uniqueReferences = Array.from(
-    new Map(references.map((r) => [JSON.stringify(r), r])).values()
-  );
-
-  return uniqueReferences;
+  return uniqueLocations(references);
 }
 
 export function getReferencedTokens(cached: CachedDocument, lineNumber: number, node: ParsedLine): readonly Token[] {
