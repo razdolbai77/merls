@@ -12,6 +12,7 @@ export function runMacroDiagnosticsTest(): void {
     "SecondMac mac",
     "        lda ]1",
     "        eom",
+    "        eom",
     "FirstMac mac",
     "        eom",
     "        MissingMac VALUE",
@@ -39,63 +40,55 @@ export function runMacroDiagnosticsTest(): void {
     }
   ]);
 
-  assert.deepEqual(findDiagnostic(diagnostics, "invalid-macro-nesting", 3), {
-    filePath: "<macro-ranges>",
-    line: 3,
-    code: "invalid-macro-nesting",
-    message: "Macro SecondMac cannot be defined inside macro FirstMac",
-    startCharacter: 0,
-    endCharacter: 9
-  });
 
-  assert.deepEqual(findDiagnostic(diagnostics, "duplicate-macro-definition", 6), {
+  assert.deepEqual(findDiagnostic(diagnostics, "duplicate-macro-definition", 7), {
     filePath: "<macro-ranges>",
-    line: 6,
+    line: 7,
     code: "duplicate-macro-definition",
     message: "Duplicate macro definition FirstMac; first defined at line 1",
     startCharacter: 0,
     endCharacter: 8
   });
 
-  assert.deepEqual(findDiagnostic(diagnostics, "unsupported-instruction", 8), {
+  assert.deepEqual(findDiagnostic(diagnostics, "unsupported-instruction", 9), {
     filePath: "<macro-ranges>",
-    line: 8,
+    line: 9,
     code: "unsupported-instruction",
     message: "Unsupported instruction or undefined macro: MissingMac",
     startCharacter: 8,
     endCharacter: 18
   });
 
-  assert.deepEqual(findDiagnostic(diagnostics, "macro-arity-mismatch", 9), {
+  assert.deepEqual(findDiagnostic(diagnostics, "macro-arity-mismatch", 10), {
     filePath: "<macro-ranges>",
-    line: 9,
+    line: 10,
     code: "macro-arity-mismatch",
     message: "Macro FirstMac expected 2 argument(s) but received 1",
     startCharacter: 8,
     endCharacter: 16
   });
 
-  assert.deepEqual(findDiagnostic(diagnostics, "missing-macro-end", 22), {
+  assert.deepEqual(findDiagnostic(diagnostics, "missing-macro-end", 23), {
     filePath: "<macro-ranges>",
-    line: 22,
+    line: 23,
     code: "missing-macro-end",
     message: "Macro UnclosedMac is missing a closing eom/<<<",
     startCharacter: 0,
     endCharacter: 11
   });
 
-  assert.deepEqual(findDiagnostic(diagnostics, "macro-recursion", 15), {
+  assert.deepEqual(findDiagnostic(diagnostics, "macro-recursion", 16), {
     filePath: "<macro-ranges>",
-    line: 15,
+    line: 16,
     code: "macro-recursion",
     message: "Recursive macro call detected for RecurseMac",
     startCharacter: 8,
     endCharacter: 18
   });
 
-  assert.deepEqual(findDiagnostic(diagnostics, "token-pasted-name", 18), {
+  assert.deepEqual(findDiagnostic(diagnostics, "token-pasted-name", 19), {
     filePath: "<macro-ranges>",
-    line: 18,
+    line: 19,
     code: "token-pasted-name",
     message: "Unsupported token-pasted name label]1",
     startCharacter: 12,
@@ -137,9 +130,9 @@ export function runMacroDiagnosticsTest(): void {
     false
   );
 
-  assert.deepEqual(findDiagnostic(diagnostics, "unresolved-conditional", 19), {
+  assert.deepEqual(findDiagnostic(diagnostics, "unresolved-conditional", 20), {
     filePath: "<macro-ranges>",
-    line: 19,
+    line: 20,
     code: "unresolved-conditional",
     message: "Conditional assembly directive do inside macro cannot be statically resolved",
     startCharacter: 8,

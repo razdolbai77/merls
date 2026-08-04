@@ -133,8 +133,9 @@ export function runMacroParserTest(): void {
     "OuterMacro mac",
     "InnerMacro mac",
     "        nop",
-    "        eom",
-    "        eom",
+    "        <<<",
+    "        nop",
+    "        <<<",
     "        OuterMacro"
   ].join("\n");
   const nestedParsed = parseSourceStructure(nestedMacroSource);
@@ -142,7 +143,12 @@ export function runMacroParserTest(): void {
     nestedParsed.macroDefinitions.map((definition) => definition.name),
     ["OuterMacro"]
   );
-  assert.equal(nestedParsed.macroDefinitions[0]?.endLine, 3);
+  assert.equal(nestedParsed.macroDefinitions[0]?.endLine, 5);
+  assert.deepEqual(
+    nestedParsed.macroDefinitions[0]?.nestedDefinitions?.map((definition) => definition.name),
+    ["InnerMacro"]
+  );
+  assert.equal(nestedParsed.macroDefinitions[0]?.nestedDefinitions?.[0]?.endLine, 3);
 
   const nestedDiagnostics = collectWorkspaceDiagnostics([
     {
@@ -150,8 +156,5 @@ export function runMacroParserTest(): void {
       document: parseDocument(nestedMacroSource)
     }
   ]);
-  assert.equal(
-    nestedDiagnostics.some((diagnostic) => diagnostic.code === "invalid-macro-nesting"),
-    true
-  );
+  assert.deepEqual(nestedDiagnostics, []);
 }

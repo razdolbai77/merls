@@ -119,12 +119,17 @@ export type MacroDefinitionRegion = {
   startDirective: Token;
   endDirective: Token | null;
   body: readonly MacroBodyLine[];
+  nestedDefinitions?: readonly MacroDefinitionRegion[];
   parameterReferences: readonly MacroParameterReference[];
   symbolReferences: readonly MacroSymbolReference[];
   nestedMacroCalls: readonly MacroNestedCall[];
   localLabelDefinitions: readonly MacroLocalLabelDefinition[];
   localLabelReferences: readonly MacroLocalLabelReference[];
   maxParameterIndex: number;
+};
+
+type MacroStartNode = Extract<ParsedLine, { shape: "directive" }> & {
+  label: Token;
 };
 
 export type ParsedSourceStructure = {
@@ -308,77 +313,95 @@ function collectMacroDefinitionRegions(lines: readonly ParsedLine[], lexedLines:
 
   for (let index = 0; index < lines.length; index++) {
     const startNode = lines[index];
+    if (!isMacroDefinitionStart(startNode)) continue;
 
-    if (
-      startNode?.shape !== "directive" ||
-      startNode.label === null ||
-      startNode.directive.lexeme.toLowerCase() !== "mac"
-    ) {
+    const macroDefinition = collectMacroDefinitionRegion(lines, lexedLines, index, startNode);
+    macroDefinitions.push(macroDefinition);
+    if (macroDefinition.endLine === null) break;
+    index = macroDefinition.endLine;
+  }
+  return macroDefinitions;
+}
+
+function collectMacroDefinitionRegion(
+  lines: readonly ParsedLine[],
+  lexedLines: readonly LexedLine[],
+  startLine: number,
+  startNode: MacroStartNode
+): MacroDefinitionRegion {
+  const body: MacroBodyLine[] = [];
+  const nestedDefinitions: MacroDefinitionRegion[] = [];
+  const parameterReferences: MacroParameterReference[] = [];
+  const symbolReferences: MacroSymbolReference[] = [];
+  const nestedMacroCalls: MacroNestedCall[] = [];
+  const localLabelDefinitions: MacroLocalLabelDefinition[] = [];
+  const localLabelReferences: MacroLocalLabelReference[] = [];
+  let endLine: number | null = null;
+  let endDirective: Token | null = null;
+
+  for (let bodyIndex = startLine + 1; bodyIndex < lines.length; bodyIndex++) {
+    const currentNode = lines[bodyIndex];
+    if (isMacroTerminator(currentNode)) {
+      endLine = bodyIndex;
+      endDirective = currentNode.directive;
+      break;
+    }
+    if (isMacroDefinitionStart(currentNode)) {
+      const nestedDefinition = collectMacroDefinitionRegion(lines, lexedLines, bodyIndex, currentNode);
+      nestedDefinitions.push(nestedDefinition);
+      if (nestedDefinition.endLine === null) break;
+      bodyIndex = nestedDefinition.endLine;
       continue;
     }
 
-    const body: MacroBodyLine[] = [];
-    const parameterReferences: MacroParameterReference[] = [];
-    const symbolReferences: MacroSymbolReference[] = [];
-    const nestedMacroCalls: MacroNestedCall[] = [];
-    const localLabelDefinitions: MacroLocalLabelDefinition[] = [];
-    const localLabelReferences: MacroLocalLabelReference[] = [];
-    let endLine: number | null = null;
-    let endDirective: Token | null = null;
-
-    for (let bodyIndex = index + 1; bodyIndex < lines.length; bodyIndex += 1) {
-      const currentNode = lines[bodyIndex];
-
-      if (
-        currentNode?.shape === "directive" &&
-        (currentNode.directive.lexeme.toLowerCase() === "eom" ||
-          currentNode.directive.lexeme === "<<<")
-      ) {
-        endLine = bodyIndex;
-        endDirective = currentNode.directive;
-        break;
-      }
-
-      const bodyUsage = collectMacroBodyUsage(currentNode);
-      parameterReferences.push(...bodyUsage.parameterReferences);
-      symbolReferences.push(...bodyUsage.symbolReferences);
-      nestedMacroCalls.push(...bodyUsage.nestedMacroCalls);
-      localLabelDefinitions.push(...bodyUsage.localLabelDefinitions);
-      localLabelReferences.push(...bodyUsage.localLabelReferences);
-      body.push({
-        line: bodyIndex,
-        node: currentNode,
-        tokens: lexedLines[bodyIndex]?.tokens ?? [],
-        ...bodyUsage
-      });
-    }
-
-    macroDefinitions.push({
-      name: startNode.label.lexeme,
-      nameToken: startNode.label,
-      startLine: index,
-      endLine,
-      startDirective: startNode.directive,
-      endDirective,
-      body,
-      parameterReferences,
-      symbolReferences,
-      nestedMacroCalls,
-      localLabelDefinitions,
-      localLabelReferences,
-      maxParameterIndex: parameterReferences.reduce(
-        (max, parameterReference) => Math.max(max, parameterReference.index),
-        0
-      )
+    const bodyUsage = collectMacroBodyUsage(currentNode);
+    parameterReferences.push(...bodyUsage.parameterReferences);
+    symbolReferences.push(...bodyUsage.symbolReferences);
+    nestedMacroCalls.push(...bodyUsage.nestedMacroCalls);
+    localLabelDefinitions.push(...bodyUsage.localLabelDefinitions);
+    localLabelReferences.push(...bodyUsage.localLabelReferences);
+    body.push({
+      line: bodyIndex,
+      node: currentNode,
+      tokens: lexedLines[bodyIndex]?.tokens ?? [],
+      ...bodyUsage
     });
-
-    if (endLine === null) {
-      break;
-    }
-    index = endLine;
   }
 
-  return macroDefinitions;
+  return {
+    name: startNode.label.lexeme,
+    nameToken: startNode.label,
+    startLine,
+    endLine,
+    startDirective: startNode.directive,
+    endDirective,
+    body,
+    ...(nestedDefinitions.length > 0 ? { nestedDefinitions } : {}),
+    parameterReferences,
+    symbolReferences,
+    nestedMacroCalls,
+    localLabelDefinitions,
+    localLabelReferences,
+    maxParameterIndex: parameterReferences.reduce(
+      (max, parameterReference) => Math.max(max, parameterReference.index),
+      0
+    )
+  };
+}
+
+function isMacroDefinitionStart(node: ParsedLine | undefined): node is MacroStartNode {
+  return (
+    node?.shape === "directive" &&
+    node.label !== null &&
+    node.directive.lexeme.toLowerCase() === "mac"
+  );
+}
+
+function isMacroTerminator(node: ParsedLine | undefined): node is Extract<ParsedLine, { shape: "directive" }> {
+  return (
+    node?.shape === "directive" &&
+    (node.directive.lexeme.toLowerCase() === "eom" || node.directive.lexeme === "<<<")
+  );
 }
 function collectMacroBodyUsage(node: ParsedLine): Omit<MacroBodyLine, "line" | "node" | "tokens"> {
   const parameterReferences: MacroParameterReference[] = [];

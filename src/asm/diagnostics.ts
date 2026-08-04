@@ -17,7 +17,6 @@ export type DiagnosticCode =
   | "unsupported-instruction"
   | "unknown-syntax"
   | "missing-macro-end"
-  | "invalid-macro-nesting"
   | "macro-arity-mismatch"
   | "macro-recursion"
   | "deep-macro-expansion"
@@ -466,20 +465,6 @@ function collectMacroStructureDiagnostics(
         }
       }
 
-      if (
-        bodyNode.shape === "directive" &&
-        bodyNode.label !== null &&
-        bodyNode.directive.lexeme.toLowerCase() === "mac"
-      ) {
-        diagnostics.push({
-          filePath,
-          line: bodyLine.line,
-          code: "invalid-macro-nesting",
-          message: `Macro ${bodyNode.label.lexeme} cannot be defined inside macro ${macroDefinition.name}`,
-          startCharacter: bodyNode.label.start,
-          endCharacter: bodyNode.label.end
-        });
-      }
     }
   }
 

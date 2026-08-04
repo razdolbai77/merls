@@ -34,6 +34,7 @@ export function runDiagnosticsTest(): void {
     "SecondMac mac",
     "        lda ]1",
     "        eom",
+    "        eom",
     "FirstMac mac",
     "        eom",
     "        MissingMac VALUE",
@@ -98,33 +99,12 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<macro>" &&
         diagnostic.code === "missing-macro-end" &&
-        diagnostic.line === 19 &&
+        diagnostic.line === 20 &&
         diagnostic.message.includes("UnclosedMac")
     ),
     true
   );
 
-  assert.equal(
-    diagnostics.some(
-      (diagnostic: Diagnostic) =>
-        diagnostic.filePath === "<macro>" &&
-        diagnostic.code === "invalid-macro-nesting" &&
-        diagnostic.line === 3 &&
-        diagnostic.message.includes("SecondMac")
-    ),
-    true
-  );
-
-  assert.equal(
-    diagnostics.some(
-      (diagnostic: Diagnostic) =>
-        diagnostic.filePath === "<macro>" &&
-        diagnostic.code === "invalid-macro-local-label" &&
-        diagnostic.line === 16 &&
-        diagnostic.message.includes("cannot be used inside macros")
-    ),
-    true
-  );
 
   assert.equal(
     diagnostics.some(
@@ -137,6 +117,17 @@ export function runDiagnosticsTest(): void {
     true
   );
 
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<macro>" &&
+        diagnostic.code === "invalid-macro-local-label" &&
+        diagnostic.line === 18 &&
+        diagnostic.message.includes("cannot be used inside macros")
+    ),
+    true
+  );
+
 
 
   assert.equal(
@@ -144,7 +135,7 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<macro>" &&
         diagnostic.code === "duplicate-macro-definition" &&
-        diagnostic.line === 6 &&
+        diagnostic.line === 7 &&
         diagnostic.message.includes("FirstMac")
     ),
     true
@@ -155,7 +146,7 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<macro>" &&
         diagnostic.code === "unsupported-instruction" &&
-        diagnostic.line === 8 &&
+        diagnostic.line === 9 &&
         diagnostic.message.includes("MissingMac")
     ),
     true
@@ -166,7 +157,7 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<macro>" &&
         diagnostic.code === "macro-arity-mismatch" &&
-        diagnostic.line === 9 &&
+        diagnostic.line === 10 &&
         diagnostic.message.includes("expected 2")
     ),
     true
@@ -177,7 +168,7 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<macro>" &&
         diagnostic.code === "unsupported-instruction" &&
-        diagnostic.line === 10 &&
+        diagnostic.line === 11 &&
         diagnostic.message.includes("SecondMac")
     ),
     true
@@ -188,7 +179,7 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<macro>" &&
         diagnostic.code === "macro-arity-mismatch" &&
-        diagnostic.line === 13 &&
+        diagnostic.line === 14 &&
         diagnostic.message.includes("expected 0")
     ),
     true
@@ -199,7 +190,7 @@ export function runDiagnosticsTest(): void {
       (diagnostic: Diagnostic) =>
         diagnostic.filePath === "<macro>" &&
         diagnostic.code === "macro-arity-mismatch" &&
-        diagnostic.line === 14
+        diagnostic.line === 15
     ),
     false
   );

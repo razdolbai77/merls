@@ -64,7 +64,7 @@ Reference: <https://brutaldeluxe.fr/products/crossdevtools/merlin/>
 - [x] Implement macro parameter `]0` as the supplied-argument count during expansion; cover zero-, one-, and eight-argument calls.
 - [x] Limit positional macro parameters to documented `]1` through `]8`; make completion include `]0` and stop suggesting invalid `]9`/multi-digit placeholders in `src/lsp/completion.ts`.
 - [x] Enforce definition-before-use for macros and `EQU` symbols using workspace load order; add forward-call and forward-equate diagnostics without breaking ordinary forward label references.
-- [ ] Support Merlin's documented nested macro-definition form instead of always emitting `invalid-macro-nesting`; keep nested definitions scoped to the enclosing macro and test the shared `<<<` terminator.
+- [x] Support Merlin's documented nested macro-definition form instead of always emitting `invalid-macro-nesting`; keep nested definitions scoped to the enclosing macro and test the shared `<<<` terminator.
 - [ ] Evaluate resolvable `DO`/`IF`/`ELSE`/`FIN` branches before unresolved-reference and duplicate-symbol analysis so inactive code does not produce false diagnostics.
 - [ ] Resolve `USE` through a configured Merlin macro folder, ignore the legacy numeric subfolder prefix, and try the implicit `.s` suffix; cover `USE 4/Int.Macs` outside the source directory.
 - [ ] Stop indexing and diagnosing source after an `END` directive; add symbols and unresolved references after `END` as negative coverage.
