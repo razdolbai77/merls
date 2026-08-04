@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { startJsonRpcClient } from "./helpers/json-rpc-client";
@@ -12,7 +13,7 @@ import { startJsonRpcClient } from "./helpers/json-rpc-client";
 
 export async function runWatchedFilesTest(): Promise<void> {
   const serverPath = path.resolve(__dirname, "../src/server.js");
-  const workspacePath = path.resolve(process.cwd(), "test/fixtures/valid");
+  const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), "merls-watched-files-"));
 
   // Simulate a file changing on disk; it stays indexed only while an open
   // document can reach it through the include graph.
@@ -74,12 +75,6 @@ export async function runWatchedFilesTest(): Promise<void> {
 
   } finally {
     stop();
-    // Cleanup
-    if (fs.existsSync(testFilePath)) {
-      fs.unlinkSync(testFilePath);
-    }
-    if (fs.existsSync(entryFilePath)) {
-      fs.unlinkSync(entryFilePath);
-    }
+    fs.rmSync(workspacePath, { force: true, recursive: true });
   }
 }
