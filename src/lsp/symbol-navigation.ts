@@ -9,7 +9,7 @@ import { macroParameterPattern } from "../asm/macros";
 import { type ParsedLine } from "../asm/parser";
 import { collectSymbols } from "../asm/symbols";
 
-type SymbolDefinition = {
+export type SymbolDefinition = {
   name: string;
   location: Location;
 };
@@ -169,6 +169,8 @@ export function findReferences(
 
 
   const locations: Location[] = [];
+  const allMacros = Array.from(openDocuments.values()).flatMap((document) => document.parsed.macroDefinitions);
+
 
   for (const [documentUri, cached] of openDocuments.entries()) {
     if (isVariable && documentUri !== uri) {
@@ -182,7 +184,6 @@ export function findReferences(
       }
     }
 
-    const allMacros = Array.from(openDocuments.values()).flatMap((doc) => doc.parsed.macroDefinitions);
     const effectiveLines = getEffectiveLines(cached.parsed, allMacros);
 
     for (const line of effectiveLines) {

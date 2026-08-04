@@ -1,10 +1,26 @@
 import { type CallHierarchyItem, type CallHierarchyIncomingCall, type CallHierarchyOutgoingCall, SymbolKind } from "vscode-languageserver/node";
 
 import { type CachedDocument } from "../asm/document";
-import { getEffectiveLines, type ExpandedToken } from "../asm/expansion";
+import { getEffectiveLines, type EffectiveLine, type ExpandedToken } from "../asm/expansion";
 import { getGlobalLabelToken } from "../asm/local-labels";
 import { type ParsedLine } from "../asm/parser";
-import { getSymbolAtPosition, collectDefinitions, collectReferences, getReferencedTokens } from "./symbol-navigation";
+import {
+  type SymbolDefinition,
+  getSymbolAtPosition,
+  collectDefinitions,
+  collectReferences,
+  getReferencedTokens
+} from "./symbol-navigation";
+
+type OutgoingTarget = {
+  name: string;
+  sourceStart: number;
+  sourceLength: number;
+};
+
+function getWorkspaceMacroDefinitions(openDocuments: ReadonlyMap<string, CachedDocument>) {
+  return Array.from(openDocuments.values()).flatMap((document) => document.parsed.macroDefinitions);
+}
 
 function getEnclosingGlobalLabel(parsed: CachedDocument["parsed"], lineIndex: number): { line: number, node: ParsedLine } | null {
   for (let i = lineIndex; i >= 0; i--) {
@@ -120,84 +136,103 @@ export function provideCallHierarchyOutgoingCalls(
   item: CallHierarchyItem
 ): CallHierarchyOutgoingCall[] | null {
   const cached = openDocuments.get(item.uri);
-  if (!cached) return null;
+  if (cached === undefined) return null;
 
   const startLine = item.range.start.line;
-  const pLine = cached.parsed.lines[startLine];
-  if (!pLine || !("label" in pLine.node) || !pLine.node.label) return null;
+  const sourceLine = cached.parsed.lines[startLine];
+  if (sourceLine === undefined || !("label" in sourceLine.node) || sourceLine.node.label === null) return null;
 
   const outgoing = new Map<string, CallHierarchyOutgoingCall>();
-
-  const allMacros = Array.from(openDocuments.values()).flatMap((doc) => doc.parsed.macroDefinitions);
-  const effectiveLines = getEffectiveLines(cached.parsed, allMacros);
-
-  for (let i = 0; i < effectiveLines.length; i++) {
-    const effectiveLine = effectiveLines[i];
+  const allMacros = getWorkspaceMacroDefinitions(openDocuments);
+  for (const effectiveLine of getEffectiveLines(cached.parsed, allMacros)) {
     if (effectiveLine.line <= startLine) continue;
+    if (startsNextGlobalLabel(effectiveLine)) break;
 
-    if (!effectiveLine.isExpanded && "label" in effectiveLine.node && effectiveLine.node.label && effectiveLine.node.label.kind === "label") {
-      break; 
-    }
-
-    if (effectiveLine.node.shape === "instruction") {
-      const mnemonic = effectiveLine.node.mnemonic.lexeme.toLowerCase();
-      if (mnemonic === "jsr" || mnemonic === "jmp") {
-        const refs = getReferencedTokens(cached, effectiveLine.line, effectiveLine.node);
-        let targetName: string | null = null;
-        let targetTokenStart = 0;
-        let targetTokenLength = 0;
-
-        for (const t of refs) {
-          if (t.kind === "identifier" || t.kind === "localLabel" || t.kind === "label") {
-            if (effectiveLine.isExpanded) {
-              if (!(t as ExpandedToken).callSiteToken) continue;
-            }
-            const sourceToken = "callSiteToken" in t
-              ? ((t as ExpandedToken).callSiteToken ?? t)
-              : t;
-
-            targetName = t.lexeme;
-            targetTokenStart = sourceToken.start;
-            targetTokenLength = sourceToken.end - sourceToken.start;
-            break;
-          }
-        }
-
-        if (targetName) {
-          for (const [docUri, docCached] of openDocuments.entries()) {
-            const definitions = collectDefinitions(docUri, docCached);
-            for (const def of definitions) {
-              if (def.name === targetName) {
-                const defLineIndex = def.location.range.start.line;
-                const defLine = docCached.parsed.lines[defLineIndex];
-                if (defLine && "label" in defLine.node && defLine.node.label) {
-                  const key = `${def.location.uri}#${def.name}`;
-                  let outgoingCall = outgoing.get(key);
-                  if (!outgoingCall) {
-                    outgoingCall = {
-                      to: createCallHierarchyItem(
-                        def.location.uri,
-                        def.name,
-                        defLineIndex,
-                        defLine.node.label.start,
-                        def.name.length
-                      ),
-                      fromRanges: []
-                    };
-                    outgoing.set(key, outgoingCall);
-                  }
-                  outgoingCall.fromRanges.push({
-                    start: { line: effectiveLine.line, character: targetTokenStart },
-                    end: { line: effectiveLine.line, character: targetTokenStart + targetTokenLength }
-                  });
-                }
-              }
-            }
-          }
-        }
-      }
+    const target = getOutgoingTarget(cached, effectiveLine);
+    if (target !== null) {
+      addOutgoingTargetDefinitions(openDocuments, outgoing, effectiveLine, target);
     }
   }
-
   return outgoing.size > 0 ? Array.from(outgoing.values()) : null;
+}
+
+function startsNextGlobalLabel(line: EffectiveLine): boolean {
+  return (
+    !line.isExpanded &&
+    "label" in line.node &&
+    line.node.label !== null &&
+    line.node.label.kind === "label"
+  );
+}
+
+function getOutgoingTarget(cached: CachedDocument, line: EffectiveLine): OutgoingTarget | null {
+  if (line.node.shape !== "instruction") return null;
+
+  const mnemonic = line.node.mnemonic.lexeme.toLowerCase();
+  if (mnemonic !== "jsr" && mnemonic !== "jmp") return null;
+
+  for (const token of getReferencedTokens(cached, line.line, line.node)) {
+    if (token.kind !== "identifier" && token.kind !== "localLabel" && token.kind !== "label") continue;
+
+    const expandedToken = token as ExpandedToken;
+    if (line.isExpanded && !expandedToken.callSiteToken) continue;
+    const sourceToken = "callSiteToken" in token ? (expandedToken.callSiteToken ?? token) : token;
+    return {
+      name: token.lexeme,
+      sourceStart: sourceToken.start,
+      sourceLength: sourceToken.end - sourceToken.start
+    };
+  }
+  return null;
+}
+
+function addOutgoingTargetDefinitions(
+  openDocuments: ReadonlyMap<string, CachedDocument>,
+  outgoing: Map<string, CallHierarchyOutgoingCall>,
+  effectiveLine: EffectiveLine,
+  target: OutgoingTarget
+): void {
+  for (const [documentUri, document] of openDocuments.entries()) {
+    for (const definition of collectDefinitions(documentUri, document)) {
+      if (definition.name !== target.name) continue;
+
+      const definitionLine = document.parsed.lines[definition.location.range.start.line];
+      if (definitionLine === undefined || !("label" in definitionLine.node) || definitionLine.node.label === null) continue;
+      addOutgoingCall(
+        outgoing,
+        definition,
+        definitionLine.node.label.start,
+        effectiveLine.line,
+        target
+      );
+    }
+  }
+}
+
+function addOutgoingCall(
+  outgoing: Map<string, CallHierarchyOutgoingCall>,
+  definition: SymbolDefinition,
+  labelStart: number,
+  sourceLine: number,
+  target: OutgoingTarget
+): void {
+  const key = `${definition.location.uri}#${definition.name}`;
+  let outgoingCall = outgoing.get(key);
+  if (outgoingCall === undefined) {
+    outgoingCall = {
+      to: createCallHierarchyItem(
+        definition.location.uri,
+        definition.name,
+        definition.location.range.start.line,
+        labelStart,
+        definition.name.length
+      ),
+      fromRanges: []
+    };
+    outgoing.set(key, outgoingCall);
+  }
+  outgoingCall.fromRanges.push({
+    start: { line: sourceLine, character: target.sourceStart },
+    end: { line: sourceLine, character: target.sourceStart + target.sourceLength }
+  });
 }
