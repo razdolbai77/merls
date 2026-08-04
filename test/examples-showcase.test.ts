@@ -26,6 +26,25 @@ export function runExamplesShowcaseTest(): void {
     "examples/EXAMPLE.S should be diagnostics-free so users can open it as a clean starter"
   );
 
+  const cleanSource = fs.readFileSync(cleanPath, "utf8");
+  assert.equal(
+    /\bLSR\s+A\b/i.test(cleanSource),
+    false,
+    "examples/EXAMPLE.S must use implied LSR, not an explicit A accumulator operand"
+  );
+  assert.equal(
+    /\bSTA\s+\$00\s*,\s*Y\b/i.test(cleanSource),
+    false,
+    "examples/EXAMPLE.S must not use the invalid direct-page STA $00,Y form"
+  );
+  assert.equal(
+    cleanSource
+      .split(/\r?\n/)
+      .some((line) => /\b(INV|FLS)\s+['"][^'"]*[a-z]/.test(line)),
+    false,
+    "examples/EXAMPLE.S INV and FLS payloads must be uppercase"
+  );
+
   const invalidPath = path.resolve(process.cwd(), "examples/DIAGNOSTICS.S");
   const invalidDocument = parseDocument(fs.readFileSync(invalidPath, "utf8"));
   const invalidDiagnostics = collectWorkspaceDiagnostics([
