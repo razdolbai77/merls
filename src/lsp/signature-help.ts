@@ -2,6 +2,7 @@ import { SignatureHelp, SignatureInformation, ParameterInformation } from "vscod
 import { CachedDocument } from "../asm/document";
 import { getActiveMacroCallArgumentIndex } from "../asm/expansion";
 import { findSymbol } from "../asm/symbols";
+import { renderMacroParameters } from "./macro-signature";
 
 export function buildSignatureHelp(
   openDocuments: ReadonlyMap<string, CachedDocument>,
@@ -30,17 +31,13 @@ export function buildSignatureHelp(
   const maxParam = macroMatch.symbol.macroDefinition?.maxParameterIndex ?? 0;
   const activeParameter = getActiveMacroCallArgumentIndex(node.args, character);
 
-  const parameters: ParameterInformation[] = [];
-  const displayMax = maxParam === 0 ? 0 : Math.max(maxParam, activeParameter + 1);
-
-  for (let i = 1; i <= displayMax; i++) {
-    parameters.push({
-      label: `]${i}`
-    });
-  }
-
+  const parameterLabels = renderMacroParameters(
+    maxParam,
+    maxParam === 0 ? 0 : activeParameter + 1
+  );
+  const parameters: ParameterInformation[] = parameterLabels.map((label) => ({ label }));
   const signature: SignatureInformation = {
-    label: `${macroName}(${parameters.map(p => p.label).join(", ")})`,
+    label: `${macroName}(${parameterLabels.join(", ")})`,
     parameters
   };
 

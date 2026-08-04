@@ -46,6 +46,7 @@ import { runDocumentLinksTest } from "./document-links.test";
 import { runDocumentHighlightsTest } from "./document-highlights.test";
 import { runInlayHintsTest } from "./inlay-hints.test";
 import { runSignatureHelpTest } from "./signature-help.test";
+import { runMacroSignatureTest } from "./macro-signature.test";
 import { runCallHierarchyTest } from "./call-hierarchy.test";
 import { runCodeLensTest } from "./code-lens.test";
 import { runSelectionRangeTest, runSelectionRangeBoundsTest } from "./selection-range.test";
@@ -246,6 +247,10 @@ const tests: TestCase[] = [
   {
     name: "server computes inlay hints for equates",
     run: runInlayHintsTest
+  },
+  {
+    name: "macro signature renderer shares positional parameter labels",
+    run: runMacroSignatureTest
   },
   {
     name: "server provides signature help for macros",

@@ -8,6 +8,7 @@ import { type LocalLabelScope, resolveLocalLabels, isLocalLabel } from "../asm/l
 import { directiveDefinitions, opcodeDefinitions, directiveTable } from "../asm/metadata";
 import { collectSymbols } from "../asm/symbols";
 import { type Token } from "../asm/lexer";
+import { renderMacroParameters } from "./macro-signature";
 
 type CompletionContext = {
   enclosingMacroMaxParameterIndex: number | null;
@@ -152,9 +153,7 @@ function addMacroParameterCompletions(
 ): void {
   if (context.enclosingMacroMaxParameterIndex === null || context.operandToken === null) return;
 
-  const maxParam = Math.max(9, context.enclosingMacroMaxParameterIndex);
-  for (let i = 1; i <= maxParam; i++) {
-    const parameter = `]${i}`;
+  for (const parameter of renderMacroParameters(context.enclosingMacroMaxParameterIndex, 9)) {
     if (!seenSymbols.has(parameter)) {
       seenSymbols.add(parameter);
       completions.push(createItem(parameter, CompletionItemKind.Variable));

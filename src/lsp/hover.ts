@@ -5,6 +5,7 @@ import { type CachedDocument, type DocumentLine } from "../asm/document";
 import { isAccumulatorOperand } from "../asm/expression";
 import { type Token, tokenAtCharacter } from "../asm/lexer";
 import { type ParsedLine } from "../asm/parser";
+import { renderMacroParameters } from "./macro-signature";
 import { findDefinition } from "./symbol-navigation";
 import { findSymbol, getDocComment } from "../asm/symbols";
 
@@ -85,19 +86,14 @@ function buildMacroHover(
   const macroSymbol = findSymbol(openDocuments, token.lexeme, "macro");
   if (macroSymbol === null) return undefined;
 
-  const maxParameterIndex = macroSymbol.symbol.macroDefinition?.maxParameterIndex ?? 0;
-  let contents = `Macro ${formatMacroSignature(token.lexeme, maxParameterIndex)} defined at line ${macroSymbol.symbol.line + 1}`;
+  const parameterLabels = renderMacroParameters(macroSymbol.symbol.macroDefinition?.maxParameterIndex ?? 0);
+  let contents = `Macro ${token.lexeme}(${parameterLabels.join(", ")}) defined at line ${macroSymbol.symbol.line + 1}`;
   if (macroSymbol.symbol.docComment !== undefined) {
     contents += `\n\n${macroSymbol.symbol.docComment}`;
   }
   return { contents };
 }
 
-function formatMacroSignature(name: string, maxParameterIndex: number): string {
-  if (maxParameterIndex === 0) return `${name}()`;
-  const parameters = Array.from({ length: maxParameterIndex }, (_, index) => `]${index + 1}`);
-  return `${name}(${parameters.join(", ")})`;
-}
 
 function buildSymbolHover(
   openDocuments: ReadonlyMap<string, CachedDocument>,
