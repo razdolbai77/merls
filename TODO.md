@@ -63,7 +63,7 @@ Reference: <https://brutaldeluxe.fr/products/crossdevtools/merlin/>
 - [x] Replace comma-based macro arity, expansion, signature-help, and navigation splitting with shared Merlin parameter splitting in `src/asm/expansion.ts`, `src/asm/diagnostics.ts`, and `src/lsp/signature-help.ts`.
 - [x] Implement macro parameter `]0` as the supplied-argument count during expansion; cover zero-, one-, and eight-argument calls.
 - [x] Limit positional macro parameters to documented `]1` through `]8`; make completion include `]0` and stop suggesting invalid `]9`/multi-digit placeholders in `src/lsp/completion.ts`.
-- [ ] Enforce definition-before-use for macros and `EQU` symbols using workspace load order; add forward-call and forward-equate diagnostics without breaking ordinary forward label references.
+- [x] Enforce definition-before-use for macros and `EQU` symbols using workspace load order; add forward-call and forward-equate diagnostics without breaking ordinary forward label references.
 - [ ] Support Merlin's documented nested macro-definition form instead of always emitting `invalid-macro-nesting`; keep nested definitions scoped to the enclosing macro and test the shared `<<<` terminator.
 - [ ] Evaluate resolvable `DO`/`IF`/`ELSE`/`FIN` branches before unresolved-reference and duplicate-symbol analysis so inactive code does not produce false diagnostics.
 - [ ] Resolve `USE` through a configured Merlin macro folder, ignore the legacy numeric subfolder prefix, and try the implicit `.s` suffix; cover `USE 4/Int.Macs` outside the source directory.

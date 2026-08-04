@@ -24,6 +24,8 @@ export type DiagnosticCode =
   | "token-pasted-name"
   | "unresolved-conditional"
   | "invalid-macro-local-label"
+  | "forward-macro-call"
+  | "forward-equate-reference"
   | "invalid-addressing-mode";
 
 export type Diagnostic = {
@@ -110,7 +112,25 @@ type MacroRecord = {
   endCharacter: number;
   maxParameterIndex: number;
   usesArgumentCountParameter: boolean;
+  documentIndex: number;
 };
+
+type EquateRecord = {
+  name: string;
+  line: number;
+  documentIndex: number;
+};
+
+function isDefinedBeforeUse(
+  definition: { documentIndex: number; line: number },
+  documentIndex: number,
+  line: number
+): boolean {
+  return (
+    definition.documentIndex < documentIndex ||
+    (definition.documentIndex === documentIndex && definition.line <= line)
+  );
+}
 
 export function collectWorkspaceDiagnostics(
   documents: readonly DocumentEntry[]
@@ -119,11 +139,18 @@ export function collectWorkspaceDiagnostics(
   const globalSymbols = new Set<string>();
   const symbolRecords: SymbolRecord[] = [];
   const macrosByName = new Map<string, MacroRecord[]>();
+  const equatesByName = new Map<string, EquateRecord[]>();
 
-  for (const entry of documents) {
+  for (const [documentIndex, entry] of documents.entries()) {
     for (const symbol of collectGlobalDefinitions(entry.document, entry.filePath)) {
       symbolRecords.push(symbol);
       globalSymbols.add(symbol.name);
+    }
+
+    for (const equate of collectEquateDefinitions(entry.document, documentIndex)) {
+      const definitions = equatesByName.get(equate.name) ?? [];
+      definitions.push(equate);
+      equatesByName.set(equate.name, definitions);
     }
 
     for (const macroDefinition of entry.document.macroDefinitions) {
@@ -138,6 +165,7 @@ export function collectWorkspaceDiagnostics(
         usesArgumentCountParameter: macroDefinition.parameterReferences.some(
           (parameterReference) => parameterReference.index === 0
         ),
+        documentIndex
       });
       macrosByName.set(macroDefinition.name, current);
     }
@@ -146,14 +174,21 @@ export function collectWorkspaceDiagnostics(
   diagnostics.push(...collectDuplicateSymbolDiagnostics(symbolRecords));
   diagnostics.push(...collectDuplicateMacroDiagnostics(macrosByName));
 
-  for (const entry of documents) {
+  for (const [documentIndex, entry] of documents.entries()) {
     diagnostics.push(
       ...collectMalformedDiagnostics(entry.filePath, entry.document),
       ...collectUnknownDiagnostics(entry.filePath, entry.document, entry.document.macroDefinitions),
       ...collectAddressingModeDiagnostics(entry.filePath, entry.document, entry.document.macroDefinitions),
       ...collectMacroStructureDiagnostics(entry.filePath, entry.document),
-      ...collectUnresolvedDiagnostics(entry.filePath, entry.document, globalSymbols, entry.document.macroDefinitions),
-      ...collectMacroCallDiagnostics(entry.filePath, entry.document, macrosByName)
+      ...collectUnresolvedDiagnostics(
+        entry.filePath,
+        entry.document,
+        globalSymbols,
+        entry.document.macroDefinitions,
+        equatesByName,
+        documentIndex
+      ),
+      ...collectMacroCallDiagnostics(entry.filePath, entry.document, macrosByName, documentIndex)
     );
   }
 
@@ -455,7 +490,9 @@ function collectUnresolvedDiagnostics(
   filePath: string,
   document: ParsedDocument,
   globalSymbols: ReadonlySet<string>,
-  macroDefinitions: readonly MacroDefinitionRegion[]
+  macroDefinitions: readonly MacroDefinitionRegion[],
+  equatesByName: ReadonlyMap<string, readonly EquateRecord[]>,
+  documentIndex: number
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
   const localScope = resolveLocalLabels(document);
@@ -525,6 +562,23 @@ function collectUnresolvedDiagnostics(
         continue;
       }
 
+      const equateDefinitions = equatesByName.get(reference.lexeme);
+      if (
+        equateDefinitions !== undefined &&
+        !equateDefinitions.some((definition) => isDefinedBeforeUse(definition, documentIndex, line.line)) &&
+        range !== null
+      ) {
+        diagnostics.push({
+          filePath,
+          line: line.line,
+          code: "forward-equate-reference",
+          message: `EQU symbol ${reference.lexeme} must be defined before use`,
+          startCharacter: range.start,
+          endCharacter: range.end
+        });
+        continue;
+      }
+
       if (!globalSymbols.has(reference.lexeme) && range !== null) {
         diagnostics.push({
           filePath,
@@ -544,15 +598,14 @@ function collectUnresolvedDiagnostics(
 function collectMacroCallDiagnostics(
   filePath: string,
   document: ParsedDocument,
-  macrosByName: ReadonlyMap<string, readonly MacroRecord[]>
+  macrosByName: ReadonlyMap<string, readonly MacroRecord[]>,
+  documentIndex: number
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
 
   for (const macroCall of document.macroCalls) {
     const definitions = macrosByName.get(macroCall.macro.lexeme);
-    const definition = definitions?.[0];
-
-    if (definition === undefined) {
+    if (definitions === undefined) {
       diagnostics.push({
         filePath,
         line: macroCall.line,
@@ -564,6 +617,20 @@ function collectMacroCallDiagnostics(
       continue;
     }
 
+    const definition = definitions.find((candidate) =>
+      isDefinedBeforeUse(candidate, documentIndex, macroCall.line)
+    );
+    if (definition === undefined) {
+      diagnostics.push({
+        filePath,
+        line: macroCall.line,
+        code: "forward-macro-call",
+        message: `Macro ${macroCall.macro.lexeme} must be defined before use`,
+        startCharacter: macroCall.macro.start,
+        endCharacter: macroCall.macro.end
+      });
+      continue;
+    }
     const requiredArity = definition.maxParameterIndex;
     const actualArity = splitMacroCallArguments(macroCall.args).length;
     if (!definition.usesArgumentCountParameter && requiredArity !== actualArity) {
@@ -579,6 +646,22 @@ function collectMacroCallDiagnostics(
   }
 
   return diagnostics;
+}
+
+function collectEquateDefinitions(
+  document: ParsedDocument,
+  documentIndex: number
+): readonly EquateRecord[] {
+  const equates: EquateRecord[] = [];
+  for (const line of document.lines) {
+    const token = line.node.shape === "equate" && !line.node.isVariable
+      ? getGlobalLabelToken(line.node)
+      : null;
+    if (token !== null) {
+      equates.push({ name: token.lexeme, line: line.line, documentIndex });
+    }
+  }
+  return equates;
 }
 
 function collectGlobalDefinitions(

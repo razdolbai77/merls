@@ -429,4 +429,51 @@ export function runDiagnosticsTest(): void {
     false,
     "expected the resolved equate operand to produce no diagnostic"
   );
+
+  const forwardUseDiagnostics = collectWorkspaceDiagnostics([
+    {
+      filePath: "<first>",
+      document: parseDocument([
+        "        LaterMacro",
+        "        lda LaterEquate",
+        "        bne LaterLabel"
+      ].join("\n"))
+    },
+    {
+      filePath: "<second>",
+      document: parseDocument([
+        "LaterLabel nop",
+        "LaterEquate equ 1",
+        "LaterMacro mac",
+        "        eom"
+      ].join("\n"))
+    }
+  ]);
+  assert.equal(
+    forwardUseDiagnostics.some(
+      (diagnostic) =>
+        diagnostic.filePath === "<first>" &&
+        diagnostic.code === "forward-macro-call" &&
+        diagnostic.message === "Macro LaterMacro must be defined before use"
+    ),
+    true,
+    "expected a forward macro call diagnostic"
+  );
+  assert.equal(
+    forwardUseDiagnostics.some(
+      (diagnostic) =>
+        diagnostic.filePath === "<first>" &&
+        diagnostic.code === "forward-equate-reference" &&
+        diagnostic.message === "EQU symbol LaterEquate must be defined before use"
+    ),
+    true,
+    "expected a forward EQU reference diagnostic"
+  );
+  assert.equal(
+    forwardUseDiagnostics.some(
+      (diagnostic) => diagnostic.filePath === "<first>" && diagnostic.message.includes("LaterLabel")
+    ),
+    false,
+    "expected forward ordinary labels to remain valid"
+  );
 }
