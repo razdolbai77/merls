@@ -5,6 +5,7 @@ import { type CachedDocument, buildCachedDocument } from "./document";
 import { type Expression } from "./expression";
 import { collectWorkspaceMacros, type WorkspaceMacroDefinition } from "./macros";
 import { collectSymbols } from "./symbols";
+import { isAssemblyEndDirective } from "./parser";
 
 export type WorkspaceSymbol = {
   name: string;
@@ -130,7 +131,11 @@ function visitFile(
     return;
   }
 
-  const resolvedDependencies = document.parsed.lines
+  const assemblyEndLine = document.parsed.lines.findIndex((line) => isAssemblyEndDirective(line.node));
+  const indexableLines = assemblyEndLine === -1
+    ? document.parsed.lines
+    : document.parsed.lines.slice(0, assemblyEndLine + 1);
+  const resolvedDependencies = indexableLines
     .flatMap((line) => {
       const node = line.node;
       if (node.shape !== "directive" || !includeDirectives.has(node.directive.lexeme.toLowerCase())) {

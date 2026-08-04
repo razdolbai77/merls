@@ -210,6 +210,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - Workspace include lookups compare paths case-insensitively on win32, so includes spelled with different drive or letter case resolve to open buffers and cached documents instead of stale disk content.
 - Include handling shares `includeDirectives` and one `readIncludeTarget` reader in `src/asm/workspace.ts` between workspace indexing and document links, so both resolve identifier, string, numeric, and concatenated include operands the same way.
 - Workspace `USE` resolution accepts `initializationOptions.merlinMacroFolder`, strips the legacy leading numeric subfolder, and tries an implicit `.s` suffix while preserving open-buffer and disk-cache precedence.
+- A valid `END` directive terminates source indexing and diagnostics; labels, includes, macros, and unresolved references after it are intentionally ignored.
 - Untitled editor documents remain indexable but do not resolve `asm`/`put`/`use` dependencies, preventing virtual URI names from producing invalid disk paths.
 - Diagnostic notifications swallow transport rejections through `sendDiagnosticsSafely`, so a disposed client cannot surface unhandled promise rejections, and the disk cache evicts paths unreachable from any open document's include graph after watched-file updates and document closes.
 - LSP feature handlers share one input shape (open-document map plus request URI) and every array result returns `[]` for unknown documents instead of `null`, so document highlights and selection ranges match their peers.

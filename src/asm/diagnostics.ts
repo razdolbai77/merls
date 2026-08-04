@@ -3,7 +3,11 @@ import { type Expression, type Operand, isAccumulatorOperand, walkExpression } f
 import { type Token } from "./lexer";
 import { resolveLocalLabels, isLocalLabel, getGlobalLabelToken } from "./local-labels";
 import { directiveTable, opcodeTable, type AddressingMode } from "./metadata";
-import { type ParsedLine, type MacroDefinitionRegion } from "./parser";
+import {
+  isAssemblyEndDirective,
+  type MacroDefinitionRegion,
+  type ParsedLine
+} from "./parser";
 import { macroParameterPattern } from "./macros";
 import { getEffectiveLines, splitMacroCallArguments, type ExpandedToken } from "./expansion";
 import { MAX_MACRO_EXPANSION_DEPTH, MAX_MACRO_EXPANSION_LINES } from "./limits";
@@ -217,6 +221,10 @@ function collectActiveLines(
   let isActive = true;
 
   for (const line of document.lines) {
+    if (isActive && isAssemblyEndDirective(line.node)) {
+      activeLines.add(line.line);
+      break;
+    }
     const directiveName = line.node.shape === "directive"
       ? line.node.directive.lexeme.toLowerCase()
       : null;
@@ -426,12 +434,20 @@ function collectMalformedDiagnostics(
   filePath: string,
   document: ParsedDocument
 ): readonly Diagnostic[] {
-  return document.errors.map((error) => ({
-    filePath,
-    line: error.line,
-    code: "malformed-line" as const,
-    message: error.message
-  }));
+  const assemblyEndLine = getDocumentAssemblyEndLine(document);
+  return document.errors
+    .filter((error) => assemblyEndLine === null || error.line <= assemblyEndLine)
+    .map((error) => ({
+      filePath,
+      line: error.line,
+      code: "malformed-line" as const,
+      message: error.message
+    }));
+}
+
+function getDocumentAssemblyEndLine(document: ParsedDocument): number | null {
+  const endLine = document.lines.findIndex((line) => isAssemblyEndDirective(line.node));
+  return endLine === -1 ? null : endLine;
 }
 
 function collectUnknownDiagnostics(
@@ -441,8 +457,12 @@ function collectUnknownDiagnostics(
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
   const effectiveLines = getEffectiveLines(document, macroDefinitions);
+  const assemblyEndLine = getDocumentAssemblyEndLine(document);
 
   for (const line of effectiveLines) {
+    if (assemblyEndLine !== null && line.line > assemblyEndLine) {
+      continue;
+    }
     const lineLength = document.lines[line.line]?.node.text.length ?? 0;
 
     if (line.isExpanded) {
@@ -1070,8 +1090,12 @@ function collectAddressingModeDiagnostics(
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
   const effectiveLines = getEffectiveLines(document, macroDefinitions);
+  const assemblyEndLine = getDocumentAssemblyEndLine(document);
 
   for (const line of effectiveLines) {
+    if (assemblyEndLine !== null && line.line > assemblyEndLine) {
+      continue;
+    }
     if (line.isExpanded || line.node.shape !== "instruction") {
       continue;
     }

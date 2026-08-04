@@ -2,6 +2,7 @@ import { directiveTable } from "./metadata";
 import { type ParsedDocument } from "./document";
 import { type Token } from "./lexer";
 import { collectDocumentMacros, type DocumentMacroDefinition } from "./macros";
+import { isAssemblyEndDirective } from "./parser";
 
 export type SymbolKind = "label" | "equate" | "variable" | "data" | "macro";
 
@@ -25,6 +26,9 @@ export function collectSymbols(document: ParsedDocument): Map<string, SymbolDefi
   };
 
   for (const line of document.lines) {
+    if (isAssemblyEndDirective(line.node)) {
+      break;
+    }
     const node = line.node;
 
     if (node.shape === "equate") {

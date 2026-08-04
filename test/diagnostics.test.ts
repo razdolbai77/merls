@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { parseDocument } from "../src/asm/document";
+import { collectSymbols } from "../src/asm/symbols";
 import {
   collectWorkspaceDiagnostics,
   type Diagnostic
@@ -67,6 +68,12 @@ export function runDiagnosticsTest(): void {
     "        fin"
   ].join("\n");
 
+  const endSource = [
+    "BeforeEnd equ 1",
+    "        end",
+    "AfterEnd equ MissingAfterEnd"
+  ].join("\n");
+
   const bankOpsPath = path.resolve(
     process.cwd(),
     "test/fixtures/invalid/unknown-bank-ops.S"
@@ -118,6 +125,21 @@ export function runDiagnosticsTest(): void {
     false
   );
 
+
+  const endDocument = parseDocument(endSource);
+  const endDiagnostics = collectWorkspaceDiagnostics([
+    {
+      filePath: "<end>",
+      document: endDocument
+    }
+  ]);
+  assert.equal(collectSymbols(endDocument).has("AfterEnd"), false);
+  assert.equal(
+    endDiagnostics.some(
+      (diagnostic) => diagnostic.code === "unresolved-reference" && diagnostic.message.includes("MissingAfterEnd")
+    ),
+    false
+  );
   assert.equal(
     diagnostics.some(
       (diagnostic: Diagnostic) =>

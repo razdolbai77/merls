@@ -139,6 +139,15 @@ export type ParsedSourceStructure = {
 
 const dataDirectiveKinds = new Set(["data"]);
 
+export function isAssemblyEndDirective(node: ParsedLine): boolean {
+  return node.shape === "directive" && node.directive.lexeme.toLowerCase() === "end";
+}
+
+export function getAssemblyEndLine(lines: readonly ParsedLine[]): number | null {
+  const endLine = lines.findIndex(isAssemblyEndDirective);
+  return endLine === -1 ? null : endLine;
+}
+
 export function parseSourceLines(source: string | LexedSource): readonly ParsedLine[] {
   const lexed = typeof source === "string" ? lexSource(source) : source;
   return lexed.lines.map(parseLexedLine);
@@ -313,6 +322,7 @@ function collectMacroDefinitionRegions(lines: readonly ParsedLine[], lexedLines:
 
   for (let index = 0; index < lines.length; index++) {
     const startNode = lines[index];
+    if (startNode !== undefined && isAssemblyEndDirective(startNode)) break;
     if (!isMacroDefinitionStart(startNode)) continue;
 
     const macroDefinition = collectMacroDefinitionRegion(lines, lexedLines, index, startNode);

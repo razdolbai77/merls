@@ -1,6 +1,7 @@
 import { type LexedSource, type Token, lexSource } from "./lexer";
 import { collectSymbols, type SymbolDefinition } from "./symbols";
 import {
+  getAssemblyEndLine,
   parseSourceStructure,
   type MacroBodyLine,
   type MacroDefinitionRegion,
@@ -56,6 +57,7 @@ export function parseDocument(source: string | LexedSource): ParsedDocument {
   const lexed = typeof source === "string" ? lexSource(source) : source;
   const parsed = parseSourceStructure(lexed);
   const parsedLines = parsed.lines;
+  const assemblyEndLine = getAssemblyEndLine(parsedLines);
   const lines: DocumentLine[] = [];
   const errors: DocumentError[] = [];
   const macroCalls: MacroCallSite[] = [];
@@ -76,7 +78,10 @@ export function parseDocument(source: string | LexedSource): ParsedDocument {
       });
     }
 
-    if (node.shape === "macroCall") {
+    if (
+      (assemblyEndLine === null || line <= assemblyEndLine) &&
+      node.shape === "macroCall"
+    ) {
       macroCalls.push({
         line,
         label: node.label,
