@@ -90,7 +90,7 @@ Reference: <https://brutaldeluxe.fr/products/crossdevtools/merlin/>
 - [x] Make `test/fixture-corpus.test.ts` assert that every valid fixture parses and produces no diagnostics; it currently checks only file existence and provenance text.
 - [x] Move recursive calls, macro-local labels, and unresolved conditionals out of `test/fixtures/valid/merlin32-macro-coverage.S`, which currently produces five diagnostics despite its `valid` location.
 - [x] Add fixture-driven cases transcribed from the official page for current address, brace precedence, variables, semicolon-separated macro parameters, `]0`, nested macro definitions, and implicit include suffixes.
-- [ ] Add exact expected diagnostic-code assertions for every file under `test/fixtures/invalid/` instead of accepting any nonempty provenance marker.
+- [x] Add exact expected diagnostic-code assertions for every file under `test/fixtures/invalid/` instead of accepting any nonempty provenance marker.
 - [ ] Replace README's “comprehensive and fully implemented” claim with a 6502/Merlin syntax coverage matrix and clearly separate intentional 65C02/65C816 exclusions from missing processor-neutral syntax.
 - [ ] Remove README and AGENTS references to nonexistent `src/asm/substitution.ts` and `test/substitution.test.ts`, or restore one shared substitution module and its actual test file.
 

@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { parseDocument } from "../src/asm/document";
-import { collectWorkspaceDiagnostics } from "../src/asm/diagnostics";
+import { collectWorkspaceDiagnostics, type DiagnosticCode } from "../src/asm/diagnostics";
 
 const validFixturePaths = [
   "test/fixtures/valid/merlin32-linkscript.S",
@@ -17,6 +17,31 @@ const invalidFixturePaths = [
   "test/fixtures/invalid/unknown-bank-ops.S",
   "test/fixtures/invalid/unknown-addressing-modifiers.S"
 ];
+
+const expectedInvalidDiagnosticCodes: Record<string, readonly DiagnosticCode[]> = {
+  "test/fixtures/invalid/macro-generated-unresolved.S": ["unresolved-reference"],
+  "test/fixtures/invalid/unknown-bank-ops.S": [
+    "unknown-directive",
+    "unknown-directive",
+    "unknown-directive",
+    "unknown-syntax",
+    "unsupported-instruction",
+    "unsupported-instruction",
+    "unsupported-instruction",
+    "unsupported-instruction"
+  ],
+  "test/fixtures/invalid/unknown-addressing-modifiers.S": [
+    "unknown-directive",
+    "unknown-directive",
+    "unknown-syntax",
+    "unknown-syntax",
+    "unknown-syntax",
+    "unknown-syntax",
+    "unknown-syntax",
+    "unknown-syntax",
+    "unresolved-reference"
+  ]
+};
 
 export function runFixtureCorpusTest(): void {
   for (const fixturePath of validFixturePaths) {
@@ -44,5 +69,15 @@ export function runFixtureCorpusTest(): void {
     } else {
       assert.match(content, /macro-generated unresolved reference/);
     }
+
+    const document = parseDocument(content);
+    const diagnostics = collectWorkspaceDiagnostics([{ filePath: absolutePath, document }]);
+    const expectedCodes = expectedInvalidDiagnosticCodes[fixturePath];
+    assert.ok(expectedCodes, `${fixturePath} must declare expected diagnostic codes`);
+    assert.deepEqual(
+      diagnostics.map((diagnostic) => diagnostic.code),
+      expectedCodes,
+      `${fixturePath} must produce exactly the expected diagnostic codes`
+    );
   }
 }
