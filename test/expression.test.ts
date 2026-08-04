@@ -4,7 +4,8 @@ import { lexSource } from "../src/asm/lexer";
 import {
   type Expression,
   parseExpression,
-  parseOperand
+  parseOperand,
+  walkExpression
 } from "../src/asm/expression";
 
 function summarizeExpression(expression: Expression): unknown {
@@ -228,4 +229,23 @@ export function runExpressionTest(): void {
     kind: "string",
     value: "x"
   });
+
+  // Shared expression traversal visits every identifier left-to-right.
+  {
+    const traversalTokens = lexSource("a+b*c").lines[0]?.tokens ?? [];
+    const traversal = parseExpression(traversalTokens);
+    const visited: string[] = [];
+    walkExpression(traversal.expression, (identifier) => {
+      visited.push(identifier.value);
+    });
+    assert.deepEqual(visited, ["a", "b", "c"]);
+
+    const nestedTokens = lexSource("<a+-b").lines[0]?.tokens ?? [];
+    const nested = parseExpression(nestedTokens);
+    const nestedVisited: string[] = [];
+    walkExpression(nested.expression, (identifier) => {
+      nestedVisited.push(identifier.value);
+    });
+    assert.deepEqual(nestedVisited, ["a", "b"]);
+  }
 }

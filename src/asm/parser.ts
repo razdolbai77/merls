@@ -1,5 +1,5 @@
 import { directiveTable } from "./metadata";
-import { type Expression, type Operand, parseExpression, parseOperand } from "./expression";
+import { type Expression, type Operand, parseExpression, parseOperand, walkExpression } from "./expression";
 import { lexSource, type LexedLine, type LexedSource, type Token } from "./lexer";
 
 export type ParsedLine =
@@ -464,21 +464,5 @@ function collectMacroBodyUsage(node: ParsedLine): Omit<MacroBodyLine, "line" | "
 }
 
 function collectExpressionUsage(expression: Expression, collectTokenUsage: (token: Token) => void): void {
-  switch (expression.kind) {
-    case "identifier":
-      collectTokenUsage(expression.token);
-      break;
-    case "modifier":
-      collectExpressionUsage(expression.expression, collectTokenUsage);
-      break;
-    case "unary":
-      collectExpressionUsage(expression.expression, collectTokenUsage);
-      break;
-    case "binary":
-      collectExpressionUsage(expression.left, collectTokenUsage);
-      collectExpressionUsage(expression.right, collectTokenUsage);
-      break;
-    default:
-      break;
-  }
+  walkExpression(expression, (identifier) => collectTokenUsage(identifier.token));
 }

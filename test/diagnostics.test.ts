@@ -399,4 +399,34 @@ export function runDiagnosticsTest(): void {
     ),
     false
   );
+
+  // Equate operands participate in unresolved-reference analysis.
+  const equateSource = [
+    "Defined equ 1",
+    "Alias   equ Defined",
+    "Broken  equ MissingEqu"
+  ].join("\n");
+  const equateDiagnostics = collectWorkspaceDiagnostics([
+    { filePath: "<equate>", document: parseDocument(equateSource) }
+  ]);
+  assert.equal(
+    equateDiagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<equate>" &&
+        diagnostic.code === "unresolved-reference" &&
+        diagnostic.line === 2 &&
+        diagnostic.message.includes("MissingEqu")
+    ),
+    true,
+    "expected the equate operand reference to be diagnosed"
+  );
+  assert.equal(
+    equateDiagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<equate>" &&
+        diagnostic.message.includes("Defined")
+    ),
+    false,
+    "expected the resolved equate operand to produce no diagnostic"
+  );
 }

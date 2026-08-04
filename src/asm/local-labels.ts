@@ -1,5 +1,5 @@
 import { type ParsedDocument } from "./document";
-import { type Expression, type Operand } from "./expression";
+import { type Expression, type Operand, walkExpression } from "./expression";
 import { type ParsedLine } from "./parser";
 import { type Token } from "./lexer";
 
@@ -221,21 +221,13 @@ function findLocalNamesInOperand(operand: Operand): readonly string[] {
 }
 
 function findLocalNamesInExpression(expression: Expression): readonly string[] {
-  switch (expression.kind) {
-    case "identifier":
-      return isLocalLabel(expression.value) ? [expression.value] : [];
-    case "modifier":
-      return findLocalNamesInExpression(expression.expression);
-    case "unary":
-      return findLocalNamesInExpression(expression.expression);
-    case "binary":
-      return [
-        ...findLocalNamesInExpression(expression.left),
-        ...findLocalNamesInExpression(expression.right)
-      ];
-    default:
-      return [];
-  }
+  const names: string[] = [];
+  walkExpression(expression, (identifier) => {
+    if (isLocalLabel(identifier.value)) {
+      names.push(identifier.value);
+    }
+  });
+  return names;
 }
 
 export function isLocalLabel(name: string): boolean {

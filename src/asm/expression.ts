@@ -334,3 +334,26 @@ function parseIndexRegister(token: Token | undefined): Operand["indexRegister"] 
 
   throw new Error("expected index register");
 }
+
+export function walkExpression(
+  expression: Expression,
+  visitIdentifier: (identifier: IdentifierExpression) => void
+): void {
+  switch (expression.kind) {
+    case "identifier":
+      visitIdentifier(expression);
+      break;
+    case "modifier":
+      walkExpression(expression.expression, visitIdentifier);
+      break;
+    case "unary":
+      walkExpression(expression.expression, visitIdentifier);
+      break;
+    case "binary":
+      walkExpression(expression.left, visitIdentifier);
+      walkExpression(expression.right, visitIdentifier);
+      break;
+    default:
+      break;
+  }
+}

@@ -1,5 +1,5 @@
 import { type ParsedDocument } from "./document";
-import { type Expression, type Operand } from "./expression";
+import { type Expression, type Operand, walkExpression } from "./expression";
 import { type Token } from "./lexer";
 import { resolveLocalLabels, isLocalLabel, getGlobalLabelToken } from "./local-labels";
 import { directiveTable, opcodeTable, type AddressingMode } from "./metadata";
@@ -663,21 +663,9 @@ function findReferencesInOperand(operand: Operand): readonly Token[] {
 }
 
 function findReferencesInExpression(expression: Expression): readonly Token[] {
-  switch (expression.kind) {
-    case "identifier":
-      return [expression.token];
-    case "modifier":
-      return findReferencesInExpression(expression.expression);
-    case "unary":
-      return findReferencesInExpression(expression.expression);
-    case "binary":
-      return [
-        ...findReferencesInExpression(expression.left),
-        ...findReferencesInExpression(expression.right)
-      ];
-    default:
-      return [];
-  }
+  const tokens: Token[] = [];
+  walkExpression(expression, (identifier) => tokens.push(identifier.token));
+  return tokens;
 }
 
 function getUnknownDirectiveToken(node: ParsedLine): Token | null {

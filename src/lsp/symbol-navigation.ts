@@ -1,7 +1,7 @@
 import { type Location } from "vscode-languageserver/node";
 
 import { type CachedDocument } from "../asm/document";
-import { type Expression } from "../asm/expression";
+import { type Expression, walkExpression } from "../asm/expression";
 import { type ParsedLine } from "../asm/parser";
 import { type Token, tokenAtCharacter } from "../asm/lexer";
 import { collectSymbols } from "../asm/symbols";
@@ -308,19 +308,7 @@ export function getReferencedTokens(cached: CachedDocument, lineNumber: number, 
 }
 
 function collectExpressionIdentifiers(expression: Expression): readonly Token[] {
-  switch (expression.kind) {
-    case "identifier":
-      return [expression.token];
-    case "modifier":
-      return collectExpressionIdentifiers(expression.expression);
-    case "unary":
-      return collectExpressionIdentifiers(expression.expression);
-    case "binary":
-      return [
-        ...collectExpressionIdentifiers(expression.left),
-        ...collectExpressionIdentifiers(expression.right)
-      ];
-    default:
-      return [];
-  }
+  const tokens: Token[] = [];
+  walkExpression(expression, (identifier) => tokens.push(identifier.token));
+  return tokens;
 }
