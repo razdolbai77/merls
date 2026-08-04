@@ -29,7 +29,10 @@ export type DiagnosticCode =
   | "invalid-macro-local-label"
   | "forward-macro-call"
   | "forward-equate-reference"
-  | "invalid-addressing-mode";
+  | "invalid-addressing-mode"
+  | "unterminated-loop"
+  | "unmatched-loop-terminator"
+  | "unsupported-generated-label";
 
 export type Diagnostic = {
   filePath: string;
@@ -205,7 +208,8 @@ export function collectWorkspaceDiagnostics(
         documentIndex,
         activeLines
       ),
-      ...collectMacroCallDiagnostics(entry.filePath, entry.document, macrosByName, documentIndex)
+      ...collectMacroCallDiagnostics(entry.filePath, entry.document, macrosByName, documentIndex),
+      ...collectLoopDiagnostics(entry.filePath, entry.document)
     );
   }
 
@@ -448,6 +452,65 @@ function collectMalformedDiagnostics(
       code: "malformed-line" as const,
       message: error.message
     }));
+}
+
+function collectLoopDiagnostics(
+  filePath: string,
+  document: ParsedDocument
+): readonly Diagnostic[] {
+  const diagnostics: Diagnostic[] = [];
+  const assemblyEndLine = getDocumentAssemblyEndLine(document);
+  const isActive = (line: number): boolean =>
+    assemblyEndLine === null || line <= assemblyEndLine;
+
+  for (const region of document.loopRegions) {
+    if (!isActive(region.startLine)) {
+      continue;
+    }
+    if (region.endLine === null) {
+      diagnostics.push({
+        filePath,
+        line: region.startLine,
+        code: "unterminated-loop",
+        message: "Unterminated LUP region",
+        startCharacter: region.startDirective.start,
+        endCharacter: region.startDirective.end
+      });
+    }
+  }
+
+  for (const terminator of document.unmatchedLoopTerminators) {
+    if (!isActive(terminator.line)) {
+      continue;
+    }
+    diagnostics.push({
+      filePath,
+      line: terminator.line,
+      code: "unmatched-loop-terminator",
+      message: "Unmatched loop terminator --^",
+      startCharacter: terminator.token.start,
+      endCharacter: terminator.token.end
+    });
+  }
+
+  for (const line of document.lines) {
+    if (!isActive(line.line)) {
+      continue;
+    }
+    const firstToken = line.tokens[0];
+    if (firstToken?.kind === "label" && firstToken.lexeme.startsWith("@")) {
+      diagnostics.push({
+        filePath,
+        line: line.line,
+        code: "unsupported-generated-label",
+        message: `Unsupported generated label ${firstToken.lexeme}`,
+        startCharacter: firstToken.start,
+        endCharacter: firstToken.end
+      });
+    }
+  }
+
+  return diagnostics;
 }
 
 function getDocumentAssemblyEndLine(document: ParsedDocument): number | null {
@@ -718,6 +781,21 @@ function collectUnresolvedDiagnostics(
         continue;
       }
 
+      if (!line.isExpanded && reference.lexeme.startsWith("@")) {
+        const generatedRange = resolveDiagnosticRange(line.isExpanded, reference, lineLength);
+        if (generatedRange !== null) {
+          diagnostics.push({
+            filePath,
+            line: line.line,
+            code: "unsupported-generated-label",
+            message: `Unsupported generated label reference ${reference.lexeme}`,
+            startCharacter: generatedRange.start,
+            endCharacter: generatedRange.end
+          });
+        }
+        continue;
+      }
+
       const range = resolveDiagnosticRange(line.isExpanded, reference, lineLength);
 
       if (reference.lexeme.startsWith("]")) {
@@ -969,7 +1047,7 @@ function getUnknownDirectiveToken(node: ParsedLine): Token | null {
 }
 
 function getUnknownTextPattern(text: string): { text: string; start: number; end: number } | null {
-  const caretMatch = /\^/.exec(text);
+  const caretMatch = /(?<!--)\^/.exec(text);
   if (caretMatch !== null) {
     return { text: "^", start: caretMatch.index, end: caretMatch.index + 1 };
   }

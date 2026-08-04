@@ -152,23 +152,23 @@ function getGlobalLabel(node: ParsedLine): string | null {
 }
 
 export function getGlobalLabelToken(node: ParsedLine): Token | null {
-  if (node.shape === "equate" && !isLocalLabel(node.label.lexeme)) {
+  if (node.shape === "equate" && isGlobalLabel(node.label.lexeme)) {
     return node.label;
   }
 
-  if (node.shape === "labelOnly" && !isLocalLabel(node.label.lexeme)) {
+  if (node.shape === "labelOnly" && isGlobalLabel(node.label.lexeme)) {
     return node.label;
   }
 
-  if (node.shape === "instruction" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
+  if (node.shape === "instruction" && node.label !== null && isGlobalLabel(node.label.lexeme)) {
     return node.label;
   }
 
-  if (node.shape === "directive" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
+  if (node.shape === "directive" && node.label !== null && isGlobalLabel(node.label.lexeme)) {
     return node.label;
   }
 
-  if (node.shape === "data" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
+  if (node.shape === "data" && node.label !== null && isGlobalLabel(node.label.lexeme)) {
     return node.label;
   }
 
@@ -228,6 +228,10 @@ function findLocalNamesInExpression(expression: Expression): readonly string[] {
     }
   });
   return names;
+}
+
+function isGlobalLabel(name: string): boolean {
+  return !isLocalLabel(name) && !name.startsWith("@");
 }
 
 export function isLocalLabel(name: string): boolean {

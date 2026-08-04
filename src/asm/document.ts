@@ -32,11 +32,25 @@ export type MacroCallSite = {
   args: readonly Token[];
 };
 
+export type LoopRegion = {
+  startLine: number;
+  endLine: number | null;
+  startDirective: Token;
+  endDirective: Token | null;
+};
+
+export type UnmatchedLoopTerminator = {
+  line: number;
+  token: Token;
+};
+
 export type ParsedDocument = {
   lines: readonly DocumentLine[];
   errors: readonly DocumentError[];
   macroDefinitions: readonly MacroDefinition[];
   macroCalls: readonly MacroCallSite[];
+  loopRegions: readonly LoopRegion[];
+  unmatchedLoopTerminators: readonly UnmatchedLoopTerminator[];
 };
 
 export type CachedDocument = {
@@ -61,7 +75,9 @@ export function parseDocument(source: string | LexedSource): ParsedDocument {
   const lines: DocumentLine[] = [];
   const errors: DocumentError[] = [];
   const macroCalls: MacroCallSite[] = [];
-  const loopStarts: DocumentLine[] = [];
+  const loopRegions: LoopRegion[] = [];
+  const unmatchedLoopTerminators: UnmatchedLoopTerminator[] = [];
+  const openLoopStarts: { line: number; token: Token }[] = [];
 
   for (const [line, node] of parsedLines.entries()) {
     const tokens = lexed.lines[line]?.tokens ?? [];
@@ -82,23 +98,23 @@ export function parseDocument(source: string | LexedSource): ParsedDocument {
     if (node.shape === "directive") {
       const directiveName = node.directive.lexeme.toLowerCase();
       if (directiveName === "lup") {
-        loopStarts.push(lines.at(-1)!);
+        openLoopStarts.push({ line, token: node.directive });
       } else if (directiveName === "--^") {
-        const loopStart = loopStarts.pop();
+        const loopStart = openLoopStarts.pop();
         if (loopStart === undefined) {
-          errors.push({ line, text: node.text, message: "Unmatched loop terminator --^" });
+          unmatchedLoopTerminators.push({ line, token: node.directive });
+        } else {
+          loopRegions.push({
+            startLine: loopStart.line,
+            endLine: line,
+            startDirective: loopStart.token,
+            endDirective: node.directive
+          });
         }
       }
     }
 
-    const firstToken = tokens[0];
-    if (firstToken?.kind === "label" && firstToken.lexeme.startsWith("@")) {
-      errors.push({
-        line,
-        text: node.text,
-        message: `Unsupported generated label ${firstToken.lexeme}`
-      });
-    }
+
 
     if (
       (assemblyEndLine === null || line <= assemblyEndLine) &&
@@ -113,13 +129,15 @@ export function parseDocument(source: string | LexedSource): ParsedDocument {
     }
   }
 
-  for (const loopStart of loopStarts) {
-    errors.push({
-      line: loopStart.line,
-      text: loopStart.node.text,
-      message: "Unterminated LUP region"
+  for (const loopStart of openLoopStarts) {
+    loopRegions.push({
+      startLine: loopStart.line,
+      endLine: null,
+      startDirective: loopStart.token,
+      endDirective: null
     });
   }
+  loopRegions.sort((left, right) => left.startLine - right.startLine);
 
   const macroDefinitions = parsed.macroDefinitions.map((macroDefinition) => ({
     ...macroDefinition,
@@ -130,6 +148,8 @@ export function parseDocument(source: string | LexedSource): ParsedDocument {
     lines,
     errors,
     macroDefinitions,
-    macroCalls
+    macroCalls,
+    loopRegions,
+    unmatchedLoopTerminators
   };
 }

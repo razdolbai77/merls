@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import { parseDocument } from "../src/asm/document";
+import { collectSymbols } from "../src/asm/symbols";
 
 export function runDocumentModelTest(): void {
   const source = [
@@ -112,12 +113,29 @@ export function runDocumentModelTest(): void {
     "        --^",
     "        lup 1"
   ].join("\n"));
-  assert.equal(loopDocument.errors.some((error) => error.message === "Unmatched loop terminator --^"), true);
-  assert.equal(loopDocument.errors.some((error) => error.message === "Unterminated LUP region"), true);
+  assert.equal(loopDocument.errors.length, 0);
+  assert.deepEqual(loopDocument.loopRegions, [
+    {
+      startLine: 0,
+      endLine: 2,
+      startDirective: { kind: "directive", lexeme: "lup", start: 8, end: 11 },
+      endDirective: { kind: "directive", lexeme: "--^", start: 8, end: 11 }
+    },
+    {
+      startLine: 4,
+      endLine: null,
+      startDirective: { kind: "directive", lexeme: "lup", start: 8, end: 11 },
+      endDirective: null
+    }
+  ]);
+  assert.deepEqual(loopDocument.unmatchedLoopTerminators, [
+    {
+      line: 3,
+      token: { kind: "directive", lexeme: "--^", start: 8, end: 11 }
+    }
+  ]);
 
   const generatedLabelDocument = parseDocument("@generated\n        nop");
-  assert.equal(
-    generatedLabelDocument.errors.some((error) => error.message === "Unsupported generated label @generated"),
-    true
-  );
+  assert.equal(generatedLabelDocument.errors.length, 0);
+  assert.equal(collectSymbols(generatedLabelDocument).has("@generated"), false);
 }

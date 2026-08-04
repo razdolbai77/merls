@@ -15,6 +15,7 @@ import { runUniqueLocationsTest } from "./unique-locations.test";
 import { runMacroParameterPatternTest } from "./macro-parameter-pattern.test";
 import { runLspDiagnosticsTest } from "./lsp-diagnostics.test";
 import { runDocumentModelTest } from "./document-model.test";
+import { runLupRegionTest } from "./lup-regions.test";
 import { runDocumentSymbolTest } from "./document-symbol.test";
 import { runExpressionTest } from "./expression.test";
 import { runFixtureCorpusTest } from "./fixture-corpus.test";
@@ -136,6 +137,10 @@ const tests: TestCase[] = [
   {
     name: "document model preserves line structure and tolerates malformed lines",
     run: runDocumentModelTest
+  },
+  {
+    name: "lup repeat regions track matched unmatched and nested delimiters",
+    run: runLupRegionTest
   },
   {
     name: "symbol collection indexes labels equates and named data definitions",

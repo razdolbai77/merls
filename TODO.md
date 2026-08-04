@@ -79,7 +79,7 @@ Reference: <https://brutaldeluxe.fr/products/crossdevtools/merlin/>
 ### Medium Priority — Merlin Directive Coverage
 
 - [x] Add parser metadata and payload coverage for `ADR`, `ADRL`, `PUTBIN`, `CHK`, `DAT`, and `REL`, explicitly documenting any directive excluded by the 6502-only project scope.
-- [ ] Add `LUP`/`--^` region parsing and variable substitution without implementing object-code generation; diagnose unmatched loop delimiters and unsupported generated `@` labels precisely.
+- [x] Add `LUP`/`--^` region parsing and variable substitution without implementing object-code generation; diagnose unmatched loop delimiters and unsupported generated `@` labels precisely.
 - [ ] Parse alternate macro calls `PMC name,args` and `>>> name,args` into the same macro-call model used by direct calls.
 - [ ] Validate multi-value data/storage operands, including `DS 8,$EE`, `DS \,$A0`, and mixed string/numeric `ASC` payloads.
 - [ ] Validate `INV` and `FLS` character ranges so lowercase strings receive a targeted diagnostic rather than being advertised as valid.

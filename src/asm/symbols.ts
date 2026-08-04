@@ -20,6 +20,9 @@ export function collectSymbols(document: ParsedDocument): Map<string, SymbolDefi
   const macroDefinitions = collectDocumentMacros(document);
 
   const addSymbol = (name: string, kind: SymbolKind, line: number, token: Token, macroDefinition: DocumentMacroDefinition | null = null) => {
+    if (name.startsWith("@")) {
+      return;
+    }
     if (!symbols.has(name)) {
       symbols.set(name, defineSymbol(name, kind, line, token, macroDefinition, getDocComment(document, line)));
     }

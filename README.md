@@ -208,7 +208,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - Addressing diagnostics select direct-page or absolute modes from resolvable operand values; `STA $00,Y` is rejected unless a `:` mnemonic suffix forces absolute syntax, such as `LDA: $11`.
 - `BGE` and `BLT` are documented relative-branch aliases for `BCS` and `BCC`; completion and hover expose their carry-condition meaning.
 - `ADR`, `ADRL`, `PUTBIN`, `CHK`, `DAT`, and `REL` preserve directive payloads for editor parsing. This 6502-only server does not assemble 65816 long-address, relocation, checksum, or binary-embedding semantics.
-- `LUP … --^` regions parse without object-code generation. Unmatched delimiters and generated `@` labels produce precise diagnostics.
+- `LUP … --^` repeat regions parse into a `loopRegions` model with nested delimiter matching and no object-code generation. Unmatched terminators (`unmatched-loop-terminator`), unterminated regions (`unterminated-loop`), and generated `@` labels or references (`unsupported-generated-label`) receive precise diagnostic codes, while loop-body Merlin variables keep resolving through the reassignable `]name` substitution model.
 - Location and reference deduplication shares one generic `uniqueLocations` helper in `src/lsp/symbol-navigation.ts` instead of four `JSON.stringify`-keyed Map copies.
 - Macro parameter placeholder detection shares one `macroParameterPattern` regex in `src/asm/macros.ts` across the parser, expansion, diagnostics, navigation, rename, and semantic tokens.
 - Workspace include lookups compare paths case-insensitively on win32, so includes spelled with different drive or letter case resolve to open buffers and cached documents instead of stale disk content.
