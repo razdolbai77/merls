@@ -29,7 +29,7 @@ import { runServerEntrypointTest } from "./server-entrypoint.test";
 import { runSymbolsTest } from "./symbols.test";
 import { runVariableTest } from "./variables.test";
 import { runSyntaxShapeTest } from "./syntax-shape.test";
-import { runWorkspaceGraphTest } from "./workspace.test";
+import { runWorkspaceGraphTest, runWorkspaceCaseInsensitiveLookupTest } from "./workspace.test";
 import { runWorkspaceSymbolTest } from "./workspace-symbol.test";
 import { runSemanticTokensTest } from "./semantic-tokens.test";
 import { runFormattingTest } from "./formatting.test";
@@ -126,6 +126,10 @@ const tests: TestCase[] = [
   {
     name: "workspace indexing follows Merlin include directives and merges symbols",
     run: runWorkspaceGraphTest
+  },
+  {
+    name: "workspace indexing resolves include lookups case-insensitively on win32",
+    run: runWorkspaceCaseInsensitiveLookupTest
   },
   {
     name: "diagnostics report duplicates unresolved refs malformed lines and unknown syntax",

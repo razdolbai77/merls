@@ -63,6 +63,25 @@ export function indexWorkspace(
   };
 }
 
+function lookupByPath(
+  map: ReadonlyMap<string, CachedDocument>,
+  filePath: string
+): CachedDocument | undefined {
+  const exact = map.get(filePath);
+  if (exact !== undefined || process.platform !== "win32") {
+    return exact;
+  }
+
+  const lowered = filePath.toLowerCase();
+  for (const [key, value] of map.entries()) {
+    if (key.toLowerCase() === lowered) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
 function visitFile(
   filePath: string,
   documents: Map<string, CachedDocument>,
@@ -71,16 +90,16 @@ function visitFile(
   diskCache: Map<string, CachedDocument>,
   overrides?: ReadonlyMap<string, CachedDocument>
 ): void {
-  if (documents.has(filePath)) {
+  if (lookupByPath(documents, filePath) !== undefined) {
     return;
   }
 
-  let document: CachedDocument | undefined = overrides?.get(filePath);
-  
+  let document: CachedDocument | undefined = overrides ? lookupByPath(overrides, filePath) : undefined;
+
   if (document === undefined) {
-    document = diskCache.get(filePath);
+    document = lookupByPath(diskCache, filePath);
   }
-  
+
   if (document === undefined) {
     let source: string;
     try {
