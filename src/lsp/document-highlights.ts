@@ -1,15 +1,21 @@
 import { DocumentHighlight, DocumentHighlightKind } from "vscode-languageserver/node";
+
 import { CachedDocument } from "../asm/document";
 import { getSymbolAtPosition, collectDefinitions, collectReferences } from "./symbol-navigation";
 
 export function buildDocumentHighlights(
-  cached: CachedDocument | undefined,
+  openDocuments: ReadonlyMap<string, CachedDocument>,
   uri: string,
   line: number,
   character: number
 ): DocumentHighlight[] {
+  const cached = openDocuments.get(uri);
+  if (cached === undefined) {
+    return [];
+  }
+
   const targetName = getSymbolAtPosition(cached, line, character);
-  if (targetName === null || cached === undefined) {
+  if (targetName === null) {
     return [];
   }
 

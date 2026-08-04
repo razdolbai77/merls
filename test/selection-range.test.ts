@@ -85,7 +85,6 @@ export function runSelectionRangeBoundsTest(): void {
     { line: -1, character: 0 }
   ]);
 
-  assert.ok(results !== null);
   assert.equal(results.length, 3);
 
   const fileRange = {
@@ -100,7 +99,12 @@ export function runSelectionRangeBoundsTest(): void {
 
   // In-bounds positions still produce the nested token/line/scope/file chain.
   const valid = buildSelectionRanges(openDocuments, uri, [{ line: 1, character: 3 }]);
-  assert.ok(valid !== null);
   assert.equal(valid.length, 1);
   assert.ok(valid[0].parent !== undefined, "Expected nested ranges for in-bounds position");
+
+  // Unknown documents return an empty array, matching peer handlers.
+  assert.deepEqual(
+    buildSelectionRanges(openDocuments, "file:///unknown.S", [{ line: 0, character: 0 }]),
+    []
+  );
 }

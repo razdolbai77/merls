@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { DocumentHighlightKind } from "vscode-languageserver/node";
-import { buildCachedDocument } from "../src/asm/document";
+import { buildCachedDocument, CachedDocument } from "../src/asm/document";
 import { buildDocumentHighlights } from "../src/lsp/document-highlights";
 
 export function runDocumentHighlightsTest(): void {
@@ -11,10 +11,13 @@ label1
 label2 equ $00
   `;
 
-  const cached = buildCachedDocument(source);
+  const uri = "file:///test.S";
+  const openDocuments = new Map<string, CachedDocument>([
+    [uri, buildCachedDocument(source)]
+  ]);
 
   // cursor on label1 definition
-  const h1 = buildDocumentHighlights(cached, "file:///test.S", 1, 3);
+  const h1 = buildDocumentHighlights(openDocuments, uri, 1, 3);
   assert.equal(h1.length, 2);
 
   // find write (definition)
@@ -30,7 +33,7 @@ label2 equ $00
   assert.equal(read1.range.start.character, 6);
 
   // cursor on label2 reference
-  const h2 = buildDocumentHighlights(cached, "file:///test.S", 3, 9);
+  const h2 = buildDocumentHighlights(openDocuments, uri, 3, 9);
   assert.equal(h2.length, 2);
 
   const write2 = h2.find((h) => h.kind === DocumentHighlightKind.Write);
@@ -42,6 +45,10 @@ label2 equ $00
   assert.equal(read2.range.start.line, 3);
 
   // cursor on missing symbol
-  const h3 = buildDocumentHighlights(cached, "file:///test.S", 2, 2); // on "lda" mnemonic
+  const h3 = buildDocumentHighlights(openDocuments, uri, 2, 2); // on "lda" mnemonic
   assert.equal(h3.length, 0);
+
+  // unknown documents return an empty array, matching peer handlers
+  const h4 = buildDocumentHighlights(openDocuments, "file:///unknown.S", 0, 0);
+  assert.deepEqual(h4, []);
 }

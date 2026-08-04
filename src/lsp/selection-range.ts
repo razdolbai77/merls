@@ -8,10 +8,10 @@ export function buildSelectionRanges(
   openDocuments: ReadonlyMap<string, CachedDocument>,
   uri: string,
   positions: Position[]
-): SelectionRange[] | null {
+): SelectionRange[] {
   const cached = openDocuments.get(uri);
   if (cached === undefined) {
-    return null;
+    return [];
   }
 
   const lines = cached.source.split(/\r?\n/);

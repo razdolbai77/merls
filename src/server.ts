@@ -256,7 +256,7 @@ export function startServer(
   });
   connection.onDocumentHighlight((params) =>
     buildDocumentHighlights(
-      openDocuments.get(params.textDocument.uri),
+      openDocuments,
       params.textDocument.uri,
       params.position.line,
       params.position.character
