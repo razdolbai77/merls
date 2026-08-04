@@ -27,12 +27,12 @@ export async function runExpansionTest(): Promise<void> {
   const ldaToken = expansion.lines[0]?.tokens[0];
   assert.ok(ldaToken);
   assert.equal(ldaToken.lexeme, "lda");
-  assert.equal(ldaToken.sourceToken.lexeme, "lda"); // maps to definition
+  assert.equal(ldaToken.callSiteToken, null); // body-derived token
 
   const arg1Token = expansion.lines[0]?.tokens[1];
   assert.ok(arg1Token);
   assert.equal(arg1Token.lexeme, "$12");
-  assert.equal(arg1Token.sourceToken.lexeme, "$12"); // maps to call site
+  assert.equal(arg1Token.callSiteToken?.lexeme, "$12"); // maps to call site
 
   // Verify caching
   const expansion2 = expandMacroCall(callLine.node, parsed.macroDefinitions);
@@ -110,5 +110,5 @@ export async function runExpansionTest(): Promise<void> {
     ["dfb 0", "dfb 1", "dfb 8"]
   );
   assert.equal(countExpansions[2]?.lines[0]?.tokens[1]?.kind, "numericLiteral");
-  assert.equal(countExpansions[2]?.lines[0]?.tokens[1]?.sourceToken.lexeme, "]0");
+  assert.equal(countExpansions[2]?.lines[0]?.tokens[1]?.callSiteToken, null);
 }

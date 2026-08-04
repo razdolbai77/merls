@@ -5,7 +5,7 @@ import { type ParsedDocument } from "./document";
 import { MAX_MACRO_EXPANSION_DEPTH } from "./limits";
 
 export type ExpandedToken = Token & {
-  sourceToken: Token;
+  callSiteToken: Token | null;
 };
 
 export type ExpandedLine = {
@@ -67,7 +67,7 @@ export function expandMacroCall(
             lexeme: countLexeme,
             start,
             end: start + countLexeme.length,
-            sourceToken: token
+            callSiteToken: null
           });
           lastTokenEnd = token.end;
           continue;
@@ -80,10 +80,13 @@ export function expandMacroCall(
             const argToken = argTokens[i]!;
             const spaceBefore = i === 0 ? " ".repeat(token.start - lastTokenEnd) : "";
             expandedText += spaceBefore + argToken.lexeme;
+            const callSiteToken = "callSiteToken" in argToken
+              ? (argToken as ExpandedToken).callSiteToken
+              : argToken;
             expandedTokens.push({
               ...argToken,
               start: expandedText.length - argToken.lexeme.length,
-              sourceToken: argToken // Maps back to call site argument
+              callSiteToken
             });
           }
         } else {
@@ -96,7 +99,7 @@ export function expandMacroCall(
         expandedTokens.push({
           ...token,
           start: expandedText.length - token.lexeme.length,
-          sourceToken: token // Maps back to macro definition body
+          callSiteToken: null
         });
         lastTokenEnd = token.end;
       }

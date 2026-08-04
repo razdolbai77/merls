@@ -79,4 +79,64 @@ export function runMacroReferencesTest(): void {
       end: { line: 5, character: 6 }
     }
   });
+
+  // Body-derived symbols inside an expansion must not produce call-site references.
+  {
+    const bodyCached = buildCachedDocument([
+      "Wrap mac",
+      "        jsr Helper",
+      "        eom",
+      "Helper",
+      "        rts",
+      "        Wrap"
+    ].join("\n"));
+
+    const bodyReferences = collectReferences("file:///body.S", bodyCached);
+    assert.deepEqual(
+      bodyReferences.filter((reference) => reference.name === "Helper"),
+      [
+        {
+          name: "Helper",
+          location: {
+            uri: "file:///body.S",
+            range: {
+              start: { line: 1, character: 12 },
+              end: { line: 1, character: 18 }
+            }
+          }
+        }
+      ]
+    );
+  }
+
+  // Nested expansion columns must resolve through to the outermost call site.
+  {
+    const nestedCached = buildCachedDocument([
+      "Inner mac",
+      "  lda ]1",
+      "  eom",
+      "Outer mac",
+      "    Inner ]1",
+      "    eom",
+      "Target   equ 1",
+      "      Outer Target"
+    ].join("\n"));
+
+    const nestedReferences = collectReferences("file:///nested-columns.S", nestedCached);
+    assert.deepEqual(
+      nestedReferences.filter((reference) => reference.name === "Target"),
+      [
+        {
+          name: "Target",
+          location: {
+            uri: "file:///nested-columns.S",
+            range: {
+              start: { line: 7, character: 12 },
+              end: { line: 7, character: 18 }
+            }
+          }
+        }
+      ]
+    );
+  }
 }

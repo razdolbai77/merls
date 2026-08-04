@@ -173,18 +173,20 @@ export function findReferences(
       for (const token of tokens) {
         if (line.isExpanded) {
           const expandedToken = token as ExpandedToken;
-          if (!expandedToken.sourceToken || expandedToken.sourceToken === token) {
+          if (!expandedToken.callSiteToken) {
             continue;
           }
         }
         if (token.lexeme === targetName) {
-          const sourceToken = "sourceToken" in token ? (token as ExpandedToken).sourceToken : token;
-          
+          const rangeToken = "callSiteToken" in token
+            ? ((token as ExpandedToken).callSiteToken ?? token)
+            : token;
+
           locations.push({
             uri: documentUri,
             range: {
-              start: { line: line.line, character: sourceToken.start },
-              end: { line: line.line, character: sourceToken.end }
+              start: { line: line.line, character: rangeToken.start },
+              end: { line: line.line, character: rangeToken.end }
             }
           });
         }
@@ -238,26 +240,25 @@ export function collectReferences(uri: string, cached: CachedDocument): readonly
     const tokens = getReferencedTokens(cached, line.line, line.node);
 
     for (const token of tokens) {
+      let rangeToken: Token = token;
       if (line.isExpanded) {
-        const expandedToken = token as ExpandedToken;
-        if (!expandedToken.sourceToken || expandedToken.sourceToken === token) {
+        const callSiteToken = (token as ExpandedToken).callSiteToken;
+        if (!callSiteToken) {
           continue;
         }
-        if (expandedToken.sourceToken.kind !== "identifier" && expandedToken.sourceToken.kind !== "label" && expandedToken.sourceToken.kind !== "localLabel") {
+        if (callSiteToken.kind !== "identifier" && callSiteToken.kind !== "label" && callSiteToken.kind !== "localLabel") {
           continue;
         }
-        // If it's from the macro body, it will be found separately in the macro definition file.
-        // We only care about tokens that came from macro arguments (their sourceToken is different).
+        rangeToken = callSiteToken;
       }
-      const sourceToken = "sourceToken" in token ? (token as ExpandedToken).sourceToken : token;
-      
+
       references.push({
         name: token.lexeme,
         location: {
           uri,
           range: {
-            start: { line: line.line, character: sourceToken.start },
-            end: { line: line.line, character: sourceToken.end }
+            start: { line: line.line, character: rangeToken.start },
+            end: { line: line.line, character: rangeToken.end }
           }
         }
       });

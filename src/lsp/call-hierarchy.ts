@@ -150,12 +150,12 @@ export function provideCallHierarchyOutgoingCalls(
         for (const t of refs) {
           if (t.kind === "identifier" || t.kind === "localLabel" || t.kind === "label") {
             if (effectiveLine.isExpanded) {
-              const expandedToken = t as ExpandedToken;
-              if (!expandedToken.sourceToken || expandedToken.sourceToken === t) continue;
-              if (expandedToken.sourceToken.kind !== "identifier" && expandedToken.sourceToken.kind !== "label" && expandedToken.sourceToken.kind !== "localLabel") continue;
+              if (!(t as ExpandedToken).callSiteToken) continue;
             }
-            const sourceToken = "sourceToken" in t ? (t as ExpandedToken).sourceToken : t;
-            
+            const sourceToken = "callSiteToken" in t
+              ? ((t as ExpandedToken).callSiteToken ?? t)
+              : t;
+
             targetName = t.lexeme;
             targetTokenStart = sourceToken.start;
             targetTokenLength = sourceToken.end - sourceToken.start;
