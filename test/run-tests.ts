@@ -51,6 +51,7 @@ import { runCodeLensTest } from "./code-lens.test";
 import { runSelectionRangeTest, runSelectionRangeBoundsTest } from "./selection-range.test";
 import { runWatchedFilesTest } from "./watched-files.test";
 import { runPerformanceTest } from "./performance.test";
+import { runPositionsTest } from "./positions.test";
 
 type TestCase = {
   name: string;
@@ -81,6 +82,10 @@ const tests: TestCase[] = [
   {
     name: "positive fixture corpus includes upstream Merlin32 samples",
     run: runFixtureCorpusTest
+  },
+  {
+    name: "shared text-position helpers locate first last and offset matches",
+    run: runPositionsTest
   },
   {
     name: "shared opcode and directive metadata covers 6502 and Merlin syntax",

@@ -4,6 +4,7 @@ import path from "node:path";
 import { startJsonRpcClient } from "./helpers/json-rpc-client";
 import { buildCachedDocument } from "../src/asm/document";
 import { buildHover } from "../src/lsp/hover";
+import { positionOf, positionOfInMatch } from "./helpers/positions";
 
 
 
@@ -11,28 +12,6 @@ import { buildHover } from "../src/lsp/hover";
 
 
 
-function positionOf(text: string, needle: string): { line: number; character: number } {
-  const index = text.indexOf(needle);
-  assert.notEqual(index, -1, `expected to find ${needle}`);
-  const prefix = text.slice(0, index);
-  const lines = prefix.split("\n");
-  return {
-    line: lines.length - 1,
-    character: lines.at(-1)?.length ?? 0
-  };
-}
-
-function positionOfInMatch(
-  text: string,
-  needle: string,
-  offset: number
-): { line: number; character: number } {
-  const base = positionOf(text, needle);
-  return {
-    line: base.line,
-    character: base.character + offset
-  };
-}
 
 export async function runHoverTest(): Promise<void> {
   const serverPath = path.resolve(__dirname, "../src/server.js");

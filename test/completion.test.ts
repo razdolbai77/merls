@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { startJsonRpcClient } from "./helpers/json-rpc-client";
+import { positionOf, positionOfLast } from "./helpers/positions";
 
 
 
@@ -9,27 +10,6 @@ import { startJsonRpcClient } from "./helpers/json-rpc-client";
 
 
 
-function positionOf(text: string, needle: string): { line: number; character: number } {
-  const index = text.indexOf(needle);
-  assert.notEqual(index, -1, `expected to find ${needle}`);
-  const prefix = text.slice(0, index);
-  const lines = prefix.split("\n");
-  return {
-    line: lines.length - 1,
-    character: lines.at(-1)?.length ?? 0
-  };
-}
-
-function positionOfLast(text: string, needle: string): { line: number; character: number } {
-  const index = text.lastIndexOf(needle);
-  assert.notEqual(index, -1, `expected to find last ${needle}`);
-  const prefix = text.slice(0, index);
-  const lines = prefix.split("\n");
-  return {
-    line: lines.length - 1,
-    character: lines.at(-1)?.length ?? 0
-  };
-}
 
 function positionAfterLast(text: string, needle: string): { line: number; character: number } {
   const position = positionOfLast(text, needle);
