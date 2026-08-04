@@ -8,7 +8,8 @@ import { collectWorkspaceDiagnostics } from "../src/asm/diagnostics";
 const validFixturePaths = [
   "test/fixtures/valid/merlin32-linkscript.S",
   "test/fixtures/valid/merlin32-macro-coverage.S",
-  "test/fixtures/valid/merlin32-main-6502.S"
+  "test/fixtures/valid/merlin32-main-6502.S",
+  "test/fixtures/valid/merlin32-official-page.S"
 ];
 
 const invalidFixturePaths = [
