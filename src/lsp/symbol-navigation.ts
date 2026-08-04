@@ -33,107 +33,123 @@ export function findDefinition(
 ): Location | Location[] | null {
   const cached = openDocuments.get(uri);
   const targetName = getSymbolAtPosition(cached, line, character);
-  if (targetName === null) {
-    return null;
-  }
+  if (targetName === null) return null;
 
+  const parameterDefinition = findMacroParameterDefinition(openDocuments, cached, targetName, line);
+  if (parameterDefinition !== null) return parameterDefinition;
+
+  const variableDefinition = findVariableDefinition(cached, uri, targetName);
+  if (variableDefinition !== null) return variableDefinition;
+
+  if (isLocalLabel(targetName)) {
+    return findLocalLabelDefinition(cached, uri, targetName, line);
+  }
+  return findWorkspaceDefinitions(openDocuments, targetName);
+}
+
+function findMacroParameterDefinition(
+  openDocuments: ReadonlyMap<string, CachedDocument>,
+  cached: CachedDocument | undefined,
+  targetName: string,
+  line: number
+): Location | Location[] | null {
   const parameterMatch = macroParameterPattern.exec(targetName);
-  if (parameterMatch !== null && cached !== undefined) {
-    const parameterIndex = Number.parseInt(parameterMatch[1] ?? "0", 10);
-    const enclosingMacro = cached.parsed.macroDefinitions.find(
-      (def) => line > def.startLine && (def.endLine === null || line < def.endLine)
-    );
+  if (parameterMatch === null || cached === undefined) return null;
 
-    if (enclosingMacro !== undefined) {
-      const locations: Location[] = [];
-
-      for (const [docUri, docCached] of openDocuments.entries()) {
-        for (const macroCall of docCached.parsed.macroCalls) {
-          if (macroCall.macro.lexeme === enclosingMacro.name) {
-            const argumentTokens = splitMacroCallArguments(macroCall.args);
-            const paramTokens = argumentTokens[parameterIndex - 1] ?? [];
-            const validTokens = paramTokens.filter(
-              (t) => t.kind === "identifier" || t.kind === "label" || t.kind === "localLabel"
-            );
-
-            for (const token of validTokens) {
-              const defs = findDefinition(openDocuments, docUri, macroCall.line, token.start);
-              if (defs !== null) {
-                if (Array.isArray(defs)) {
-                  locations.push(...defs);
-                } else {
-                  locations.push(defs);
-                }
-              }
-            }
-          }
-        }
-      }
-
-      if (locations.length > 0) {
-        const deduped = uniqueLocations(locations);
-        return deduped.length === 1 ? deduped[0] : deduped;
-      }
-    }
-  }
-
-  const variableSymbol = cached === undefined
-    ? undefined
-    : collectSymbols(cached.parsed).get(targetName);
-  if (variableSymbol?.kind === "variable") {
-    return {
-      uri,
-      range: {
-        start: { line: variableSymbol.line, character: variableSymbol.token.start },
-        end: { line: variableSymbol.line, character: variableSymbol.token.end }
-      }
-    };
-  }
-
-  const isLocal = isLocalLabel(targetName);
-
-  if (isLocal && cached !== undefined) {
-    const localScope = resolveLocalLabels(cached.parsed);
-    const localKey = `${targetName}@${line}`;
-    
-    const reference = localScope.references.get(localKey);
-    const targetLine = reference?.targetLine ?? (localScope.definitions.get(localKey)?.line);
-
-    if (targetLine === undefined) {
-      return null; // Unresolved or out-of-scope local label
-    }
-
-    const targetLexedLine = cached.lexed.lines[targetLine];
-    if (targetLexedLine !== undefined) {
-      const defToken = targetLexedLine.tokens.find(t => t.lexeme === targetName && (t.kind === "localLabel" || t.kind === "label"));
-      if (defToken !== undefined) {
-        return {
-          uri,
-          range: {
-            start: { line: targetLine, character: defToken.start },
-            end: { line: targetLine, character: defToken.end }
-          }
-        };
-      }
-    }
-    return null;
-  }
+  const parameterIndex = Number.parseInt(parameterMatch[1] ?? "0", 10);
+  const enclosingMacro = cached.parsed.macroDefinitions.find(
+    (definition) => line > definition.startLine && (definition.endLine === null || line < definition.endLine)
+  );
+  if (enclosingMacro === undefined) return null;
 
   const locations: Location[] = [];
-  for (const [documentUri, docCached] of openDocuments.entries()) {
-    for (const definition of collectDefinitions(documentUri, docCached)) {
-      if (definition.name === targetName) {
-        locations.push(definition.location);
+  for (const [documentUri, document] of openDocuments.entries()) {
+    for (const macroCall of document.parsed.macroCalls) {
+      if (macroCall.macro.lexeme !== enclosingMacro.name) continue;
+
+      const argumentsAtCallSite = splitMacroCallArguments(macroCall.args);
+      const parameterTokens = argumentsAtCallSite[parameterIndex - 1] ?? [];
+      for (const token of parameterTokens) {
+        if (token.kind === "identifier" || token.kind === "label" || token.kind === "localLabel") {
+          addDefinitionLocations(locations, findDefinition(openDocuments, documentUri, macroCall.line, token.start));
+        }
       }
     }
   }
+  return locations.length > 0 ? toDefinitionResult(locations) : null;
+}
 
-  if (locations.length === 0) {
-    return null;
+function addDefinitionLocations(locations: Location[], definitions: Location | Location[] | null): void {
+  if (definitions === null) return;
+  if (Array.isArray(definitions)) {
+    locations.push(...definitions);
+  } else {
+    locations.push(definitions);
   }
+}
 
+function findVariableDefinition(
+  cached: CachedDocument | undefined,
+  uri: string,
+  targetName: string
+): Location | null {
+  const symbol = cached === undefined ? undefined : collectSymbols(cached.parsed).get(targetName);
+  if (symbol?.kind !== "variable") return null;
+
+  return {
+    uri,
+    range: {
+      start: { line: symbol.line, character: symbol.token.start },
+      end: { line: symbol.line, character: symbol.token.end }
+    }
+  };
+}
+
+function findLocalLabelDefinition(
+  cached: CachedDocument | undefined,
+  uri: string,
+  targetName: string,
+  line: number
+): Location | null {
+  if (cached === undefined) return null;
+
+  const localScope = resolveLocalLabels(cached.parsed);
+  const localKey = `${targetName}@${line}`;
+  const reference = localScope.references.get(localKey);
+  const targetLine = reference?.targetLine ?? localScope.definitions.get(localKey)?.line;
+  if (targetLine === undefined) return null;
+
+  const targetLexedLine = cached.lexed.lines[targetLine];
+  const definitionToken = targetLexedLine?.tokens.find(
+    (token) => token.lexeme === targetName && (token.kind === "localLabel" || token.kind === "label")
+  );
+  if (definitionToken === undefined) return null;
+
+  return {
+    uri,
+    range: {
+      start: { line: targetLine, character: definitionToken.start },
+      end: { line: targetLine, character: definitionToken.end }
+    }
+  };
+}
+
+function findWorkspaceDefinitions(
+  openDocuments: ReadonlyMap<string, CachedDocument>,
+  targetName: string
+): Location | Location[] | null {
+  const locations: Location[] = [];
+  for (const [uri, cached] of openDocuments.entries()) {
+    for (const definition of collectDefinitions(uri, cached)) {
+      if (definition.name === targetName) locations.push(definition.location);
+    }
+  }
+  return locations.length > 0 ? toDefinitionResult(locations) : null;
+}
+
+function toDefinitionResult(locations: readonly Location[]): Location | Location[] {
   const deduped = uniqueLocations(locations);
-  return deduped.length === 1 ? deduped[0] : deduped;
+  return deduped.length === 1 ? deduped[0]! : deduped;
 }
 
 export function findReferences(

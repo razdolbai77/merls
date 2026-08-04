@@ -4,9 +4,20 @@ import {
 } from "vscode-languageserver/node";
 
 import { type CachedDocument } from "../asm/document";
-import { resolveLocalLabels, isLocalLabel } from "../asm/local-labels";
+import { type LocalLabelScope, resolveLocalLabels, isLocalLabel } from "../asm/local-labels";
 import { directiveDefinitions, opcodeDefinitions, directiveTable } from "../asm/metadata";
 import { collectSymbols } from "../asm/symbols";
+import { type Token } from "../asm/lexer";
+
+type CompletionContext = {
+  enclosingMacroMaxParameterIndex: number | null;
+  localScope: LocalLabelScope | null;
+  operandToken: Token | null;
+  replacementToken: Token | null;
+  currentWordStart: number;
+};
+
+type CompletionItemFactory = (label: string, kind: CompletionItemKind) => CompletionItem;
 
 export function buildCompletionItems(
   openDocuments: ReadonlyMap<string, CachedDocument>,
@@ -14,76 +25,91 @@ export function buildCompletionItems(
   line: number,
   character: number
 ): CompletionItem[] {
-  let operandToken: { lexeme: string; kind: string } | null = null;
-  let replacementToken: { start: number; end: number } | null = null;
+  const context = getCompletionContext(openDocuments.get(uri), line, character);
+  if (context === null || context.currentWordStart === 0) {
+    return [];
+  }
+
+  const completions: CompletionItem[] = [];
+  const seenSymbols = new Set(["A", "a", "X", "x", "Y", "y"]);
+  const createItem = createCompletionItemFactory(line, context.replacementToken);
+  const exclusiveCompletions = getDirectiveCompletions(context.operandToken);
+
+  if (exclusiveCompletions !== null) {
+    addExclusiveCompletions(exclusiveCompletions, completions, seenSymbols, createItem);
+    return completions;
+  }
+
+  addMacroParameterCompletions(context, completions, seenSymbols, createItem);
+  addWorkspaceSymbolCompletions(openDocuments, context, completions, seenSymbols, createItem);
+  addLocalLabelCompletions(context, line, completions, seenSymbols, createItem);
+  addInstructionAndDirectiveCompletions(context, completions, createItem);
+  return completions;
+}
+
+function getCompletionContext(
+  cached: CachedDocument | undefined,
+  line: number,
+  character: number
+): CompletionContext | null {
+  let operandToken: Token | null = null;
+  let replacementToken: Token | null = null;
   let currentWordStart = character;
-  const cached = openDocuments.get(uri);
-  let enclosingMacro: { maxParameterIndex: number } | undefined;
-  const localScope = cached === undefined ? null : resolveLocalLabels(cached.parsed);
+
   if (cached !== undefined) {
     const lexedLine = cached.lexed.lines[line];
     if (lexedLine !== undefined) {
       for (const token of lexedLine.tokens) {
-        if (token.start <= character && character <= token.end) {
-          if (token.kind === "comment" || token.kind === "string") {
-            return [];
-          }
+        if (token.start <= character && character <= token.end && (token.kind === "comment" || token.kind === "string")) {
+          return null;
         }
-        if (token.end < character) {
-          if (
-            token.kind === "mnemonic" ||
-            token.kind === "directive" ||
-            token.kind === "identifier"
-          ) {
-            operandToken = token;
-          }
+        if (token.end < character && isOperandToken(token)) {
+          operandToken = token;
         }
         if (token.start <= character && character <= token.end) {
           currentWordStart = token.start;
-          if (
-            token.kind === "directive" ||
-            token.kind === "identifier" ||
-            token.kind === "localLabel" ||
-            token.kind === "mnemonic"
-          ) {
-            replacementToken = token;
-          }
+          if (isReplacementToken(token)) replacementToken = token;
         }
       }
     }
 
-    enclosingMacro = cached.parsed.macroDefinitions.find(
-      (def) => line > def.startLine && (def.endLine === null || line < def.endLine)
+    const enclosingMacro = cached.parsed.macroDefinitions.find(
+      (definition) => line > definition.startLine && (definition.endLine === null || line < definition.endLine)
     );
+    return {
+      enclosingMacroMaxParameterIndex: enclosingMacro?.maxParameterIndex ?? null,
+      localScope: resolveLocalLabels(cached.parsed),
+      operandToken,
+      replacementToken,
+      currentWordStart
+    };
   }
 
-  if (currentWordStart === 0) {
-    return [];
-  }
+  return {
+    enclosingMacroMaxParameterIndex: null,
+    localScope: null,
+    operandToken,
+    replacementToken,
+    currentWordStart
+  };
+}
 
-  let exclusiveCompletions: readonly string[] | null = null;
-  if (operandToken !== null && operandToken.kind === "directive") {
-    const directive = directiveTable.get(operandToken.lexeme.toLowerCase());
-    if (directive?.completions) {
-      exclusiveCompletions = directive.completions;
-    }
-  }
+function isOperandToken(token: Token): boolean {
+  return token.kind === "mnemonic" || token.kind === "directive" || token.kind === "identifier";
+}
 
-  const completions: CompletionItem[] = [];
-  const seenSymbols = new Set<string>();
-  seenSymbols.add("A");
-  seenSymbols.add("a");
-  seenSymbols.add("X");
-  seenSymbols.add("x");
-  seenSymbols.add("Y");
-  seenSymbols.add("y");
-  const createCompletionItem = (
-    label: string,
-    kind: CompletionItemKind
-  ): CompletionItem => {
-    if (replacementToken === null) {
-      return { label, kind };
-    }
+function isReplacementToken(token: Token): boolean {
+  return (
+    token.kind === "directive" ||
+    token.kind === "identifier" ||
+    token.kind === "localLabel" ||
+    token.kind === "mnemonic"
+  );
+}
+
+function createCompletionItemFactory(line: number, replacementToken: Token | null): CompletionItemFactory {
+  return (label, kind) => {
+    if (replacementToken === null) return { label, kind };
 
     return {
       label,
@@ -97,76 +123,104 @@ export function buildCompletionItems(
       }
     };
   };
+}
 
-  if (exclusiveCompletions !== null) {
-    for (const completion of exclusiveCompletions) {
-      if (!seenSymbols.has(completion)) {
-        seenSymbols.add(completion);
-        completions.push(createCompletionItem(completion, CompletionItemKind.Value));
-      }
-    }
-    return completions;
-  }
+function getDirectiveCompletions(operandToken: Token | null): readonly string[] | null {
+  if (operandToken?.kind !== "directive") return null;
+  return directiveTable.get(operandToken.lexeme.toLowerCase())?.completions ?? null;
+}
 
-  if (enclosingMacro !== undefined && operandToken !== null) {
-    const maxParam = Math.max(9, enclosingMacro.maxParameterIndex);
-    for (let i = 1; i <= maxParam; i++) {
-      const param = `]${i}`;
-      if (!seenSymbols.has(param)) {
-        seenSymbols.add(param);
-        completions.push(createCompletionItem(param, CompletionItemKind.Variable));
-      }
+function addExclusiveCompletions(
+  exclusiveCompletions: readonly string[],
+  completions: CompletionItem[],
+  seenSymbols: Set<string>,
+  createItem: CompletionItemFactory
+): void {
+  for (const completion of exclusiveCompletions) {
+    if (!seenSymbols.has(completion)) {
+      seenSymbols.add(completion);
+      completions.push(createItem(completion, CompletionItemKind.Value));
     }
   }
+}
 
-  for (const doc of openDocuments.values()) {
-    const symbols = collectSymbols(doc.parsed);
-    for (const symbol of symbols.values()) {
-      if (isLocalLabel(symbol.name) && symbol.kind !== "variable") {
-        continue;
-      }
+function addMacroParameterCompletions(
+  context: CompletionContext,
+  completions: CompletionItem[],
+  seenSymbols: Set<string>,
+  createItem: CompletionItemFactory
+): void {
+  if (context.enclosingMacroMaxParameterIndex === null || context.operandToken === null) return;
+
+  const maxParam = Math.max(9, context.enclosingMacroMaxParameterIndex);
+  for (let i = 1; i <= maxParam; i++) {
+    const parameter = `]${i}`;
+    if (!seenSymbols.has(parameter)) {
+      seenSymbols.add(parameter);
+      completions.push(createItem(parameter, CompletionItemKind.Variable));
+    }
+  }
+}
+
+function addWorkspaceSymbolCompletions(
+  openDocuments: ReadonlyMap<string, CachedDocument>,
+  context: CompletionContext,
+  completions: CompletionItem[],
+  seenSymbols: Set<string>,
+  createItem: CompletionItemFactory
+): void {
+  for (const document of openDocuments.values()) {
+    for (const symbol of collectSymbols(document.parsed).values()) {
+      if (isLocalLabel(symbol.name) && symbol.kind !== "variable") continue;
 
       if (symbol.kind === "macro") {
-        if (operandToken === null && !seenSymbols.has(symbol.name)) {
+        if (context.operandToken === null && !seenSymbols.has(symbol.name)) {
           seenSymbols.add(symbol.name);
-          completions.push(createCompletionItem(symbol.name, CompletionItemKind.Function));
+          completions.push(createItem(symbol.name, CompletionItemKind.Function));
         }
-      } else {
-        if (!seenSymbols.has(symbol.name)) {
-          seenSymbols.add(symbol.name);
-          completions.push(createCompletionItem(symbol.name, CompletionItemKind.Variable));
-        }
+      } else if (!seenSymbols.has(symbol.name)) {
+        seenSymbols.add(symbol.name);
+        completions.push(createItem(symbol.name, CompletionItemKind.Variable));
       }
     }
   }
+}
 
-  const currentAnchor = localScope?.anchors.get(line);
-  if (currentAnchor !== undefined && localScope !== null) {
-    for (const localDefinition of localScope.definitions.values()) {
-      if (
-        localDefinition.anchor !== currentAnchor ||
-        (localDefinition.name.startsWith("]") && localDefinition.line >= line) ||
-        seenSymbols.has(localDefinition.name)
-      ) {
-        continue;
-      }
+function addLocalLabelCompletions(
+  context: CompletionContext,
+  line: number,
+  completions: CompletionItem[],
+  seenSymbols: Set<string>,
+  createItem: CompletionItemFactory
+): void {
+  const currentAnchor = context.localScope?.anchors.get(line);
+  if (currentAnchor === undefined || context.localScope === null) return;
 
-      seenSymbols.add(localDefinition.name);
-      completions.push(createCompletionItem(localDefinition.name, CompletionItemKind.Variable));
+  for (const definition of context.localScope.definitions.values()) {
+    if (
+      definition.anchor !== currentAnchor ||
+      (definition.name.startsWith("]") && definition.line >= line) ||
+      seenSymbols.has(definition.name)
+    ) continue;
+
+    seenSymbols.add(definition.name);
+    completions.push(createItem(definition.name, CompletionItemKind.Variable));
+  }
+}
+
+function addInstructionAndDirectiveCompletions(
+  context: CompletionContext,
+  completions: CompletionItem[],
+  createItem: CompletionItemFactory
+): void {
+  if (context.operandToken !== null) return;
+
+  if (context.currentWordStart > 0) {
+    for (const opcode of opcodeDefinitions) {
+      completions.push(createItem(opcode.mnemonic, CompletionItemKind.Keyword));
     }
   }
-
-  if (operandToken === null) {
-    if (currentWordStart > 0) {
-      for (const opcode of opcodeDefinitions) {
-        completions.push(createCompletionItem(opcode.mnemonic, CompletionItemKind.Keyword));
-      }
-    }
-
-    for (const directive of directiveDefinitions) {
-      completions.push(createCompletionItem(directive.name, CompletionItemKind.Function));
-    }
+  for (const directive of directiveDefinitions) {
+    completions.push(createItem(directive.name, CompletionItemKind.Function));
   }
-
-  return completions;
 }
