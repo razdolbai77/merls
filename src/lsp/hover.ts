@@ -2,6 +2,7 @@ import { type Hover } from "vscode-languageserver/node";
 
 import { directiveTable, opcodeTable } from "../asm/metadata";
 import { type CachedDocument } from "../asm/document";
+import { isAccumulatorOperand } from "../asm/expression";
 import { tokenAtCharacter } from "../asm/lexer";
 import { findDefinition } from "./symbol-navigation";
 import { findSymbol, getDocComment } from "../asm/symbols";
@@ -53,12 +54,7 @@ export function buildHover(
       }
     } else if (lexemeLower === "a" && documentLine.node.shape === "instruction") {
       const node = documentLine.node;
-      if (
-        node.operand &&
-        node.operand.expression.kind === "identifier" &&
-        node.operand.expression.token === token &&
-        opcodeTable.get(node.mnemonic.lexeme.toLowerCase())?.modes.includes("accumulator")
-      ) {
+      if (isAccumulatorOperand(node.mnemonic.lexeme, node.operand, token)) {
         isRegister = true;
       }
     }

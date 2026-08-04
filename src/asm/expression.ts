@@ -1,4 +1,5 @@
 import { type Token } from "./lexer";
+import { opcodeTable } from "./metadata";
 
 export type NumericLiteralExpression = {
   kind: "numericLiteral";
@@ -356,4 +357,30 @@ export function walkExpression(
     default:
       break;
   }
+}
+
+export function isAccumulatorOperand(
+  mnemonicLexeme: string,
+  operand: Operand | null,
+  token?: Token
+): boolean {
+  if (
+    operand === null ||
+    operand.immediate ||
+    operand.indirect ||
+    operand.indexRegister !== null
+  ) {
+    return false;
+  }
+
+  const expression = operand.expression;
+  if (expression.kind !== "identifier" || expression.value.toLowerCase() !== "a") {
+    return false;
+  }
+
+  if (token !== undefined && expression.token !== token) {
+    return false;
+  }
+
+  return opcodeTable.get(mnemonicLexeme.toLowerCase())?.modes.includes("accumulator") === true;
 }

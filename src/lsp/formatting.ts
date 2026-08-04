@@ -1,5 +1,5 @@
-import { opcodeTable } from "../asm/metadata";
 import { ParsedLine } from "../asm/parser";
+import { isAccumulatorOperand } from "../asm/expression";
 import { TextEdit, FormattingOptions, Range, Position } from "vscode-languageserver/node";
 import { CachedDocument } from "../asm/document";
 import { Token } from "../asm/lexer";
@@ -150,11 +150,8 @@ function formatLine(
               lexeme = lexeme.toUpperCase();
             }
           } else if (lower === "a") {
-            if (index === endTokenIndex) {
-              const def = opcodeTable.get(node.mnemonic.lexeme.toLowerCase());
-              if (def?.modes.includes("accumulator")) {
-                lexeme = lexeme.toUpperCase();
-              }
+            if (isAccumulatorOperand(node.mnemonic.lexeme, node.operand, tokens[i])) {
+              lexeme = lexeme.toUpperCase();
             }
           }
         }

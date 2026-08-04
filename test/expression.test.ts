@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { lexSource } from "../src/asm/lexer";
 import {
   type Expression,
+  isAccumulatorOperand,
   parseExpression,
   parseOperand,
   walkExpression
@@ -247,5 +248,19 @@ export function runExpressionTest(): void {
       nestedVisited.push(identifier.value);
     });
     assert.deepEqual(nestedVisited, ["a", "b"]);
+  }
+
+  // Accumulator operand detection is opcode- and shape-aware.
+  {
+    const accumulatorOperand = parseOperand(operandTokens("        lsr a"));
+    assert.equal(isAccumulatorOperand("lsr", accumulatorOperand.operand), true);
+    assert.equal(isAccumulatorOperand("lda", accumulatorOperand.operand), false);
+    assert.equal(isAccumulatorOperand("lsr", null), false);
+
+    const uppercaseOperand = parseOperand(operandTokens("        LSR A"));
+    assert.equal(isAccumulatorOperand("lsr", uppercaseOperand.operand), true);
+
+    const absoluteOperand = parseOperand(operandTokens("        lsr $10"));
+    assert.equal(isAccumulatorOperand("lsr", absoluteOperand.operand), false);
   }
 }
