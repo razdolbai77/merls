@@ -189,7 +189,12 @@ export function collectWorkspaceDiagnostics(
     diagnostics.push(
       ...collectMalformedDiagnostics(entry.filePath, entry.document),
       ...collectUnknownDiagnostics(entry.filePath, entry.document, entry.document.macroDefinitions),
-      ...collectAddressingModeDiagnostics(entry.filePath, entry.document, entry.document.macroDefinitions),
+      ...collectAddressingModeDiagnostics(
+        entry.filePath,
+        entry.document,
+        entry.document.macroDefinitions,
+        conditionalValues
+      ),
       ...collectMacroStructureDiagnostics(entry.filePath, entry.document),
       ...collectUnresolvedDiagnostics(
         entry.filePath,
@@ -1043,7 +1048,8 @@ function resolveDiagnosticRange(
 
 function getOperandAddressingModes(
   mnemonic: string,
-  operand: Operand | null
+  operand: Operand | null,
+  values: ReadonlyMap<string, number>
 ): readonly AddressingMode[] {
   if (operand === null) {
     return ["implied"];
@@ -1064,14 +1070,6 @@ function getOperandAddressingModes(
     return [];
   }
 
-  if (operand.indexRegister === "x") {
-    return ["zeroPageX", "absoluteX"];
-  }
-
-  if (operand.indexRegister === "y") {
-    return ["zeroPageY", "absoluteY"];
-  }
-
   if (
     operand.expression.kind === "identifier" &&
     operand.expression.value.toLowerCase() === "a" &&
@@ -1080,13 +1078,28 @@ function getOperandAddressingModes(
     return [];
   }
 
-  return ["zeroPage", "absolute", "relative"];
+  const address = evaluateExpression(operand.expression, values);
+  const isDirectPage = address !== null && address >= 0 && address <= 0xff;
+
+  if (operand.indexRegister === "x") {
+    if (address === null) return ["zeroPageX", "absoluteX"];
+    return isDirectPage ? ["zeroPageX"] : ["absoluteX"];
+  }
+
+  if (operand.indexRegister === "y") {
+    if (address === null) return ["zeroPageY", "absoluteY"];
+    return isDirectPage ? ["zeroPageY"] : ["absoluteY"];
+  }
+
+  if (address === null) return ["zeroPage", "absolute", "relative"];
+  return isDirectPage ? ["zeroPage", "relative"] : ["absolute", "relative"];
 }
 
 function collectAddressingModeDiagnostics(
   filePath: string,
   document: ParsedDocument,
-  macroDefinitions: readonly MacroDefinitionRegion[]
+  macroDefinitions: readonly MacroDefinitionRegion[],
+  values: ReadonlyMap<string, number>
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
   const effectiveLines = getEffectiveLines(document, macroDefinitions);
@@ -1106,7 +1119,7 @@ function collectAddressingModeDiagnostics(
       continue;
     }
 
-    const possibleModes = getOperandAddressingModes(mnemonic, line.node.operand);
+    const possibleModes = getOperandAddressingModes(mnemonic, line.node.operand, values);
     const hasValidMode = possibleModes.some((mode) => definition.modes.includes(mode));
 
     if (!hasValidMode) {
