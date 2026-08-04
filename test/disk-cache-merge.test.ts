@@ -41,7 +41,7 @@ export async function runDiskCacheMergeTest(): Promise<void> {
     sendNotification("textDocument/didOpen", {
       textDocument: {
         uri: bufferUri,
-        languageId: "asm",
+        languageId: "6502",
         version: 1,
         text: "  asm \"other.S\"\n  asm \"case.S\"\nBufferSym equ $2\n"
       }
@@ -108,7 +108,7 @@ export async function runDiskCacheMergeTest(): Promise<void> {
     sendNotification("textDocument/didOpen", {
       textDocument: {
         uri: lowerCaseUri,
-        languageId: "asm",
+        languageId: "6502",
         version: 1,
         text: "CaseSym  equ $3\n"
       }

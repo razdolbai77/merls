@@ -67,7 +67,7 @@ export async function runPublishDiagnosticsTest(): Promise<void> {
     sendNotification("textDocument/didOpen", {
       textDocument: {
         uri: documentUri,
-        languageId: "asm",
+        languageId: "6502",
         version: 1,
         text: brokenText
       }
@@ -128,7 +128,7 @@ export async function runPublishDiagnosticsTest(): Promise<void> {
     sendNotification("textDocument/didOpen", {
       textDocument: {
         uri: secondUri,
-        languageId: "asm",
+        languageId: "6502",
         version: 1,
         text: "otherLabel equ 1"
       }

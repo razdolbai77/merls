@@ -34,7 +34,7 @@ export async function runWorkspaceSymbolTest(): Promise<void> {
     sendNotification("textDocument/didOpen", {
       textDocument: {
         uri: linkUri,
-        languageId: "asm",
+        languageId: "6502",
         version: 1,
         text: fs.readFileSync(linkPath, "utf8")
       }
@@ -42,7 +42,7 @@ export async function runWorkspaceSymbolTest(): Promise<void> {
     sendNotification("textDocument/didOpen", {
       textDocument: {
         uri: mainUri,
-        languageId: "asm",
+        languageId: "6502",
         version: 1,
         text: fs.readFileSync(mainPath, "utf8")
       }

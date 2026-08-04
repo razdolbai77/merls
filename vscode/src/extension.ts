@@ -1,28 +1,27 @@
-import * as path from 'path';
-import * as fs from 'fs';
-import { commands, workspace, window, ExtensionContext, Uri } from 'vscode';
+import fs from "node:fs";
+import path from "node:path";
+import { commands, workspace, window, Uri, type ExtensionContext } from "vscode";
 import {
   LanguageClient,
-  LanguageClientOptions,
-  ServerOptions,
+  type LanguageClientOptions,
+  type ServerOptions,
   TransportKind
-} from 'vscode-languageclient/node';
+} from "vscode-languageclient/node";
 import {
   buildCompileCommand,
   getCompileWorkingDirectory,
   getMacroFolderPath,
   getProjectEntryFilePath
-} from './compile';
-import { applyPearlsEditorOptions } from './editor-options';
-
+} from "./compile";
+import { applyPearlsEditorOptions, pearlsLanguageId } from "./editor-options";
 let client: LanguageClient;
-const compileCurrentFileCommand = 'pearls.compileCurrentFile';
-const compileProjectCommand = 'pearls.compileProject';
+const compileCurrentFileCommand = "pearls.compileCurrentFile";
+const compileProjectCommand = "pearls.compileProject";
 
 export function activate(context: ExtensionContext) {
   // Look for the locally built merls in the parent directory when developing
   const localServerPath = context.asAbsolutePath(
-    path.join('..', 'dist', 'src', 'cli.js')
+    path.join("..", "dist", "src", "cli.js")
   );
 
   let serverOptions: ServerOptions;
@@ -32,29 +31,29 @@ export function activate(context: ExtensionContext) {
     serverOptions = {
       run: {
         module: localServerPath,
-        args: ['--stdio'],
+        args: ["--stdio"],
         transport: TransportKind.stdio
       },
       debug: {
         module: localServerPath,
-        args: ['--stdio'],
+        args: ["--stdio"],
         transport: TransportKind.stdio
       }
     };
   } else {
     const packagedServerPath = context.asAbsolutePath(
-      path.join('node_modules', '@razdolbai', 'merls', 'dist', 'src', 'cli.js')
+      path.join("node_modules", "@razdolbai", "merls", "dist", "src", "cli.js")
     );
 
     serverOptions = {
       run: {
         module: packagedServerPath,
-        args: ['--stdio'],
+        args: ["--stdio"],
         transport: TransportKind.stdio
       },
       debug: {
         module: packagedServerPath,
-        args: ['--stdio'],
+        args: ["--stdio"],
         transport: TransportKind.stdio
       }
     };
@@ -62,24 +61,24 @@ export function activate(context: ExtensionContext) {
 
   const clientOptions: LanguageClientOptions = {
     documentSelector: [
-      { scheme: 'file', language: '6502' },
-      { scheme: 'untitled', language: '6502' },
-      { scheme: 'file', pattern: '**/*.{s,S,asm}' }
+      { scheme: "file", language: pearlsLanguageId },
+      { scheme: "untitled", language: pearlsLanguageId },
+      { scheme: "file", pattern: "**/*.{s,S,asm}" }
     ],
     synchronize: {
-      fileEvents: workspace.createFileSystemWatcher('**/*.{s,S,asm}')
+      fileEvents: workspace.createFileSystemWatcher("**/*.{s,S,asm}")
     }
   };
 
   client = new LanguageClient(
-    'pearls',
-    'Pearls 6502 Language Server',
+    "pearls",
+    "Pearls 6502 Language Server",
     serverOptions,
     clientOptions
   );
 
-  client.start().catch(err => {
-    window.showErrorMessage('Pearls LSP failed to start: ' + err);
+  client.start().catch((err) => {
+    window.showErrorMessage(`Pearls LSP failed to start: ${err}`);
   });
 
   for (const editor of window.visibleTextEditors) {
@@ -87,7 +86,7 @@ export function activate(context: ExtensionContext) {
   }
 
   context.subscriptions.push(
-    window.onDidChangeActiveTextEditor(editor => {
+    window.onDidChangeActiveTextEditor((editor) => {
       if (editor !== undefined) {
         applyPearlsEditorOptions(editor);
       }
@@ -95,7 +94,7 @@ export function activate(context: ExtensionContext) {
   );
 
   context.subscriptions.push(
-    window.onDidChangeVisibleTextEditors(editors => {
+    window.onDidChangeVisibleTextEditors((editors) => {
       for (const editor of editors) {
         applyPearlsEditorOptions(editor);
       }
@@ -129,39 +128,39 @@ async function compileCurrentFile(uri?: Uri): Promise<void> {
       : window.activeTextEditor?.document;
 
   if (document === undefined) {
-    void window.showErrorMessage('Pearls: open a Merlin32 source file before compiling.');
+    void window.showErrorMessage("Pearls: open a Merlin32 source file before compiling.");
     return;
   }
 
   if (document.isUntitled) {
-    void window.showErrorMessage('Pearls: save the current file before compiling with merlin32.');
+    void window.showErrorMessage("Pearls: save the current file before compiling with merlin32.");
     return;
   }
 
   if (document.isDirty) {
     const saved = await document.save();
     if (!saved) {
-      void window.showErrorMessage('Pearls: the current file must be saved before compiling.');
+      void window.showErrorMessage("Pearls: the current file must be saved before compiling.");
       return;
     }
   }
 
-  const configuration = workspace.getConfiguration('pearls', document.uri);
-  const assemblerPath = configuration.get<string>('merlin32Executable', 'merlin32');
-  const extraArgs = configuration.get<string[]>('compileArgs', []);
+  const configuration = workspace.getConfiguration("pearls", document.uri);
+  const assemblerPath = configuration.get<string>("merlin32Executable", "merlin32");
+  const extraArgs = configuration.get<string[]>("compileArgs", []);
   const configuredMacroFolderPath =
-    configuration.get<string>('merlin32MacroFolder')?.trim() || undefined;
+    configuration.get<string>("merlin32MacroFolder")?.trim() || undefined;
   const workspaceFolder = workspace.getWorkspaceFolder(document.uri);
   const command = buildCompileCommand({
     assemblerPath,
     extraArgs,
     macroFolderPath: getMacroFolderPath(document.uri.fsPath, configuredMacroFolderPath),
     sourcePath: document.uri.fsPath,
-    isWindows: process.platform === 'win32'
+    isWindows: process.platform === "win32"
   });
 
   const terminal = window.createTerminal({
-    name: 'Pearls Merlin32',
+    name: "Pearls Merlin32",
     cwd: getCompileWorkingDirectory(document.uri.fsPath, workspaceFolder?.uri.fsPath)
   });
 
@@ -176,18 +175,18 @@ async function compileProject(uri?: Uri): Promise<void> {
 
   if (workspaceFolder === undefined) {
     void window.showErrorMessage(
-      'Pearls: open a file inside a workspace and configure pearls.merlin32ProjectEntryFile before assembling the project.'
+      "Pearls: open a file inside a workspace and configure pearls.merlin32ProjectEntryFile before assembling the project."
     );
     return;
   }
 
-  const configuration = workspace.getConfiguration('pearls', workspaceFolder.uri);
+  const configuration = workspace.getConfiguration("pearls", workspaceFolder.uri);
   const configuredEntryFile =
-    configuration.get<string>('merlin32ProjectEntryFile')?.trim() ?? '';
+    configuration.get<string>("merlin32ProjectEntryFile")?.trim() ?? "";
 
   if (configuredEntryFile.length === 0) {
     void window.showErrorMessage(
-      'Pearls: set pearls.merlin32ProjectEntryFile for this workspace before assembling the project.'
+      "Pearls: set pearls.merlin32ProjectEntryFile for this workspace before assembling the project."
     );
     return;
   }
@@ -211,25 +210,25 @@ async function compileProject(uri?: Uri): Promise<void> {
   if (document.isDirty) {
     const saved = await document.save();
     if (!saved) {
-      void window.showErrorMessage('Pearls: the project entry file must be saved before compiling.');
+      void window.showErrorMessage("Pearls: the project entry file must be saved before compiling.");
       return;
     }
   }
 
-  const assemblerPath = configuration.get<string>('merlin32Executable', 'merlin32');
-  const extraArgs = configuration.get<string[]>('compileArgs', []);
+  const assemblerPath = configuration.get<string>("merlin32Executable", "merlin32");
+  const extraArgs = configuration.get<string[]>("compileArgs", []);
   const configuredMacroFolderPath =
-    configuration.get<string>('merlin32MacroFolder')?.trim() || undefined;
+    configuration.get<string>("merlin32MacroFolder")?.trim() || undefined;
   const command = buildCompileCommand({
     assemblerPath,
     extraArgs,
     macroFolderPath: getMacroFolderPath(document.uri.fsPath, configuredMacroFolderPath),
     sourcePath: document.uri.fsPath,
-    isWindows: process.platform === 'win32'
+    isWindows: process.platform === "win32"
   });
 
   const terminal = window.createTerminal({
-    name: 'Pearls Merlin32',
+    name: "Pearls Merlin32",
     cwd: getCompileWorkingDirectory(document.uri.fsPath, workspaceFolder.uri.fsPath)
   });
 

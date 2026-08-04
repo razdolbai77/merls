@@ -1,4 +1,4 @@
-import * as path from 'path';
+import path from "node:path";
 
 export interface BuildCompileCommandOptions {
   assemblerPath: string;
@@ -10,14 +10,14 @@ export interface BuildCompileCommandOptions {
 
 function quoteWindowsArg(value: string): string {
   if (value.length === 0) {
-    return '""';
+    return "\"\"";
   }
 
   if (!/[\s"&|<>^%]/u.test(value)) {
     return value;
   }
 
-  return `"${value.replace(/"/gu, '""')}"`;
+  return `"${value.replace(/"/gu, "\"\"")}"`;
 }
 
 function quotePosixArg(value: string): string {
@@ -44,7 +44,7 @@ export function buildCompileCommand({
   isWindows
 }: BuildCompileCommandOptions): string {
   const args = [assemblerPath, ...extraArgs, macroFolderPath, sourcePath];
-  return args.map(arg => quoteArg(arg, isWindows)).join(' ');
+  return args.map((arg) => quoteArg(arg, isWindows)).join(" ");
 }
 
 export function getCompileWorkingDirectory(

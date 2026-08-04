@@ -92,6 +92,8 @@ The supported stdio launch contract is now `merls --stdio`, with `node dist/src/
 
 Use TypeScript throughout the implementation. Prefer small modules with explicit types and single-purpose exports. Use `camelCase` for variables and functions, `PascalCase` for types and classes, and kebab-case for example/config file names.
 Imports are grouped external-first, then local, alphabetized within each group, with inline `type` modifiers on type-only members; `vscode-languageserver/node` is the canonical entry point for LSP types in `src/lsp/`, and all imports stay at the top of the file.
+The canonical language id is `6502`, matching the VS Code extension's contributed language; root LSP tests and the extension share it, while Vim clients map their own filetype (e.g. `asm`) onto the server.
+The `vscode/src` sources follow the same conventions as the root: double quotes, `node:`-prefixed default imports, and template literals instead of string concatenation.
 
 Keep parser, symbol, and LSP layers separate. Name tests and fixtures after the behavior they cover, for example `parser.labels.test.ts` or `fixtures/invalid/unknown-addressing-modifiers.S`.
 

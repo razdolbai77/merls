@@ -39,7 +39,7 @@ export async function runWatchedFilesTest(): Promise<void> {
     sendNotification("textDocument/didOpen", {
       textDocument: {
         uri: entryFileUri,
-        languageId: "asm",
+        languageId: "6502",
         version: 1,
         text: entryText
       }

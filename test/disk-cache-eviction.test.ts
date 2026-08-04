@@ -58,7 +58,7 @@ export async function runDiskCacheEvictionTest(): Promise<void> {
     sendNotification("textDocument/didOpen", {
       textDocument: {
         uri: entryUri,
-        languageId: "asm",
+        languageId: "6502",
         version: 1,
         text: fs.readFileSync(entryPath, "utf8")
       }

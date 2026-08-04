@@ -30,7 +30,7 @@ export async function runSemanticTokensTest(): Promise<void> {
     sendNotification("textDocument/didOpen", {
       textDocument: {
         uri: mainUri,
-        languageId: "asm",
+        languageId: "6502",
         version: 1,
         text
       }
@@ -55,7 +55,7 @@ export async function runSemanticTokensTest(): Promise<void> {
     sendNotification("textDocument/didOpen", {
       textDocument: {
         uri: macroUri,
-        languageId: "asm",
+        languageId: "6502",
         version: 1,
         text: macroText
       }
