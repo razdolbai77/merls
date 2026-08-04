@@ -44,7 +44,7 @@
 - [x] Flatten `provideCallHierarchyOutgoingCalls` (`src/lsp/call-hierarchy.ts`, ~92 lines, 5-6 nesting levels) and hoist the per-iteration `allMacros` flatMaps at `call-hierarchy.ts:131` and `symbol-navigation.ts:167`.
 - [x] Deduplicate the copy-pasted token-pasted-name and local-label diagnostic construction in `src/asm/diagnostics.ts:284-350` into one diagnostic factory.
 - [x] Share one `]1..]N` macro signature renderer across `src/lsp/hover.ts:79-82`, `src/lsp/completion.ts:113-121`, and `src/lsp/signature-help.ts:30-39` instead of three divergent strategies.
-- [ ] Skip `untitled:` documents in include resolution (`src/asm/workspace.ts:36-39,110`): `path.dirname("untitled:...")` produces garbage include paths.
+- [x] Skip `untitled:` documents in include resolution (`src/asm/workspace.ts:36-39,110`): `path.dirname("untitled:...")` produces garbage include paths.
 - [ ] Rename abbreviated locals to descriptive names: `glLine` (`src/lsp/selection-range.ts:38`), `pLine` (`src/lsp/call-hierarchy.ts:9,82`), `bLine`/`def` (`src/asm/diagnostics.ts:251,257`), `dirName` versus `directiveName` (`src/lsp/folding.ts:62` vs `src/asm/parser.ts:256`).
 
 

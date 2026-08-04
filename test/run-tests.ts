@@ -30,7 +30,12 @@ import { runExpansionTest } from "./expansion.test";
 import { runMacroReferencesTest } from "./macro-references.test";
 import { runLocalLabelScopeTest } from "./local-labels.test";
 import { runMetadataTableTest } from "./metadata.test";
-import { runWorkspaceGraphTest, runWorkspaceCaseInsensitiveLookupTest, runIncludeTargetTest } from "./workspace.test";
+import {
+  runWorkspaceGraphTest,
+  runWorkspaceCaseInsensitiveLookupTest,
+  runIncludeTargetTest,
+  runUntitledWorkspaceTest
+} from "./workspace.test";
 import { runJsonRpcClientTest } from "./json-rpc-client.test";
 import { runInitializeHandshakeTest } from "./server-initialize.test";
 import { runServerEntrypointTest } from "./server-entrypoint.test";
@@ -83,6 +88,10 @@ const tests: TestCase[] = [
   {
     name: "positive fixture corpus includes upstream Merlin32 samples",
     run: runFixtureCorpusTest
+  },
+  {
+    name: "untitled documents do not resolve disk include paths",
+    run: runUntitledWorkspaceTest
   },
   {
     name: "shared text-position helpers locate first last and offset matches",

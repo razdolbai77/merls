@@ -41,6 +41,19 @@ export function runWorkspaceGraphTest(): void {
   assert.equal(emptyWorkspace.documents.has(missingPath), false);
 }
 
+export function runUntitledWorkspaceTest(): void {
+  const entryUri = "untitled:Untitled-1";
+  const overrides = new Map<string, CachedDocument>([
+    [entryUri, buildCachedDocument('  asm "dependency.S"\n')]
+  ]);
+
+  const workspace = indexWorkspace(entryUri, new Map(), overrides);
+
+  assert.deepEqual(workspace.loadOrder, [entryUri]);
+  assert.deepEqual(workspace.dependencies.get(entryUri), []);
+  assert.equal(workspace.documents.has(entryUri), true);
+}
+
 export function runWorkspaceCaseInsensitiveLookupTest(): void {
   if (process.platform !== "win32") {
     return;

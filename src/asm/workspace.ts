@@ -33,9 +33,7 @@ export function indexWorkspace(
   const loadOrder: string[] = [];
   const symbols = new Map<string, WorkspaceSymbol>();
 
-  const resolvedEntry = entryPath.startsWith("untitled:") 
-    ? entryPath 
-    : path.resolve(entryPath);
+  const resolvedEntry = isUntitledDocument(entryPath) ? entryPath : path.resolve(entryPath);
   visitFile(resolvedEntry, documents, dependencies, loadOrder, diskCache, overrides);
 
   for (const filePath of loadOrder) {
@@ -82,6 +80,10 @@ function lookupByPath(
   return undefined;
 }
 
+function isUntitledDocument(filePath: string): boolean {
+  return filePath.startsWith("untitled:");
+}
+
 function visitFile(
   filePath: string,
   documents: Map<string, CachedDocument>,
@@ -113,6 +115,11 @@ function visitFile(
 
   documents.set(filePath, document);
   loadOrder.push(filePath);
+
+  if (isUntitledDocument(filePath)) {
+    dependencies.set(filePath, []);
+    return;
+  }
 
   const resolvedDependencies = document.parsed.lines
     .flatMap((line) => {
