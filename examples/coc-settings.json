@@ -11,7 +11,8 @@
         "package.json"
       ],
       "filetypes": [
-        "asm"
+        "asm",
+        "6502"
       ]
     }
   }

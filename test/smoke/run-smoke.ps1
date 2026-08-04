@@ -37,7 +37,7 @@ $cocSettings = @{
             command      = "node"
             args         = @($cliPath.Replace("\", "/"), "--stdio")
             rootPatterns = @(".git", "package.json")
-            filetypes    = @("asm")
+            filetypes    = @("asm", "6502")
         }
     }
 } | ConvertTo-Json -Depth 5

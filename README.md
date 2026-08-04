@@ -162,9 +162,11 @@ If you installed `merls` globally via npm, the `languageserver` shape is:
         "--stdio"
       ],
       "rootPatterns": [
-        ".git"
+        ".git",
+        "package.json"
       ],
       "filetypes": [
+        "asm",
         "6502"
       ]
     }
@@ -172,7 +174,7 @@ If you installed `merls` globally via npm, the `languageserver` shape is:
 }
 ```
 
-To enable semantic tokens for syntax highlighting, ensure `"semanticTokens.enable": true` is set in your `coc-settings.json` and that your Vim buffer is set to the matching filetype (e.g. `set filetype=6502`).
+To enable semantic tokens for syntax highlighting, ensure `"semanticTokens.enable": true` is set in your `coc-settings.json` and that your Vim buffer uses a matching filetype — the canonical LSP language id is `6502`, while Vim's common `asm` filetype is also accepted (e.g. `set filetype=asm` or `set filetype=6502`).
 
 An example configuration lives in `examples/coc-settings.json`.
 

@@ -100,7 +100,7 @@ Reference: <https://brutaldeluxe.fr/products/crossdevtools/merlin/>
 - [x] Correct positive examples in `examples/EXAMPLE.S`: use implied `LSR`, replace or force the invalid direct-page `STA $00,Y`, and uppercase `INV`/`FLS` payloads.
 - [x] Remove the unintended unresolved `LDA a` at `examples/EXAMPLE.S:133`, or define the intended symbol and update the addressing-mode example.
 - [x] Add supported official examples for `*`, brace precedence, Merlin variables, semicolon-separated macro parameters, and `]0` after their parser tasks land.
-- [ ] Make `examples/coc-settings.json`, its contract test, smoke config, and README agree on filetypes; include both Vim's common `asm` filetype and the extension's `6502` language id unless one canonical id is documented.
+- [x] Make `examples/coc-settings.json`, its contract test, smoke config, and README agree on filetypes; include both Vim's common `asm` filetype and the extension's `6502` language id unless one canonical id is documented.
 
 
 ## High Priority — Correctness

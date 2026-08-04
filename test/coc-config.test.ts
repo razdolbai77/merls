@@ -22,6 +22,6 @@ export function runCocConfigTest(): void {
   assert.deepEqual(serverConfig?.args, [
     "--stdio"
   ]);
-  assert.deepEqual(serverConfig?.filetypes, ["asm"]);
+  assert.deepEqual(serverConfig?.filetypes, ["asm", "6502"]);
   assert.deepEqual(serverConfig?.rootPatterns, [".git", "package.json"]);
 }
