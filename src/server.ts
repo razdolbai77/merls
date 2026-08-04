@@ -142,7 +142,11 @@ export function startServer(
 
     const combined = new Map<string, CachedDocument>(openDocuments);
     for (const [filePath, doc] of diskCache.entries()) {
+      if (addedPaths.has(filePath.toLowerCase())) {
+        continue;
+      }
       combined.set(pathToFileURL(filePath).href, doc);
+      addedPaths.add(filePath.toLowerCase());
     }
     for (const uri of openDocuments.keys()) {
       const filePath = normalizeUriToPath(uri);

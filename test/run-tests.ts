@@ -4,6 +4,7 @@ import { runCocConfigTest } from "./coc-config.test";
 import { runCompletionTest } from "./completion.test";
 import { runDefinitionReferencesTest } from "./definition-references.test";
 import { runMacroDefinitionReferencesIntegrationTest } from "./macro-definition-references.test";
+import { runDiskCacheMergeTest } from "./disk-cache-merge.test";
 import { runDiagnosticsTest } from "./diagnostics.test";
 import { runLspDiagnosticsTest } from "./lsp-diagnostics.test";
 import { runDocumentModelTest } from "./document-model.test";
@@ -225,6 +226,10 @@ const tests: TestCase[] = [
   {
     name: "server handles watched files changes",
     run: runWatchedFilesTest
+  },
+  {
+    name: "disk cache merge keeps unsaved buffers and avoids case duplicates",
+    run: runDiskCacheMergeTest
   },
   {
     name: "JSON-RPC test client rejects timed out and failed requests",
