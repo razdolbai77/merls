@@ -53,6 +53,7 @@ Macro parameter splitting is centralized in `src/asm/expansion.ts`, so expansion
 Macro placeholder `]0` expands to the supplied argument count, and macros using it accept variable arity without `macro-arity-mismatch` diagnostics.
 The current `textDocument/publishDiagnostics` path is wired through `src/server.ts` and `src/lsp/diagnostics.ts`, with full-document sync on open/change so editor clients receive live parser and resolver diagnostics across the entire watched workspace.
 Additional advanced LSP handlers for rename, formatting, folding, document highlights, inlay hints, signature help, call hierarchy, code lenses, document links, and selection ranges are also fully wired through `src/server.ts` to their respective modules in `src/lsp/`.
+The selection-range provider guards out-of-bounds positions: a line outside the document returns the plain whole-file range instead of throwing.
 Auto-formatting now uppercases known instructions and directives while preserving labels, macro-call identifiers, and operand text as written.
 The current packaged CLI entrypoint lives under `src/cli.ts` and is covered by a compiled stdio launch-contract integration test.
 The integration tests share `test/helpers/json-rpc-client.ts`; use it for stdio JSON-RPC servers so requests reject on child-process exit/error and time out rather than hanging `npm test`.

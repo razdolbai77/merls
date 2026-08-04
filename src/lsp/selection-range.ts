@@ -31,6 +31,11 @@ export function buildSelectionRanges(
       end: { line: totalLines - 1, character: lines[totalLines - 1].length }
     };
 
+    if (pos.line < 0 || pos.line >= totalLines) {
+      results.push({ range: fileRange });
+      continue;
+    }
+
     let parentRange: SelectionRange = { range: fileRange };
 
     let scopeStart = 0;

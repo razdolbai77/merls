@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { buildCachedDocument, CachedDocument } from "../src/asm/document";
+import { buildSelectionRanges } from "../src/lsp/selection-range";
 import { startJsonRpcClient } from "./helpers/json-rpc-client";
 
 
@@ -67,4 +69,38 @@ export async function runSelectionRangeTest(): Promise<void> {
   } finally {
     stop();
   }
+}
+
+export function runSelectionRangeBoundsTest(): void {
+  const uri = "file:///workspace/main.S";
+  const source = "start\n  lda #0\n  rts";
+  const openDocuments = new Map<string, CachedDocument>([
+    [uri, buildCachedDocument(source)]
+  ]);
+
+  // Positions at or past the last line must not throw; they fall back to the file range.
+  const results = buildSelectionRanges(openDocuments, uri, [
+    { line: 3, character: 0 },
+    { line: 99, character: 5 },
+    { line: -1, character: 0 }
+  ]);
+
+  assert.ok(results !== null);
+  assert.equal(results.length, 3);
+
+  const fileRange = {
+    start: { line: 0, character: 0 },
+    end: { line: 2, character: 5 }
+  };
+
+  for (const result of results) {
+    assert.deepEqual(result.range, fileRange);
+    assert.equal(result.parent, undefined);
+  }
+
+  // In-bounds positions still produce the nested token/line/scope/file chain.
+  const valid = buildSelectionRanges(openDocuments, uri, [{ line: 1, character: 3 }]);
+  assert.ok(valid !== null);
+  assert.equal(valid.length, 1);
+  assert.ok(valid[0].parent !== undefined, "Expected nested ranges for in-bounds position");
 }

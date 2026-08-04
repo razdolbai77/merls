@@ -40,7 +40,7 @@ import { runInlayHintsTest } from "./inlay-hints.test";
 import { runSignatureHelpTest } from "./signature-help.test";
 import { runCallHierarchyTest } from "./call-hierarchy.test";
 import { runCodeLensTest } from "./code-lens.test";
-import { runSelectionRangeTest } from "./selection-range.test";
+import { runSelectionRangeTest, runSelectionRangeBoundsTest } from "./selection-range.test";
 import { runWatchedFilesTest } from "./watched-files.test";
 import { runPerformanceTest } from "./performance.test";
 
@@ -217,6 +217,10 @@ const tests: TestCase[] = [
   {
     name: "server provides smart selection ranges",
     run: runSelectionRangeTest
+  },
+  {
+    name: "selection ranges survive out-of-bounds positions",
+    run: runSelectionRangeBoundsTest
   },
   {
     name: "server handles watched files changes",
