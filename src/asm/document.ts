@@ -60,7 +60,7 @@ export function parseDocument(source: string | LexedSource): ParsedDocument {
   const errors: DocumentError[] = [];
   const macroCalls: MacroCallSite[] = [];
 
-  parsedLines.forEach((node, line) => {
+  for (const [line, node] of parsedLines.entries()) {
     const tokens = lexed.lines[line]?.tokens ?? [];
     lines.push({
       line,
@@ -84,7 +84,7 @@ export function parseDocument(source: string | LexedSource): ParsedDocument {
         args: node.args
       });
     }
-  });
+  }
 
   const macroDefinitions = parsed.macroDefinitions.map((macroDefinition) => ({
     ...macroDefinition,

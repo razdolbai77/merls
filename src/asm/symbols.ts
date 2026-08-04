@@ -71,7 +71,7 @@ export function collectSymbols(document: ParsedDocument): Map<string, SymbolDefi
 export function getDocComment(document: ParsedDocument, lineIndex: number): string | undefined {
   const parts: string[] = [];
 
-  for (let index = lineIndex - 1; index >= 0; index -= 1) {
+  for (let index = lineIndex - 1; index >= 0; index--) {
     const tokens = document.lines[index]?.tokens;
     const comment = tokens?.length === 1 && tokens[0]?.kind === "comment"
       ? tokens[0].lexeme

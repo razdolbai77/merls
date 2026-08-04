@@ -185,7 +185,7 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
 
   if (tokens[index]?.kind === "label" || tokens[index]?.kind === "localLabel") {
     label = tokens[index] ?? null;
-    index += 1;
+    index++;
   }
 
   const token = tokens[index];
@@ -306,7 +306,7 @@ export function stripTrailingComment(tokens: readonly Token[]): readonly Token[]
 function collectMacroDefinitionRegions(lines: readonly ParsedLine[], lexedLines: readonly LexedLine[]): readonly MacroDefinitionRegion[] {
   const macroDefinitions: MacroDefinitionRegion[] = [];
 
-  for (let index = 0; index < lines.length; index += 1) {
+  for (let index = 0; index < lines.length; index++) {
     const startNode = lines[index];
 
     if (
