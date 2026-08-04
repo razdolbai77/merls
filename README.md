@@ -4,9 +4,35 @@
 
 ## Status
 
-The LSP feature set for Merlin32-style 6502 assembly is comprehensive and fully implemented. The repository now includes:
+`merls` covers the 6502 core of Merlin32 syntax and the full LSP feature set listed below. It is an editor language server, not an assembler backend: it parses, diagnoses, and navigates source but never emits object code. The repository includes:
 1. A standalone Language Server (`@razdolbai/merls`) published to npm for use with Neovim/Vim.
 2. A bundled VS Code Extension (in the `vscode/` directory) for a plug-and-play graphical editor experience.
+
+### 6502 / Merlin syntax coverage
+
+| Area | Status |
+|------|--------|
+| 6502 opcodes | All 56 documented mnemonics plus the `BGE`/`BLT` branch aliases (58 table entries), including implied-accumulator `ASL`/`LSR`/`ROL`/`ROR` and the 65C02 `jmp (abs,x)` indirect-X form |
+| Addressing modes | Immediate, zero-page, zero-page indexed, absolute, absolute indexed, indirect, indexed indirect, indirect indexed, relative; value-aware zero-page/absolute selection with `:` absolute-forcing suffixes |
+| Merlin expressions | `*` current address, left-to-right evaluation, `{...}` algebraic precedence, `= < > # & . !` operators, modifiers, indexed operands |
+| Macros | `mac`/`eom`/`<<<` regions, nested definitions, positional `]1`–`]8` parameters, `]0` argument count, `PMC`/`>>>` alternate call forms, `;` argument separators |
+| Variables & locals | Reassignable `]name` variables, anchor-scoped `]local`/`:local` labels |
+| Flow control | `DO`/`ELSE`/`FIN`, `IF`, `LUP`/`--^` repeat regions (parse-only), `END` cut-off |
+| Storage & data | `DS` count/fill with `\` continuation, `ASC` mixed string/numeric payloads, `INV`/`FLS` range validation, `HEX`, `DFB`/`DB`/`DA`/`DDB`/`DW`/`DCI`/`STR`/`STRL`/`REV` |
+| Includes | `ASM`/`PUT`/`USE` with macro-folder resolution and implicit `.s` suffix |
+
+#### Intentional 65C02 / 65C816 exclusions
+
+These forms are rejected with targeted diagnostics by design (6502-only scope):
+
+- Opcodes: `STZ`, `BRA`, `PHX`/`PHY`/`PLX`/`PLY`, `TRB`/`TSB`, `BBS`/`BBR`/`RMB`/`SMB`, `STP`/`WAI`, `MVN`/`MVP`, `PEA`/`PEI`/`PER`
+- Explicit `A` accumulator operands on shifts and rotates (Merlin32 uses the implied form)
+- 65816 long addressing and width-control directives (`MX`, `XC`)
+
+#### Processor-neutral syntax that is not implemented
+
+- Object code generation of any kind, including `LUP` repeat expansion
+- Assembly semantics behind `ADR`, `ADRL`, `PUTBIN`, `CHK`, `DAT`, and `REL` payloads — payloads are parsed and preserved, never assembled
 
 ## Goals
 
@@ -46,7 +72,8 @@ The LSP feature set for Merlin32-style 6502 assembly is comprehensive and fully 
 
 ### Out of Scope
 
-- non-6502 instruction-set extensions
+- non-6502 instruction-set extensions (see the exclusion list in the coverage matrix)
+- object code generation and assembler-backend semantics
 
 
 ## Doc comments

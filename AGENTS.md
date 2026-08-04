@@ -7,6 +7,7 @@ This repository has an established baseline. The main document is `README.md` fo
 When the workspace is scaffolded, keep code under `src/`, tests under `test/`, and editor integration examples under `examples/` such as `examples/coc-settings.json`. Store parser fixtures in a dedicated test-fixture area and separate valid 6502 cases from invalid unknown-syntax cases.
 
 The current bootstrap server entrypoint is `src/server.ts`, and the packaged CLI entrypoint is `src/cli.ts`, which compiles to `dist/src/cli.js`.
+README status replaces the old "comprehensive and fully implemented" claim with a 6502/Merlin syntax coverage matrix: intentional 65C02/65C816 exclusions (opcodes, explicit `A` accumulator operands, 65816 forms, `MX`/`XC`) are separated from unimplemented processor-neutral syntax (object-code generation, `ADR`/`ADRL`/`PUTBIN`/`CHK`/`DAT`/`REL` assembly semantics), and the metadata test locks the opcode/directive table sizes and exclusion entries.
 The repository now includes `examples/coc-settings.json` as the baseline coc.nvim launch example, targeting `dist/src/cli.js --stdio` with `.git` and `package.json` root markers.
 The initial positive fixture corpus now lives under `test/fixtures/valid/` and is transcribed from upstream Merlin32 sources.
 The initial negative fixture corpus now lives under `test/fixtures/invalid/` and captures invalid unknown-syntax coverage samples; the fixture corpus test pins the exact expected diagnostic-code sequence for each invalid fixture, so diagnostic ordering or code changes require deliberate test updates.
