@@ -44,6 +44,13 @@ export function runExamplesShowcaseTest(): void {
     false,
     "examples/EXAMPLE.S INV and FLS payloads must be uppercase"
   );
+  assert.equal(
+    cleanSource
+      .split(/\r?\n/)
+      .some((line) => /\bLDA\s+A\b\s*(;|$)/.test(line.trim())),
+    false,
+    "examples/EXAMPLE.S must not contain the unresolved LDA a reference"
+  );
 
   const invalidPath = path.resolve(process.cwd(), "examples/DIAGNOSTICS.S");
   const invalidDocument = parseDocument(fs.readFileSync(invalidPath, "utf8"));
