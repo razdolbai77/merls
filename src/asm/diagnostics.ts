@@ -1,7 +1,7 @@
 import { type ParsedDocument } from "./document";
 import { type Expression, type Operand } from "./expression";
 import { type Token } from "./lexer";
-import { resolveLocalLabels } from "./local-labels";
+import { resolveLocalLabels, isLocalLabel } from "./local-labels";
 import { directiveTable, opcodeTable, type AddressingMode } from "./metadata";
 import { type ParsedLine, type MacroDefinitionRegion } from "./parser";
 import { getEffectiveLines, splitMacroCallArguments, type ExpandedToken } from "./expansion";
@@ -500,7 +500,7 @@ function collectUnresolvedDiagnostics(
         }
       }
 
-      if (reference.lexeme.startsWith("]") || reference.lexeme.startsWith(":")) {
+      if (isLocalLabel(reference.lexeme)) {
         const localKey = `${reference.lexeme}@${line.line}`;
 
         if (!localScope.references.has(localKey)) {
@@ -793,10 +793,6 @@ function resolveDiagnosticRange(
   const start = Math.max(0, Math.min(rangeToken.start, lineLength));
   const end = Math.max(start, Math.min(rangeToken.end, lineLength));
   return { start, end };
-}
-
-function isLocalLabel(name: string): boolean {
-  return name.startsWith("]") || name.startsWith(":");
 }
 
 

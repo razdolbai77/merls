@@ -1,6 +1,7 @@
 import { type CodeLens } from "vscode-languageserver/node";
 
 import { type CachedDocument } from "../asm/document";
+import { isLocalLabel } from "../asm/local-labels";
 import { collectDefinitions, collectReferences } from "./symbol-navigation";
 
 export function buildCodeLenses(
@@ -25,8 +26,7 @@ export function buildCodeLenses(
   }
 
   for (const definition of definitions) {
-    // Skip local labels which start with ":" or "]" in Merlin
-    if (definition.name.startsWith(":") || definition.name.startsWith("]")) {
+    if (isLocalLabel(definition.name)) {
       continue;
     }
     

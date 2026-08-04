@@ -1,4 +1,4 @@
-import { resolveLocalLabels, type LocalLabelScope } from "../asm/local-labels";
+import { resolveLocalLabels, isLocalLabel, type LocalLabelScope } from "../asm/local-labels";
 import { SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokenTypes } from "vscode-languageserver";
 import { type TokenKind } from "../asm/lexer";
 import { type CachedDocument } from "../asm/document";
@@ -80,7 +80,7 @@ export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Ma
 
   const isResolved = (name: string, line: number) => {
     if (allSymbols.has(name)) return true;
-    if (name.startsWith("]") || name.startsWith(":")) {
+    if (isLocalLabel(name)) {
       const qualified = `${name}@${line}`;
       return localScope.definitions.has(qualified) || localScope.references.has(qualified);
     }

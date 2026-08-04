@@ -6,7 +6,7 @@ import { type ParsedLine } from "../asm/parser";
 import { type Token, tokenAtCharacter } from "../asm/lexer";
 import { collectSymbols } from "../asm/symbols";
 import { splitMacroCallArguments, getEffectiveLines, type ExpandedToken } from "../asm/expansion";
-import { resolveLocalLabels } from "../asm/local-labels";
+import { resolveLocalLabels, isLocalLabel } from "../asm/local-labels";
 import { opcodeTable } from "../asm/metadata";
 
 type SymbolDefinition = {
@@ -86,7 +86,7 @@ export function findDefinition(
     };
   }
 
-  const isLocal = targetName.startsWith("]") || targetName.startsWith(":");
+  const isLocal = isLocalLabel(targetName);
 
   if (isLocal && cached !== undefined) {
     const localScope = resolveLocalLabels(cached.parsed);

@@ -1,6 +1,7 @@
 import { LSPErrorCodes, ResponseError, WorkspaceEdit, TextEdit } from "vscode-languageserver/node";
 import { CachedDocument } from "../asm/document";
 import { collectSymbols } from "../asm/symbols";
+import { isLocalLabel } from "../asm/local-labels";
 import { findReferences, getSymbolAtPosition } from "./symbol-navigation";
 
 const merlinIdentifierPattern = /^[A-Za-z_][A-Za-z0-9_]*$/u;
@@ -28,7 +29,7 @@ export function buildRenameEdits(
 
   const symbol = cached ? collectSymbols(cached.parsed).get(targetName) : undefined;
   const isVariable = symbol?.kind === "variable";
-  if ((targetName.startsWith("]") || targetName.startsWith(":")) && !isVariable) {
+  if (isLocalLabel(targetName) && !isVariable) {
     throw new ResponseError(
       LSPErrorCodes.RequestFailed,
       "Local labels cannot be renamed because they are scoped to their enclosing global label."

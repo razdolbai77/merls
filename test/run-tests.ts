@@ -10,6 +10,7 @@ import { runDiagnosticsPublishTest } from "./diagnostics-publish.test";
 import { runDiskCacheEvictionTest } from "./disk-cache-eviction.test";
 import { runCompletionSuppressionTest } from "./completion-suppression.test";
 import { runUriToFilePathTest } from "./uri.test";
+import { runIsLocalLabelTest } from "./is-local-label.test";
 import { runLspDiagnosticsTest } from "./lsp-diagnostics.test";
 import { runDocumentModelTest } from "./document-model.test";
 import { runDocumentSymbolTest } from "./document-symbol.test";
@@ -190,6 +191,10 @@ const tests: TestCase[] = [
   {
     name: "uri to file path helpers normalize win32 case consistently",
     run: runUriToFilePathTest
+  },
+  {
+    name: "isLocalLabel identifies Merlin local label prefixes",
+    run: runIsLocalLabelTest
   },
   {
     name: "server returns opcode directive and symbol completions",

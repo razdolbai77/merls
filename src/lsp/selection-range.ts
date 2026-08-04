@@ -2,6 +2,7 @@ import { type SelectionRange, type Position, type Range } from "vscode-languages
 import { type CachedDocument } from "../asm/document";
 import { tokenAtCharacter } from "../asm/lexer";
 import { type ParsedLine } from "../asm/parser";
+import { isLocalLabel } from "../asm/local-labels";
 
 export function buildSelectionRanges(
   openDocuments: ReadonlyMap<string, CachedDocument>,
@@ -103,7 +104,7 @@ function isGlobalLabel(node: ParsedLine): boolean {
   else if (node.shape === "data" && node.label !== null) name = node.label.lexeme;
 
   if (name !== null) {
-    return !name.startsWith("]") && !name.startsWith(":");
+    return !isLocalLabel(name);
   }
   return false;
 }

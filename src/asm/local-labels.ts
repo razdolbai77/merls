@@ -233,7 +233,7 @@ function findLocalNamesInExpression(expression: Expression): readonly string[] {
   }
 }
 
-function isLocalLabel(name: string): boolean {
+export function isLocalLabel(name: string): boolean {
   return name.startsWith("]") || name.startsWith(":");
 }
 

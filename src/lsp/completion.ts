@@ -4,7 +4,7 @@ import {
 } from "vscode-languageserver/node";
 
 import { type CachedDocument } from "../asm/document";
-import { resolveLocalLabels } from "../asm/local-labels";
+import { resolveLocalLabels, isLocalLabel } from "../asm/local-labels";
 import { directiveDefinitions, opcodeDefinitions, directiveTable } from "../asm/metadata";
 import { collectSymbols } from "../asm/symbols";
 
@@ -169,8 +169,4 @@ export function buildCompletionItems(
   }
 
   return completions;
-}
-
-function isLocalLabel(name: string): boolean {
-  return name.startsWith("]") || name.startsWith(":");
 }
