@@ -161,6 +161,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - Macro call arguments use adjacent semicolons (`Move #$00;$02`); a semicolon preceded by whitespace remains a trailing comment.
 - Macro parameter splitting is shared by expansion, diagnostics, signature help, and navigation; commas remain part of a macro argument, including indexed operands.
 - Macro placeholder `]0` expands to the supplied argument count, allowing flexible macros to accept zero, one, or eight arguments without arity diagnostics.
+- Alternate macro-call forms `PMC name,args` and `>>> name,args` parse into the same macro-call model as direct calls, so expansion, arity and forward-call diagnostics, hover, semantic tokens, navigation, and rename all apply identically.
 - LSP handlers (hover, completion, diagnostics, etc.) are located in `src/lsp/`.
 - The CLI entry point lives in `src/cli.ts` and compiles to `dist/src/cli.js`.
 - The VS Code extension contributes `Pearls: Compile Current File with Merlin32` and `Pearls: Assemble Project with Merlin32` commands and exposes `pearls.merlin32Executable`, `pearls.compileArgs`, `pearls.merlin32MacroFolder`, and `pearls.merlin32ProjectEntryFile` settings for assembler invocation. Assembled terminal commands quote arguments so paths containing shell metacharacters cannot break or inject into the command.

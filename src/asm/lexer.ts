@@ -113,6 +113,12 @@ function lexLine(text: string, line: number): LexedLine {
         index += 3;
         continue;
       }
+      if (char === ">" && text.slice(index, index + 3) === ">>>") {
+        tokens.push(createToken("directive", ">>>", index, index + 3));
+        sawOperation = true;
+        index += 3;
+        continue;
+      }
 
       const numericLiteral = consumeNumericLiteral(text, index);
       if (numericLiteral !== null) {

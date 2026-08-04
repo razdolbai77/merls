@@ -275,6 +275,20 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
     const operandTokens = tokens.slice(index + 1);
     const directiveName = token.lexeme.toLowerCase();
 
+    if (directiveName === "pmc" || directiveName === ">>>") {
+      const macroToken = operandTokens[0];
+      if (macroToken === undefined || macroToken.kind !== "identifier") {
+        throw new Error(`${token.lexeme} requires a macro name`);
+      }
+      return {
+        shape: "macroCall",
+        text,
+        label,
+        macro: macroToken,
+        args: operandTokens.slice(1)
+      };
+    }
+
     if (operandTokens.length > 0 && (directiveName === "end" || directiveName === "dend" || directiveName === "xc")) {
       throw new Error(`unexpected operand for ${directiveName}`);
     }

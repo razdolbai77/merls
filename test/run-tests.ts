@@ -15,6 +15,7 @@ import { runUniqueLocationsTest } from "./unique-locations.test";
 import { runMacroParameterPatternTest } from "./macro-parameter-pattern.test";
 import { runLspDiagnosticsTest } from "./lsp-diagnostics.test";
 import { runDocumentModelTest } from "./document-model.test";
+import { runAlternateMacroCallTest } from "./alternate-macro-calls.test";
 import { runLupRegionTest } from "./lup-regions.test";
 import { runDocumentSymbolTest } from "./document-symbol.test";
 import { runExpressionTest } from "./expression.test";
@@ -141,6 +142,10 @@ const tests: TestCase[] = [
   {
     name: "lup repeat regions track matched unmatched and nested delimiters",
     run: runLupRegionTest
+  },
+  {
+    name: "pmc and >>> invoke macros through the shared macro-call model",
+    run: runAlternateMacroCallTest
   },
   {
     name: "symbol collection indexes labels equates and named data definitions",
