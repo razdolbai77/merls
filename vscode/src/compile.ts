@@ -13,7 +13,7 @@ function quoteWindowsArg(value: string): string {
     return '""';
   }
 
-  if (!/[\s"]/u.test(value)) {
+  if (!/[\s"&|<>^%]/u.test(value)) {
     return value;
   }
 
@@ -25,7 +25,7 @@ function quotePosixArg(value: string): string {
     return "''";
   }
 
-  if (!/[\s'"\\$`!]/u.test(value)) {
+  if (!/[\s'"\\$`!;&|<>()*?[\]#~^%]/u.test(value)) {
     return value;
   }
 

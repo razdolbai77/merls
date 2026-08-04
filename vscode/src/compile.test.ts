@@ -38,6 +38,36 @@ test('buildCompileCommand quotes POSIX paths with embedded single quotes', () =>
   );
 });
 
+test('buildCompileCommand quotes Windows args containing cmd metacharacters', () => {
+  const command = buildCompileCommand({
+    assemblerPath: 'C:\\tools\\merlin32.exe',
+    extraArgs: [],
+    macroFolderPath: 'C:\\data&macros',
+    sourcePath: 'C:\\100%done^name\\main.S',
+    isWindows: true
+  });
+
+  assert.equal(
+    command,
+    'C:\\tools\\merlin32.exe "C:\\data&macros" "C:\\100%done^name\\main.S"'
+  );
+});
+
+test('buildCompileCommand quotes POSIX args containing shell metacharacters without spaces', () => {
+  const command = buildCompileCommand({
+    assemblerPath: '/opt/merlin32/bin/merlin32',
+    extraArgs: [],
+    macroFolderPath: '/tmp/foo;reboot',
+    sourcePath: '/tmp/a&b|c<d>e(f)g*h?i[j]#k~l^m%n.S',
+    isWindows: false
+  });
+
+  assert.equal(
+    command,
+    "/opt/merlin32/bin/merlin32 '/tmp/foo;reboot' '/tmp/a&b|c<d>e(f)g*h?i[j]#k~l^m%n.S'"
+  );
+});
+
 test('getCompileWorkingDirectory prefers the workspace folder', () => {
   assert.equal(
     getCompileWorkingDirectory('C:\\Workspace\\src\\main.S', 'C:\\Workspace'),
