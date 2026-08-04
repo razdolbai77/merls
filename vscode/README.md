@@ -14,6 +14,10 @@ Pearls is a fast, robust, and fully-featured Language Server (LSP) and extension
 - **Compile Current File Command**: Run `Pearls: Compile Current File with Merlin32` to save the active source file and invoke `merlin32 <macro-folder> <current-file>` in VS Code's integrated terminal.
 - **Project Assemble Command**: Run `Pearls: Assemble Project with Merlin32` to invoke `merlin32 <macro-folder> <entry-file>` using a configured project entry file or link script.
 
+## Requirements
+
+- Visual Studio Code 1.91 or newer.
+
 ## Supported Syntax
 
 Pearls is highly optimized for the **Merlin32** macro assembler syntax, including:
