@@ -201,6 +201,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - Identifier collection across navigation, diagnostics, local-label resolution, and macro usage tracking shares one `walkExpression` traversal in `src/asm/expression.ts` instead of four recursive copies.
 - Implied-accumulator operand detection shares one `isAccumulatorOperand` helper across navigation, diagnostics, hover, and formatting.
 - Location and reference deduplication shares one generic `uniqueLocations` helper in `src/lsp/symbol-navigation.ts` instead of four `JSON.stringify`-keyed Map copies.
+- Macro parameter placeholder detection shares one `macroParameterPattern` regex in `src/asm/macros.ts` across the parser, expansion, diagnostics, navigation, rename, and semantic tokens.
 - Workspace include lookups compare paths case-insensitively on win32, so includes spelled with different drive or letter case resolve to open buffers and cached documents instead of stale disk content.
 - Diagnostic notifications swallow transport rejections through `sendDiagnosticsSafely`, so a disposed client cannot surface unhandled promise rejections, and the disk cache evicts paths unreachable from any open document's include graph after watched-file updates and document closes.
 - Inlay hints resolve duplicate equ names deterministically: the first definition in workspace load order wins, matching duplicate-symbol diagnostics.

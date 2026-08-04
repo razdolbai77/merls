@@ -8,6 +8,7 @@ import { collectSymbols } from "../asm/symbols";
 import { splitMacroCallArguments, getEffectiveLines, type ExpandedToken } from "../asm/expansion";
 import { resolveLocalLabels, isLocalLabel } from "../asm/local-labels";
 
+import { macroParameterPattern } from "../asm/macros";
 type SymbolDefinition = {
   name: string;
   location: Location;
@@ -36,7 +37,7 @@ export function findDefinition(
     return null;
   }
 
-  const parameterMatch = /^\](\d+)$/u.exec(targetName);
+  const parameterMatch = macroParameterPattern.exec(targetName);
   if (parameterMatch !== null && cached !== undefined) {
     const parameterIndex = Number.parseInt(parameterMatch[1] ?? "0", 10);
     const enclosingMacro = cached.parsed.macroDefinitions.find(

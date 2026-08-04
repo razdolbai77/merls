@@ -12,6 +12,7 @@ import { runCompletionSuppressionTest } from "./completion-suppression.test";
 import { runUriToFilePathTest } from "./uri.test";
 import { runIsLocalLabelTest } from "./is-local-label.test";
 import { runUniqueLocationsTest } from "./unique-locations.test";
+import { runMacroParameterPatternTest } from "./macro-parameter-pattern.test";
 import { runLspDiagnosticsTest } from "./lsp-diagnostics.test";
 import { runDocumentModelTest } from "./document-model.test";
 import { runDocumentSymbolTest } from "./document-symbol.test";
@@ -196,6 +197,10 @@ const tests: TestCase[] = [
   {
     name: "isLocalLabel identifies Merlin local label prefixes",
     run: runIsLocalLabelTest
+  },
+  {
+    name: "macro parameter pattern matches positional placeholders",
+    run: runMacroParameterPatternTest
   },
   {
     name: "uniqueLocations keeps first occurrence of each location",

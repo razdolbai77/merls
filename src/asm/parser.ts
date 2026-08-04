@@ -1,4 +1,5 @@
 import { directiveTable } from "./metadata";
+import { macroParameterPattern } from "./macros";
 import { type Expression, type Operand, parseExpression, parseOperand, walkExpression } from "./expression";
 import { lexSource, type LexedLine, type LexedSource, type Token } from "./lexer";
 
@@ -387,7 +388,7 @@ function collectMacroBodyUsage(node: ParsedLine): Omit<MacroBodyLine, "line" | "
   const localLabelReferences: MacroLocalLabelReference[] = [];
 
   const collectTokenUsage = (token: Token): void => {
-    const match = /^\](\d+)$/u.exec(token.lexeme);
+    const match = macroParameterPattern.exec(token.lexeme);
     if (token.kind === "localLabel" && match !== null) {
       parameterReferences.push({
         token,

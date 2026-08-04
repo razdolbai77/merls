@@ -1,11 +1,11 @@
 import { LSPErrorCodes, ResponseError, WorkspaceEdit, TextEdit } from "vscode-languageserver/node";
 import { CachedDocument } from "../asm/document";
 import { collectSymbols } from "../asm/symbols";
-import { isLocalLabel } from "../asm/local-labels";
 import { findReferences, getSymbolAtPosition } from "./symbol-navigation";
+import { macroParameterPattern } from "../asm/macros";
+import { isLocalLabel } from "../asm/local-labels";
 
 const merlinIdentifierPattern = /^[A-Za-z_][A-Za-z0-9_]*$/u;
-const macroParameterPattern = /^\]\d+$/u;
 
 export function buildRenameEdits(
   openDocuments: ReadonlyMap<string, CachedDocument>,

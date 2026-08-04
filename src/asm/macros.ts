@@ -1,6 +1,8 @@
 import { type ParsedDocument } from "./document";
 import { type CachedDocument } from "./document";
 
+export const macroParameterPattern = /^\](\d+)$/u;
+
 export type DocumentMacroDefinition = {
   name: string;
   line: number;

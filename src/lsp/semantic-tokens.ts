@@ -1,4 +1,5 @@
 import { resolveLocalLabels, isLocalLabel, type LocalLabelScope } from "../asm/local-labels";
+import { macroParameterPattern } from "../asm/macros";
 import { SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokenTypes } from "vscode-languageserver";
 import { type TokenKind } from "../asm/lexer";
 import { type CachedDocument } from "../asm/document";
@@ -119,7 +120,7 @@ export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Ma
           typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.macro);
         } else if (parsedLine?.shape === "macroCall" && token.start === parsedLine.macro.start) {
           typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.macro);
-        } else if (/^\]\d+$/.test(token.lexeme)) {
+        } else if (macroParameterPattern.test(token.lexeme)) {
           // Macro parameter placeholder
           typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.parameter);
         } else if (allVariables.has(token.lexeme)) {

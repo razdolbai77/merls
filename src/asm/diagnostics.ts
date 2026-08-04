@@ -4,6 +4,7 @@ import { type Token } from "./lexer";
 import { resolveLocalLabels, isLocalLabel, getGlobalLabelToken } from "./local-labels";
 import { directiveTable, opcodeTable, type AddressingMode } from "./metadata";
 import { type ParsedLine, type MacroDefinitionRegion } from "./parser";
+import { macroParameterPattern } from "./macros";
 import { getEffectiveLines, splitMacroCallArguments, type ExpandedToken } from "./expansion";
 import { MAX_MACRO_EXPANSION_DEPTH, MAX_MACRO_EXPANSION_LINES } from "./limits";
 
@@ -342,7 +343,7 @@ function collectMacroStructureDiagnostics(
       }
 
       for (const ref of bodyLine.symbolReferences) {
-        if (!/^\]\d+$/.test(ref.token.lexeme) && /\]\d+/.test(ref.token.lexeme)) {
+        if (!macroParameterPattern.test(ref.token.lexeme) && /\]\d+/.test(ref.token.lexeme)) {
           diagnostics.push({
             filePath,
             line: bodyLine.line,
@@ -355,7 +356,7 @@ function collectMacroStructureDiagnostics(
       }
 
       for (const ref of bodyLine.localLabelDefinitions) {
-        if (!/^\]\d+$/.test(ref.token.lexeme) && /\]\d+/.test(ref.token.lexeme)) {
+        if (!macroParameterPattern.test(ref.token.lexeme) && /\]\d+/.test(ref.token.lexeme)) {
           diagnostics.push({
             filePath,
             line: bodyLine.line,
@@ -376,7 +377,7 @@ function collectMacroStructureDiagnostics(
       }
 
       for (const ref of bodyLine.localLabelReferences) {
-        if (!/^\]\d+$/.test(ref.token.lexeme) && /\]\d+/.test(ref.token.lexeme)) {
+        if (!macroParameterPattern.test(ref.token.lexeme) && /\]\d+/.test(ref.token.lexeme)) {
           diagnostics.push({
             filePath,
             line: bodyLine.line,
@@ -397,7 +398,7 @@ function collectMacroStructureDiagnostics(
       }
 
       for (const call of bodyLine.nestedMacroCalls) {
-        if (!/^\]\d+$/.test(call.macro.lexeme) && /\]\d+/.test(call.macro.lexeme)) {
+        if (!macroParameterPattern.test(call.macro.lexeme) && /\]\d+/.test(call.macro.lexeme)) {
           diagnostics.push({
             filePath,
             line: bodyLine.line,

@@ -3,6 +3,7 @@ import { type MacroCallLine, type MacroDefinitionRegion, type ParsedLine, parseL
 import { type Token } from "./lexer";
 import { type ParsedDocument } from "./document";
 import { MAX_MACRO_EXPANSION_DEPTH, MAX_MACRO_EXPANSION_LINES } from "./limits";
+import { macroParameterPattern } from "./macros";
 
 export type ExpandedToken = Token & {
   callSiteToken: Token | null;
@@ -53,7 +54,7 @@ export function expandMacroCall(
     let expandedText = "";
 
     for (const token of nodeTokens) {
-      const match = /^\](\d+)$/u.exec(token.lexeme);
+      const match = macroParameterPattern.exec(token.lexeme);
       if (token.kind === "localLabel" && match !== null) {
         const paramIndex = Number.parseInt(match[1]!, 10);
         if (paramIndex === 0) {
