@@ -35,6 +35,60 @@ export type Diagnostic = {
   endCharacter?: number;
 };
 
+function createMacroTokenDiagnostic(
+  filePath: string,
+  line: number,
+  token: Token,
+  code: DiagnosticCode,
+  message: string
+): Diagnostic {
+  return {
+    filePath,
+    line,
+    code,
+    message,
+    startCharacter: token.start,
+    endCharacter: token.end
+  };
+}
+
+function addTokenPastedNameDiagnostic(
+  diagnostics: Diagnostic[],
+  filePath: string,
+  line: number,
+  token: Token,
+  nameKind = "name"
+): void {
+  if (!macroParameterPattern.test(token.lexeme) && /\]\d+/.test(token.lexeme)) {
+    diagnostics.push(
+      createMacroTokenDiagnostic(
+        filePath,
+        line,
+        token,
+        "token-pasted-name",
+        `Unsupported token-pasted ${nameKind} ${token.lexeme}`
+      )
+    );
+  }
+}
+
+function addInvalidMacroLocalLabelDiagnostic(
+  diagnostics: Diagnostic[],
+  filePath: string,
+  line: number,
+  token: Token
+): void {
+  diagnostics.push(
+    createMacroTokenDiagnostic(
+      filePath,
+      line,
+      token,
+      "invalid-macro-local-label",
+      `Local labels (${token.lexeme}) cannot be used inside macros.`
+    )
+  );
+}
+
 export type DocumentEntry = {
   filePath: string;
   document: ParsedDocument;
@@ -343,71 +397,21 @@ function collectMacroStructureDiagnostics(
       }
 
       for (const ref of bodyLine.symbolReferences) {
-        if (!macroParameterPattern.test(ref.token.lexeme) && /\]\d+/.test(ref.token.lexeme)) {
-          diagnostics.push({
-            filePath,
-            line: bodyLine.line,
-            code: "token-pasted-name",
-            message: `Unsupported token-pasted name ${ref.token.lexeme}`,
-            startCharacter: ref.token.start,
-            endCharacter: ref.token.end
-          });
-        }
+        addTokenPastedNameDiagnostic(diagnostics, filePath, bodyLine.line, ref.token);
       }
 
       for (const ref of bodyLine.localLabelDefinitions) {
-        if (!macroParameterPattern.test(ref.token.lexeme) && /\]\d+/.test(ref.token.lexeme)) {
-          diagnostics.push({
-            filePath,
-            line: bodyLine.line,
-            code: "token-pasted-name",
-            message: `Unsupported token-pasted name ${ref.token.lexeme}`,
-            startCharacter: ref.token.start,
-            endCharacter: ref.token.end
-          });
-        }
-        diagnostics.push({
-          filePath,
-          line: bodyLine.line,
-          code: "invalid-macro-local-label",
-          message: `Local labels (${ref.token.lexeme}) cannot be used inside macros.`,
-          startCharacter: ref.token.start,
-          endCharacter: ref.token.end
-        });
+        addTokenPastedNameDiagnostic(diagnostics, filePath, bodyLine.line, ref.token);
+        addInvalidMacroLocalLabelDiagnostic(diagnostics, filePath, bodyLine.line, ref.token);
       }
 
       for (const ref of bodyLine.localLabelReferences) {
-        if (!macroParameterPattern.test(ref.token.lexeme) && /\]\d+/.test(ref.token.lexeme)) {
-          diagnostics.push({
-            filePath,
-            line: bodyLine.line,
-            code: "token-pasted-name",
-            message: `Unsupported token-pasted name ${ref.token.lexeme}`,
-            startCharacter: ref.token.start,
-            endCharacter: ref.token.end
-          });
-        }
-        diagnostics.push({
-          filePath,
-          line: bodyLine.line,
-          code: "invalid-macro-local-label",
-          message: `Local labels (${ref.token.lexeme}) cannot be used inside macros.`,
-          startCharacter: ref.token.start,
-          endCharacter: ref.token.end
-        });
+        addTokenPastedNameDiagnostic(diagnostics, filePath, bodyLine.line, ref.token);
+        addInvalidMacroLocalLabelDiagnostic(diagnostics, filePath, bodyLine.line, ref.token);
       }
 
       for (const call of bodyLine.nestedMacroCalls) {
-        if (!macroParameterPattern.test(call.macro.lexeme) && /\]\d+/.test(call.macro.lexeme)) {
-          diagnostics.push({
-            filePath,
-            line: bodyLine.line,
-            code: "token-pasted-name",
-            message: `Unsupported token-pasted macro name ${call.macro.lexeme}`,
-            startCharacter: call.macro.start,
-            endCharacter: call.macro.end
-          });
-        }
+        addTokenPastedNameDiagnostic(diagnostics, filePath, bodyLine.line, call.macro, "macro name");
       }
 
       const bodyNode = bodyLine.node;
