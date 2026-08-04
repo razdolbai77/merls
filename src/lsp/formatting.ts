@@ -4,6 +4,10 @@ import { type CachedDocument } from "../asm/document";
 import { isAccumulatorOperand } from "../asm/expression";
 import { type Token } from "../asm/lexer";
 import { type ParsedLine } from "../asm/parser";
+export const formattingLabelColumn = 8;
+export const formattingOperationColumn = 16;
+export const formattingOperandColumn = 24;
+
 
 export function formatDocument(
   cached: CachedDocument,
@@ -83,96 +87,97 @@ function formatLine(
   originalText: string,
   options: FormattingOptions
 ): string | null {
-  const shape = node.shape;
-  const { insertSpaces, tabSize } = options;
-  const col1 = 8;
-  const col2 = 16;
-  const col3 = 24;
-
-  if (shape === "empty") {
-    return "";
-  }
-  if (shape === "commentOnly" && tokens.length > 0) {
+  if (node.shape === "empty") return "";
+  if (node.shape === "commentOnly" && tokens.length > 0) {
     // Preserve full-line comment text except trailing whitespace.
     return originalText.trimEnd();
   }
-  if (shape === "labelOnly") {
-    const comment = getCommentToken(tokens);
-    let result = tokens[0]?.lexeme ?? "";
-    if (comment) {
-      result = padTo(result, col3, insertSpaces, tabSize) + comment.lexeme;
-    }
-    return result.trimEnd();
-  }
+  if (node.shape === "labelOnly") return formatLabelOnly(tokens, options);
 
   if (
-    shape === "equate" ||
-    shape === "instruction" ||
-    shape === "directive" ||
-    shape === "data" ||
-    shape === "macroCall"
+    node.shape === "equate" ||
+    node.shape === "instruction" ||
+    node.shape === "directive" ||
+    node.shape === "data" ||
+    node.shape === "macroCall"
   ) {
-    let index = 0;
-    let label = "";
+    return formatStructuredLine(node, tokens, options);
+  }
+  return null;
+}
 
-    if (tokens[index]?.kind === "label" || tokens[index]?.kind === "localLabel") {
-      label = tokens[index].lexeme;
-      index += 1;
-    }
+function formatLabelOnly(tokens: readonly Token[], options: FormattingOptions): string {
+  const comment = getCommentToken(tokens);
+  let result = tokens[0]?.lexeme ?? "";
+  if (comment !== null) {
+    result = padTo(result, formattingOperandColumn, options.insertSpaces, options.tabSize) + comment.lexeme;
+  }
+  return result.trimEnd();
+}
 
-    const operationToken = tokens[index];
-    if (!operationToken) {
-      return null;
-    }
-    const operation =
-      operationToken.kind === "mnemonic" || operationToken.kind === "directive"
-        ? operationToken.lexeme.toUpperCase()
-        : operationToken.lexeme;
-    index += 1;
+function formatStructuredLine(
+  node: ParsedLine,
+  tokens: readonly Token[],
+  options: FormattingOptions
+): string | null {
+  const fields = getLineFields(tokens);
+  if (fields === null) return null;
 
-    let result = label;
-    result = padTo(result, col1, insertSpaces, tabSize);
-    result += operation;
+  const operation = fields.operation.kind === "mnemonic" || fields.operation.kind === "directive"
+    ? fields.operation.lexeme.toUpperCase()
+    : fields.operation.lexeme;
+  let result = padTo(fields.label, formattingLabelColumn, options.insertSpaces, options.tabSize) + operation;
+  const comment = getCommentToken(tokens);
+  const operandText = formatOperandText(node, tokens, fields.operandStart, comment);
 
-    // Find operands and comment
-    const commentToken = getCommentToken(tokens);
-    const endTokenIndex = commentToken ? tokens.length - 2 : tokens.length - 1;
+  if (operandText.length > 0) {
+    result = padTo(result, formattingOperationColumn, options.insertSpaces, options.tabSize) + operandText;
+  }
+  if (comment !== null) {
+    result = padTo(result, formattingOperandColumn, options.insertSpaces, options.tabSize) + comment.lexeme;
+  }
+  return result.trimEnd();
+}
 
-    let operandText = "";
-    if (index <= endTokenIndex) {
-      for (let i = index; i <= endTokenIndex; i++) {
-        let lexeme = tokens[i].lexeme;
-        if (node.shape === "instruction") {
-          const lower = lexeme.toLowerCase();
-          if (lower === "x" || lower === "y") {
-            if (i > 0 && tokens[i - 1].lexeme === ",") {
-              lexeme = lexeme.toUpperCase();
-            }
-          } else if (lower === "a") {
-            if (isAccumulatorOperand(node.mnemonic.lexeme, node.operand, tokens[i])) {
-              lexeme = lexeme.toUpperCase();
-            }
-          }
-        }
-        operandText += lexeme;
-      }
-    }
-
-    if (operandText.length > 0) {
-      result = padTo(result, col2, insertSpaces, tabSize);
-      result += operandText;
-    }
-
-    if (commentToken) {
-      // align comment
-      result = padTo(result, col3, insertSpaces, tabSize);
-      result += commentToken.lexeme;
-    }
-
-    return result.trimEnd(); // Remove any trailing spaces if no comment
+function getLineFields(tokens: readonly Token[]): { label: string; operation: Token; operandStart: number } | null {
+  let index = 0;
+  let label = "";
+  if (tokens[index]?.kind === "label" || tokens[index]?.kind === "localLabel") {
+    label = tokens[index]?.lexeme ?? "";
+    index++;
   }
 
-  return null;
+  const operation = tokens[index];
+  if (operation === undefined) return null;
+  return { label, operation, operandStart: index + 1 };
+}
+
+function formatOperandText(
+  node: ParsedLine,
+  tokens: readonly Token[],
+  operandStart: number,
+  comment: Token | null
+): string {
+  const endTokenIndex = comment === null ? tokens.length - 1 : tokens.length - 2;
+  let operandText = "";
+  for (let index = operandStart; index <= endTokenIndex; index++) {
+    operandText += formatOperandToken(node, tokens, index);
+  }
+  return operandText;
+}
+
+function formatOperandToken(node: ParsedLine, tokens: readonly Token[], index: number): string {
+  const token = tokens[index];
+  if (token === undefined || node.shape !== "instruction") return token?.lexeme ?? "";
+
+  const lower = token.lexeme.toLowerCase();
+  if ((lower === "x" || lower === "y") && tokens[index - 1]?.lexeme === ",") {
+    return token.lexeme.toUpperCase();
+  }
+  if (lower === "a" && isAccumulatorOperand(node.mnemonic.lexeme, node.operand, token)) {
+    return token.lexeme.toUpperCase();
+  }
+  return token.lexeme;
 }
 
 function getCommentToken(tokens: readonly Token[]): Token | null {

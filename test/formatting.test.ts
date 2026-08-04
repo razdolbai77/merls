@@ -1,8 +1,20 @@
 import assert from "node:assert/strict";
 import { buildCachedDocument } from "../src/asm/document";
-import { formatDocument, formatRange, formatOnType } from "../src/lsp/formatting";
+import {
+  formatDocument,
+  formatRange,
+  formatOnType,
+  formattingLabelColumn,
+  formattingOperationColumn,
+  formattingOperandColumn
+} from "../src/lsp/formatting";
 
 export function runFormattingTest(): void {
+  assert.deepEqual(
+    [formattingLabelColumn, formattingOperationColumn, formattingOperandColumn],
+    [8, 16, 24]
+  );
+
   // aligns instruction fields using spaces
   {
     const source = "label  adc  (0,x) ; comment\n  sta _num1+dum0,x";
