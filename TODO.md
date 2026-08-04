@@ -39,7 +39,7 @@
 ### Low Priority — Refactoring
 
 - [x] Split `buildCompletionItems` (`src/lsp/completion.ts`, 163 lines) and `findDefinition` (`src/lsp/symbol-navigation.ts`, 113 lines) into per-context builders under 50 lines.
-- [ ] Split `buildHover` (`src/lsp/hover.ts`, 125 lines) and dedupe the opcode/directive hover content built twice for the token path and node fallback path.
+- [x] Split `buildHover` (`src/lsp/hover.ts`, 125 lines) and dedupe the opcode/directive hover content built twice for the token path and node fallback path.
 - [ ] Split `formatLine` (`src/lsp/formatting.ts`, 101 lines) and export the `col1/col2/col3` constants (lines 87-89) as named values shared with `vscode/src/editor-options.ts`.
 - [ ] Flatten `provideCallHierarchyOutgoingCalls` (`src/lsp/call-hierarchy.ts`, ~92 lines, 5-6 nesting levels) and hoist the per-iteration `allMacros` flatMaps at `call-hierarchy.ts:131` and `symbol-navigation.ts:167`.
 - [ ] Deduplicate the copy-pasted token-pasted-name and local-label diagnostic construction in `src/asm/diagnostics.ts:284-350` into one diagnostic factory.
