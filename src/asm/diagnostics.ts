@@ -342,10 +342,12 @@ function collectMacroStructureDiagnostics(
       return;
     }
 
-    const def = document.macroDefinitions.find(d => d.name === defName);
-    if (!def) return;
+    const macroDefinition = document.macroDefinitions.find(
+      (definition) => definition.name === defName
+    );
+    if (macroDefinition === undefined) return;
 
-    if (budget.remaining < def.body.length) {
+    if (budget.remaining < macroDefinition.body.length) {
       if (!lineLimitReported) {
         lineLimitReported = true;
         diagnostics.push({
@@ -359,13 +361,13 @@ function collectMacroStructureDiagnostics(
       }
       return;
     }
-    budget.remaining -= def.body.length;
+    budget.remaining -= macroDefinition.body.length;
 
     const newStack = new Set(stack);
     newStack.add(defName);
 
-    for (const bLine of def.body) {
-      for (const nested of bLine.nestedMacroCalls) {
+    for (const bodyLine of macroDefinition.body) {
+      for (const nested of bodyLine.nestedMacroCalls) {
         traceCalls(nested.macro.lexeme, callLine, start, end, newStack, depth + 1, budget);
       }
     }

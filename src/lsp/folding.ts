@@ -59,10 +59,10 @@ export function buildFoldingRanges(cached: CachedDocument): FoldingRange[] {
     }
 
     if (node.shape === "directive") {
-      const dirName = node.directive.lexeme.toLowerCase();
-      if (dirName === "mac") {
+      const directiveName = node.directive.lexeme.toLowerCase();
+      if (directiveName === "mac") {
         currentMacroStartLine = lineNumber;
-      } else if (dirName === "eom" || dirName === "<<<") {
+      } else if (directiveName === "eom" || directiveName === "<<<") {
         if (currentMacroStartLine !== null && lineNumber > currentMacroStartLine) {
           ranges.push({
             startLine: currentMacroStartLine,

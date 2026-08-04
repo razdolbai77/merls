@@ -41,11 +41,11 @@ export function buildSelectionRanges(
 
     let scopeStart = 0;
     let scopeEnd = totalLines - 1;
-    for (const glLine of globalLabelLines) {
-      if (glLine <= pos.line) {
-        scopeStart = glLine;
+    for (const globalLabelLine of globalLabelLines) {
+      if (globalLabelLine <= pos.line) {
+        scopeStart = globalLabelLine;
       } else {
-        scopeEnd = glLine - 1;
+        scopeEnd = globalLabelLine - 1;
         break;
       }
     }

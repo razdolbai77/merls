@@ -24,9 +24,9 @@ function getWorkspaceMacroDefinitions(openDocuments: ReadonlyMap<string, CachedD
 
 function getEnclosingGlobalLabel(parsed: CachedDocument["parsed"], lineIndex: number): { line: number, node: ParsedLine } | null {
   for (let i = lineIndex; i >= 0; i--) {
-    const pLine = parsed.lines[i];
-    if (pLine && getGlobalLabelToken(pLine.node) !== null) {
-      return { line: pLine.line, node: pLine.node };
+    const parsedLine = parsed.lines[i];
+    if (parsedLine && getGlobalLabelToken(parsedLine.node) !== null) {
+      return { line: parsedLine.line, node: parsedLine.node };
     }
   }
   return null;
@@ -64,17 +64,17 @@ export function prepareCallHierarchy(
 
   for (const [docUri, docCached] of openDocuments.entries()) {
     const definitions = collectDefinitions(docUri, docCached);
-    for (const def of definitions) {
-      if (def.name === targetName) {
-        const defLineIndex = def.location.range.start.line;
-        const pLine = docCached.parsed.lines[defLineIndex];
-        if (pLine && "label" in pLine.node && pLine.node.label) {
+    for (const definition of definitions) {
+      if (definition.name === targetName) {
+        const definitionLineIndex = definition.location.range.start.line;
+        const parsedLine = docCached.parsed.lines[definitionLineIndex];
+        if (parsedLine && "label" in parsedLine.node && parsedLine.node.label) {
           items.push(createCallHierarchyItem(
-            def.location.uri,
-            def.name,
-            defLineIndex,
-            pLine.node.label.start,
-            pLine.node.label.lexeme.length
+            definition.location.uri,
+            definition.name,
+            definitionLineIndex,
+            parsedLine.node.label.start,
+            parsedLine.node.label.lexeme.length
           ));
         }
       }
@@ -95,10 +95,10 @@ export function provideCallHierarchyIncomingCalls(
     for (const ref of references) {
       if (ref.name === item.name) {
         const refLineIndex = ref.location.range.start.line;
-        const pLine = docCached.parsed.lines[refLineIndex];
-        if (!pLine || pLine.node.shape !== "instruction") continue;
+        const parsedLine = docCached.parsed.lines[refLineIndex];
+        if (!parsedLine || parsedLine.node.shape !== "instruction") continue;
 
-        const mnemonic = pLine.node.mnemonic.lexeme.toLowerCase();
+        const mnemonic = parsedLine.node.mnemonic.lexeme.toLowerCase();
         if (mnemonic !== "jsr" && mnemonic !== "jmp") continue;
 
         const enclosing = getEnclosingGlobalLabel(docCached.parsed, refLineIndex);
