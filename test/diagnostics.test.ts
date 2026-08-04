@@ -52,6 +52,21 @@ export function runDiagnosticsTest(): void {
     "        lda ]1"
   ].join("\n");
 
+  const conditionalSource = [
+    "ConditionalFlag equ 1",
+    "        do 0",
+    "DeadSymbol equ MissingFromDeadDo",
+    "        lda MissingFromDeadDo",
+    "        else",
+    "LiveSymbol equ 1",
+    "        fin",
+    "        if ConditionalFlag",
+    "LiveBranch equ 1",
+    "        else",
+    "LiveBranch equ 2",
+    "        fin"
+  ].join("\n");
+
   const bankOpsPath = path.resolve(
     process.cwd(),
     "test/fixtures/invalid/unknown-bank-ops.S"
@@ -83,6 +98,25 @@ export function runDiagnosticsTest(): void {
       document: parseDocument(fs.readFileSync(longPath, "utf8"))
     }
   ]);
+
+  const conditionalDiagnostics = collectWorkspaceDiagnostics([
+    {
+      filePath: "<conditional>",
+      document: parseDocument(conditionalSource)
+    }
+  ]);
+  assert.equal(
+    conditionalDiagnostics.some(
+      (diagnostic) => diagnostic.code === "unresolved-reference" && diagnostic.message.includes("MissingFromDeadDo")
+    ),
+    false
+  );
+  assert.equal(
+    conditionalDiagnostics.some(
+      (diagnostic) => diagnostic.code === "duplicate-symbol" && diagnostic.message.includes("LiveBranch")
+    ),
+    false
+  );
 
   assert.equal(
     diagnostics.some(

@@ -139,14 +139,19 @@ export function collectWorkspaceDiagnostics(
   const symbolRecords: SymbolRecord[] = [];
   const macrosByName = new Map<string, MacroRecord[]>();
   const equatesByName = new Map<string, EquateRecord[]>();
+  const activeLinesByDocument = new Map<ParsedDocument, ReadonlySet<number>>();
+  const conditionalValues = new Map<string, number>();
 
   for (const [documentIndex, entry] of documents.entries()) {
-    for (const symbol of collectGlobalDefinitions(entry.document, entry.filePath)) {
+    const activeLines = collectActiveLines(entry.document, conditionalValues);
+    activeLinesByDocument.set(entry.document, activeLines);
+
+    for (const symbol of collectGlobalDefinitions(entry.document, entry.filePath, activeLines)) {
       symbolRecords.push(symbol);
       globalSymbols.add(symbol.name);
     }
 
-    for (const equate of collectEquateDefinitions(entry.document, documentIndex)) {
+    for (const equate of collectEquateDefinitions(entry.document, documentIndex, activeLines)) {
       const definitions = equatesByName.get(equate.name) ?? [];
       definitions.push(equate);
       equatesByName.set(equate.name, definitions);
@@ -174,6 +179,9 @@ export function collectWorkspaceDiagnostics(
   diagnostics.push(...collectDuplicateMacroDiagnostics(macrosByName));
 
   for (const [documentIndex, entry] of documents.entries()) {
+    const activeLines = activeLinesByDocument.get(entry.document);
+    if (activeLines === undefined) continue;
+
     diagnostics.push(
       ...collectMalformedDiagnostics(entry.filePath, entry.document),
       ...collectUnknownDiagnostics(entry.filePath, entry.document, entry.document.macroDefinitions),
@@ -185,13 +193,181 @@ export function collectWorkspaceDiagnostics(
         globalSymbols,
         entry.document.macroDefinitions,
         equatesByName,
-        documentIndex
+        documentIndex,
+        activeLines
       ),
       ...collectMacroCallDiagnostics(entry.filePath, entry.document, macrosByName, documentIndex)
     );
   }
 
   return diagnostics;
+}
+
+type ConditionalBranch = {
+  parentIsActive: boolean;
+  condition: boolean | null;
+};
+
+function collectActiveLines(
+  document: ParsedDocument,
+  values: Map<string, number>
+): ReadonlySet<number> {
+  const activeLines = new Set<number>();
+  const branches: ConditionalBranch[] = [];
+  let isActive = true;
+
+  for (const line of document.lines) {
+    const directiveName = line.node.shape === "directive"
+      ? line.node.directive.lexeme.toLowerCase()
+      : null;
+
+    if (directiveName === "do" || directiveName === "if") {
+      if (isActive) {
+        activeLines.add(line.line);
+      }
+      const operand = line.node.shape === "directive" ? line.node.operand : null;
+      const value: number | null = isActive && operand !== null
+        ? evaluateExpression(operand, values)
+        : null;
+      const condition: boolean | null = value === null ? null : value !== 0;
+      branches.push({ parentIsActive: isActive, condition });
+      isActive = isActive && condition !== false;
+      continue;
+    }
+
+    if (directiveName === "else") {
+      const branch = branches.at(-1);
+      if (branch?.parentIsActive === true) {
+        activeLines.add(line.line);
+      }
+      if (branch !== undefined) {
+        isActive = branch.parentIsActive && branch.condition !== true;
+      }
+      continue;
+    }
+
+    if (directiveName === "fin") {
+      const branch = branches.pop();
+      if (branch?.parentIsActive === true) {
+        activeLines.add(line.line);
+      }
+      if (branch !== undefined) {
+        isActive = branch.parentIsActive;
+      }
+      continue;
+    }
+
+    if (!isActive) {
+      continue;
+    }
+    activeLines.add(line.line);
+    recordConditionalValue(line.node, values);
+  }
+
+  return activeLines;
+}
+
+function recordConditionalValue(node: ParsedLine, values: Map<string, number>): void {
+  if (node.shape !== "equate") {
+    return;
+  }
+
+  const value = evaluateExpression(node.expression, values);
+  if (value === null) {
+    return;
+  }
+  if (node.isVariable || !values.has(node.label.lexeme)) {
+    values.set(node.label.lexeme, value);
+  }
+}
+
+function evaluateExpression(expression: Expression, values: ReadonlyMap<string, number>): number | null {
+  switch (expression.kind) {
+    case "numericLiteral":
+      return parseNumericLiteral(expression.value);
+    case "identifier":
+      return values.get(expression.value) ?? null;
+    case "modifier": {
+      const value = evaluateExpression(expression.expression, values);
+      if (value === null || !Number.isSafeInteger(value)) {
+        return null;
+      }
+      switch (expression.operator) {
+        case "<":
+          return value & 0xff;
+        case ">":
+          return (value >> 8) & 0xff;
+        case "^":
+          return (value >> 16) & 0xff;
+      }
+      return null;
+    }
+    case "unary": {
+      const value = evaluateExpression(expression.expression, values);
+      if (value === null) {
+        return null;
+      }
+      return expression.operator === "+" ? value : -value;
+    }
+    case "binary":
+      return evaluateBinaryExpression(expression, values);
+    default:
+      return null;
+  }
+}
+
+function parseNumericLiteral(value: string): number | null {
+  const radix = value.startsWith("$") ? 16 : value.startsWith("%") ? 2 : 10;
+  const text = radix === 16 || radix === 2 ? value.slice(1).replace(/_/gu, "") : value;
+  const parsed = Number.parseInt(text, radix);
+  return Number.isSafeInteger(parsed) ? parsed : null;
+}
+
+function evaluateBinaryExpression(
+  expression: Extract<Expression, { kind: "binary" }>,
+  values: ReadonlyMap<string, number>
+): number | null {
+  const left = evaluateExpression(expression.left, values);
+  const right = evaluateExpression(expression.right, values);
+  if (left === null || right === null) {
+    return null;
+  }
+
+  let value: number;
+  switch (expression.operator) {
+    case "+":
+      value = left + right;
+      break;
+    case "-":
+      value = left - right;
+      break;
+    case "*":
+      value = left * right;
+      break;
+    case "/":
+      if (right === 0) return null;
+      value = Math.trunc(left / right);
+      break;
+    case "<":
+      return left < right ? 1 : 0;
+    case "=":
+      return left === right ? 1 : 0;
+    case ">":
+      return left > right ? 1 : 0;
+    case "#":
+      return left !== right ? 1 : 0;
+    case "&":
+      value = left & right;
+      break;
+    case ".":
+      value = left | right;
+      break;
+    case "!":
+      value = left ^ right;
+      break;
+  }
+
+  return Number.isSafeInteger(value) ? value : null;
 }
 
 function collectDuplicateSymbolDiagnostics(
@@ -477,12 +653,16 @@ function collectUnresolvedDiagnostics(
   globalSymbols: ReadonlySet<string>,
   macroDefinitions: readonly MacroDefinitionRegion[],
   equatesByName: ReadonlyMap<string, readonly EquateRecord[]>,
-  documentIndex: number
+  documentIndex: number,
+  activeLines: ReadonlySet<number>
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
   const localScope = resolveLocalLabels(document);
   const variableDefinitionLines = new Map<string, number>();
   for (const line of document.lines) {
+    if (!activeLines.has(line.line)) {
+      continue;
+    }
     if (line.node.shape === "equate" && line.node.isVariable && !variableDefinitionLines.has(line.node.label.lexeme)) {
       variableDefinitionLines.set(line.node.label.lexeme, line.line);
     }
@@ -503,6 +683,9 @@ function collectUnresolvedDiagnostics(
   const effectiveLines = getEffectiveLines(document, macroDefinitions);
 
   for (const line of effectiveLines) {
+    if (!activeLines.has(line.line)) {
+      continue;
+    }
     const lineLength = document.lines[line.line]?.node.text.length ?? 0;
 
     for (const reference of findExpressionReferences(line.node)) {
@@ -531,8 +714,8 @@ function collectUnresolvedDiagnostics(
 
       if (isLocalLabel(reference.lexeme)) {
         const localKey = `${reference.lexeme}@${line.line}`;
-
-        if (!localScope.references.has(localKey)) {
+        const localReference = localScope.references.get(localKey);
+        if (localReference === undefined || !activeLines.has(localReference.targetLine)) {
           if (!line.isExpanded && range !== null) {
             diagnostics.push({
               filePath,
@@ -635,10 +818,14 @@ function collectMacroCallDiagnostics(
 
 function collectEquateDefinitions(
   document: ParsedDocument,
-  documentIndex: number
+  documentIndex: number,
+  activeLines: ReadonlySet<number>
 ): readonly EquateRecord[] {
   const equates: EquateRecord[] = [];
   for (const line of document.lines) {
+    if (!activeLines.has(line.line)) {
+      continue;
+    }
     const token = line.node.shape === "equate" && !line.node.isVariable
       ? getGlobalLabelToken(line.node)
       : null;
@@ -651,11 +838,15 @@ function collectEquateDefinitions(
 
 function collectGlobalDefinitions(
   document: ParsedDocument,
-  filePath: string
+  filePath: string,
+  activeLines: ReadonlySet<number>
 ): readonly SymbolRecord[] {
   const symbols: SymbolRecord[] = [];
 
   for (const line of document.lines) {
+    if (!activeLines.has(line.line)) {
+      continue;
+    }
     const token = getGlobalDefinitionToken(line.node);
     if (token === null) {
       continue;
