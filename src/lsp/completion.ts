@@ -24,11 +24,9 @@ export function buildCompletionItems(
     const lexedLine = cached.lexed.lines[line];
     if (lexedLine !== undefined) {
       for (const token of lexedLine.tokens) {
-        if (token.start < character) {
+        if (token.start <= character && character <= token.end) {
           if (token.kind === "comment" || token.kind === "string") {
-            if (character <= token.end) {
-              return [];
-            }
+            return [];
           }
         }
         if (token.end < character) {

@@ -8,6 +8,7 @@ import { runDiskCacheMergeTest } from "./disk-cache-merge.test";
 import { runDiagnosticsTest } from "./diagnostics.test";
 import { runDiagnosticsPublishTest } from "./diagnostics-publish.test";
 import { runDiskCacheEvictionTest } from "./disk-cache-eviction.test";
+import { runCompletionSuppressionTest } from "./completion-suppression.test";
 import { runLspDiagnosticsTest } from "./lsp-diagnostics.test";
 import { runDocumentModelTest } from "./document-model.test";
 import { runDocumentSymbolTest } from "./document-symbol.test";
@@ -184,6 +185,14 @@ const tests: TestCase[] = [
   {
     name: "server returns semantic tokens for highlighting",
     run: runSemanticTokensTest
+  },
+  {
+    name: "server returns opcode directive and symbol completions",
+    run: runCompletionTest
+  },
+  {
+    name: "completion suppresses results at the comment and string boundaries",
+    run: runCompletionSuppressionTest
   },
   {
     name: "server formats assembly code aligning fields",
