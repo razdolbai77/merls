@@ -1,6 +1,7 @@
 import { type ParsedDocument } from "./document";
 import { type Expression, type Operand } from "./expression";
 import { type ParsedLine } from "./parser";
+import { type Token } from "./lexer";
 
 export type LocalLabelDefinition = {
   name: string;
@@ -147,24 +148,28 @@ function updateAnchor(
 }
 
 function getGlobalLabel(node: ParsedLine): string | null {
+  return getGlobalLabelToken(node)?.lexeme ?? null;
+}
+
+export function getGlobalLabelToken(node: ParsedLine): Token | null {
   if (node.shape === "equate" && !isLocalLabel(node.label.lexeme)) {
-    return node.label.lexeme;
+    return node.label;
   }
 
   if (node.shape === "labelOnly" && !isLocalLabel(node.label.lexeme)) {
-    return node.label.lexeme;
+    return node.label;
   }
 
   if (node.shape === "instruction" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
-    return node.label.lexeme;
+    return node.label;
   }
 
   if (node.shape === "directive" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
-    return node.label.lexeme;
+    return node.label;
   }
 
   if (node.shape === "data" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
-    return node.label.lexeme;
+    return node.label;
   }
 
   return null;

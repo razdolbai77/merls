@@ -40,7 +40,7 @@ Rename rejects cross-scope targets: macro parameter placeholders (`]1`-style) an
 Local-label resolution is limited to ordinary Merlin anchor-based locals; local labels inside macros are rejected to match Merlin32 behavior.
 Local-label coverage now also exercises that macro-local labels remain unresolved while ordinary Merlin anchor-based locals before or after a macro call still resolve normally.
 Hover now recognizes macro call sites directly, showing parsed positional signatures and macro definition lines instead of only falling back to generic symbol hover text.
-The current local-label resolver now lives under `src/asm/local-labels.ts`, resolves Merlin32 `]local` and `:local` labels within the nearest global-label scope, and exports the shared `isLocalLabel` predicate used by diagnostics, completion, semantic tokens, code lens, selection ranges, navigation, and rename.
+The current local-label resolver now lives under `src/asm/local-labels.ts`, resolves Merlin32 `]local` and `:local` labels within the nearest global-label scope, exports the shared `isLocalLabel` predicate, and provides one `getGlobalLabelToken` shape walker (returning the global label token) shared by diagnostics, selection ranges, and call hierarchy.
 The current workspace indexer now lives under `src/asm/workspace.ts` and follows `asm`/`put`/`use` directives across the local fixture corpus.
 The current diagnostics pass now lives under `src/asm/diagnostics.ts` and reports duplicate symbols, unresolved references, malformed lines, unsupported-instruction cases, and unknown directive/syntax cases.
 The current `textDocument/documentSymbol` provider is wired through `src/server.ts` and `src/lsp/document-symbols.ts`.

@@ -1,7 +1,7 @@
 import { type ParsedDocument } from "./document";
 import { type Expression, type Operand } from "./expression";
 import { type Token } from "./lexer";
-import { resolveLocalLabels, isLocalLabel } from "./local-labels";
+import { resolveLocalLabels, isLocalLabel, getGlobalLabelToken } from "./local-labels";
 import { directiveTable, opcodeTable, type AddressingMode } from "./metadata";
 import { type ParsedLine, type MacroDefinitionRegion } from "./parser";
 import { getEffectiveLines, splitMacroCallArguments, type ExpandedToken } from "./expansion";
@@ -599,30 +599,10 @@ function collectGlobalDefinitions(
 }
 
 function getGlobalDefinitionToken(node: ParsedLine): Token | null {
-  if (node.shape === "equate" && !isLocalLabel(node.label.lexeme)) {
-    return node.label;
+  if (node.shape === "directive" && node.directive.lexeme.toLowerCase() === "mac") {
+    return null;
   }
-
-  if (node.shape === "labelOnly" && !isLocalLabel(node.label.lexeme)) {
-    return node.label;
-  }
-
-  if (node.shape === "instruction" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
-    return node.label;
-  }
-
-  if (node.shape === "directive" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
-    if (node.directive.lexeme.toLowerCase() === "mac") {
-      return null;
-    }
-    return node.label;
-  }
-
-  if (node.shape === "data" && node.label !== null && !isLocalLabel(node.label.lexeme)) {
-    return node.label;
-  }
-
-  return null;
+  return getGlobalLabelToken(node);
 }
 
 function findExpressionReferences(node: ParsedLine): readonly Token[] {

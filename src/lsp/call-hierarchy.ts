@@ -3,14 +3,13 @@ import { CachedDocument } from "../asm/document";
 import { ParsedLine } from "../asm/parser";
 import { getSymbolAtPosition, collectDefinitions, collectReferences, getReferencedTokens } from "./symbol-navigation";
 import { getEffectiveLines, type ExpandedToken } from "../asm/expansion";
+import { getGlobalLabelToken } from "../asm/local-labels";
 
 function getEnclosingGlobalLabel(parsed: CachedDocument["parsed"], lineIndex: number): { line: number, node: ParsedLine } | null {
   for (let i = lineIndex; i >= 0; i--) {
     const pLine = parsed.lines[i];
-    if (pLine && "label" in pLine.node && pLine.node.label) {
-      if (pLine.node.label.kind === "label") {
-        return { line: pLine.line, node: pLine.node };
-      }
+    if (pLine && getGlobalLabelToken(pLine.node) !== null) {
+      return { line: pLine.line, node: pLine.node };
     }
   }
   return null;

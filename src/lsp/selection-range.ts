@@ -2,7 +2,7 @@ import { type SelectionRange, type Position, type Range } from "vscode-languages
 import { type CachedDocument } from "../asm/document";
 import { tokenAtCharacter } from "../asm/lexer";
 import { type ParsedLine } from "../asm/parser";
-import { isLocalLabel } from "../asm/local-labels";
+import { getGlobalLabelToken } from "../asm/local-labels";
 
 export function buildSelectionRanges(
   openDocuments: ReadonlyMap<string, CachedDocument>,
@@ -96,15 +96,5 @@ function rangesEqual(a: Range, b: Range): boolean {
 }
 
 function isGlobalLabel(node: ParsedLine): boolean {
-  let name: string | null = null;
-  if (node.shape === "equate") name = node.label.lexeme;
-  else if (node.shape === "labelOnly") name = node.label.lexeme;
-  else if (node.shape === "instruction" && node.label !== null) name = node.label.lexeme;
-  else if (node.shape === "directive" && node.label !== null) name = node.label.lexeme;
-  else if (node.shape === "data" && node.label !== null) name = node.label.lexeme;
-
-  if (name !== null) {
-    return !isLocalLabel(name);
-  }
-  return false;
+  return getGlobalLabelToken(node) !== null;
 }

@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { parseDocument } from "../src/asm/document";
-import { resolveLocalLabels } from "../src/asm/local-labels";
+import { resolveLocalLabels, getGlobalLabelToken } from "../src/asm/local-labels";
 
 export function runLocalLabelScopeTest(): void {
   const fixturePath = path.resolve(
@@ -137,4 +137,35 @@ export function runLocalLabelScopeTest(): void {
 
   assert.equal(mixedScope.definitions.get("]loop@7"), undefined);
   assert.equal(mixedScope.references.get("]loop@8"), undefined);
+
+  const shapeSource = [
+    "GlobalLabel",
+    "        nop",
+    "Value   equ 1",
+    "  asm \"child.S\"",
+    "Buffer  hex 00",
+    ":local",
+    "]local",
+    "Wrap    mac",
+    "        eom"
+  ].join("\n");
+  const shapeDocument = parseDocument(shapeSource);
+
+  const labelOnly = getGlobalLabelToken(shapeDocument.lines[0].node);
+  assert.equal(labelOnly?.lexeme, "GlobalLabel");
+
+  const instructionLabel = getGlobalLabelToken(shapeDocument.lines[1].node);
+  assert.equal(instructionLabel, null);
+
+  const equateLabel = getGlobalLabelToken(shapeDocument.lines[2].node);
+  assert.equal(equateLabel?.lexeme, "Value");
+
+  const directiveLabel = getGlobalLabelToken(shapeDocument.lines[3].node);
+  assert.equal(directiveLabel, null);
+
+  const dataLabel = getGlobalLabelToken(shapeDocument.lines[4].node);
+  assert.equal(dataLabel?.lexeme, "Buffer");
+
+  assert.equal(getGlobalLabelToken(shapeDocument.lines[5].node), null);
+  assert.equal(getGlobalLabelToken(shapeDocument.lines[6].node), null);
 }
