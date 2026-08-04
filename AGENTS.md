@@ -71,9 +71,8 @@ LSP diagnostics also deduplicate indexed URI aliases by normalized file path and
 Workspace index merges skip disk-cache entries whose lowercased path is already indexed and never overwrite open-document keys, so unsaved buffers keep precedence over stale disk content and case-mismatched paths do not produce duplicate entries on Windows.
 Workspace include lookups compare paths case-insensitively on win32, so includes spelled with different drive or letter case resolve to open buffers and cached documents instead of stale disk content.
 The macro index and expansion-analysis layer now incorporate targeted caching and invalidation logic so that unaffected macro calls are not wastefully re-expanded during typing.
-The workspace index cache is invalidated after watched-file reloads complete as well as before they start, preventing requests that race the asynchronous read from preserving stale index contents.
+Strict guardrails and distinct diagnostics (`macro-recursion`, `deep-macro-expansion`, `token-pasted-name`, `unresolved-conditional`) prevent infinite loops and ensure predictably degraded fallback behavior when the parser encounters unsupported macro techniques. `src/asm/limits.ts` defines the shared macro-expansion depth limit and the per-call-site total expansion line limit (`MAX_MACRO_EXPANSION_LINES`) used by diagnostics and expansion, so branching macro chains degrade with `deep-macro-expansion` instead of growing exponentially.
 Performance regression benchmarks now lock down responsiveness on massive, macro-heavy synthetic documents.
-Strict guardrails and distinct diagnostics (`macro-recursion`, `deep-macro-expansion`, `token-pasted-name`, `unresolved-conditional`) prevent infinite loops and ensure predictably degraded fallback behavior when the parser encounters unsupported macro techniques. `src/asm/limits.ts` defines the shared macro-expansion depth limit used by diagnostics and expansion.
 
 ## Build, Test, and Development Commands
 

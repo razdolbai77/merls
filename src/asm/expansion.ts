@@ -2,7 +2,7 @@ import { stripTrailingComment } from "./parser";
 import { type MacroCallLine, type MacroDefinitionRegion, type ParsedLine, parseLexedLine } from "./parser";
 import { type Token } from "./lexer";
 import { type ParsedDocument } from "./document";
-import { MAX_MACRO_EXPANSION_DEPTH } from "./limits";
+import { MAX_MACRO_EXPANSION_DEPTH, MAX_MACRO_EXPANSION_LINES } from "./limits";
 
 export type ExpandedToken = Token & {
   callSiteToken: Token | null;
@@ -240,14 +240,28 @@ export function getEffectiveLines(
 
   const effectiveLines: EffectiveLine[] = [];
 
-  function expandNode(node: ParsedLine, sourceLine: number, depth: number, callStack: ReadonlySet<string>) {
-    if (node.shape === "macroCall") {
-      effectiveLines.push({
-        line: sourceLine,
-        node,
-        isExpanded: depth > 0
-      });
+  function expandNode(
+    node: ParsedLine,
+    sourceLine: number,
+    depth: number,
+    callStack: ReadonlySet<string>,
+    budget: { remaining: number }
+  ) {
+    const isExpanded = depth > 0;
+    if (isExpanded) {
+      if (budget.remaining <= 0) {
+        return;
+      }
+      budget.remaining -= 1;
+    }
 
+    effectiveLines.push({
+      line: sourceLine,
+      node,
+      isExpanded
+    });
+
+    if (node.shape === "macroCall") {
       const macroName = node.macro.lexeme;
       if (callStack.has(macroName) || depth >= MAX_MACRO_EXPANSION_DEPTH) {
         return;
@@ -258,19 +272,13 @@ export function getEffectiveLines(
       newStack.add(macroName);
 
       for (const parsedLine of expansion.parsedLines) {
-        expandNode(parsedLine, sourceLine, depth + 1, newStack);
+        expandNode(parsedLine, sourceLine, depth + 1, newStack, budget);
       }
-    } else {
-      effectiveLines.push({
-        line: sourceLine,
-        node,
-        isExpanded: depth > 0
-      });
     }
   }
 
   for (const line of document.lines) {
-    expandNode(line.node, line.line, 0, new Set());
+    expandNode(line.node, line.line, 0, new Set(), { remaining: MAX_MACRO_EXPANSION_LINES });
   }
 
   effectiveLinesCache.set(document, { resolvedDefinitions, effectiveLines });

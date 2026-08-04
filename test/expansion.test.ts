@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { lexSource } from "../src/asm/lexer";
 import { parseDocument } from "../src/asm/document";
 import { expandMacroCall, getEffectiveLines } from "../src/asm/expansion";
+import { MAX_MACRO_EXPANSION_LINES } from "../src/asm/limits";
 
 export async function runExpansionTest(): Promise<void> {
   const source = [
@@ -111,4 +112,31 @@ export async function runExpansionTest(): Promise<void> {
   );
   assert.equal(countExpansions[2]?.lines[0]?.tokens[1]?.kind, "numericLiteral");
   assert.equal(countExpansions[2]?.lines[0]?.tokens[1]?.callSiteToken, null);
+
+  // Branching macro chains are bounded by the total expansion line cap.
+  {
+    const branchLines: string[] = [];
+    const branchDepth = 16;
+    for (let index = 0; index <= branchDepth; index += 1) {
+      branchLines.push(`Branch${index} mac`);
+      if (index === branchDepth) {
+        branchLines.push("        nop");
+        branchLines.push("        nop");
+      } else {
+        branchLines.push(`        Branch${index + 1}`);
+        branchLines.push(`        Branch${index + 1}`);
+      }
+      branchLines.push("        eom");
+    }
+    branchLines.push("        Branch0");
+
+    const branchDocument = parseDocument(branchLines.join("\n"));
+    const branchEffectiveLines = getEffectiveLines(branchDocument, branchDocument.macroDefinitions);
+    const callLine = branchDocument.lines.length - 1;
+    const callSiteLines = branchEffectiveLines.filter((line) => line.line === callLine);
+    assert.ok(
+      callSiteLines.length <= 1 + MAX_MACRO_EXPANSION_LINES,
+      `expected one call site to expand at most ${MAX_MACRO_EXPANSION_LINES} lines, got ${callSiteLines.length}`
+    );
+  }
 }

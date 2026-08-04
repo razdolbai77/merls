@@ -5,7 +5,7 @@ import { resolveLocalLabels } from "./local-labels";
 import { directiveTable, opcodeTable, type AddressingMode } from "./metadata";
 import { type ParsedLine, type MacroDefinitionRegion } from "./parser";
 import { getEffectiveLines, splitMacroCallArguments, type ExpandedToken } from "./expansion";
-import { MAX_MACRO_EXPANSION_DEPTH } from "./limits";
+import { MAX_MACRO_EXPANSION_DEPTH, MAX_MACRO_EXPANSION_LINES } from "./limits";
 
 export type DiagnosticCode =
   | "duplicate-symbol"
@@ -253,8 +253,17 @@ function collectMacroStructureDiagnostics(
   document: ParsedDocument
 ): readonly Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
+  let lineLimitReported = false;
 
-  function traceCalls(defName: string, callLine: number, start: number, end: number, stack: ReadonlySet<string>, depth: number) {
+  function traceCalls(
+    defName: string,
+    callLine: number,
+    start: number,
+    end: number,
+    stack: ReadonlySet<string>,
+    depth: number,
+    budget: { remaining: number }
+  ) {
     if (stack.has(defName)) {
       diagnostics.push({
         filePath,
@@ -281,12 +290,28 @@ function collectMacroStructureDiagnostics(
     const def = document.macroDefinitions.find(d => d.name === defName);
     if (!def) return;
 
+    if (budget.remaining < def.body.length) {
+      if (!lineLimitReported) {
+        lineLimitReported = true;
+        diagnostics.push({
+          filePath,
+          line: callLine,
+          code: "deep-macro-expansion",
+          message: `Macro expansion line limit exceeded`,
+          startCharacter: start,
+          endCharacter: end
+        });
+      }
+      return;
+    }
+    budget.remaining -= def.body.length;
+
     const newStack = new Set(stack);
     newStack.add(defName);
 
     for (const bLine of def.body) {
       for (const nested of bLine.nestedMacroCalls) {
-        traceCalls(nested.macro.lexeme, callLine, start, end, newStack, depth + 1);
+        traceCalls(nested.macro.lexeme, callLine, start, end, newStack, depth + 1, budget);
       }
     }
   }
@@ -305,7 +330,15 @@ function collectMacroStructureDiagnostics(
 
     for (const bodyLine of macroDefinition.body) {
       for (const nested of bodyLine.nestedMacroCalls) {
-        traceCalls(nested.macro.lexeme, bodyLine.line, nested.macro.start, nested.macro.end, new Set([macroDefinition.name]), 1);
+        traceCalls(
+          nested.macro.lexeme,
+          bodyLine.line,
+          nested.macro.start,
+          nested.macro.end,
+          new Set([macroDefinition.name]),
+          1,
+          { remaining: MAX_MACRO_EXPANSION_LINES }
+        );
       }
 
       for (const ref of bodyLine.symbolReferences) {

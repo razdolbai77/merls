@@ -168,6 +168,38 @@ export function runMacroDiagnosticsTest(): void {
     `Expected macro expansion to stop at depth ${MAX_MACRO_EXPANSION_DEPTH}`
   );
 
+  // Branching macro chains degrade with one deep-macro-expansion diagnostic.
+  {
+    const branchLines: string[] = [];
+    const branchDepth = 16;
+    for (let index = 0; index <= branchDepth; index += 1) {
+      branchLines.push(`Branch${index} mac`);
+      if (index === branchDepth) {
+        branchLines.push("        nop");
+        branchLines.push("        nop");
+      } else {
+        branchLines.push(`        Branch${index + 1}`);
+        branchLines.push(`        Branch${index + 1}`);
+      }
+      branchLines.push("        eom");
+    }
+    branchLines.push("        Branch0");
+
+    const branchDiagnostics = collectWorkspaceDiagnostics([
+      { filePath: "<branch-limit>", document: parseDocument(branchLines.join("\n")) }
+    ]);
+    const lineLimitDiagnostics = branchDiagnostics.filter(
+      (diagnostic) =>
+        diagnostic.code === "deep-macro-expansion" &&
+        diagnostic.message.includes("line limit")
+    );
+    assert.equal(
+      lineLimitDiagnostics.length,
+      1,
+      "expected exactly one line-limit deep-macro-expansion diagnostic"
+    );
+  }
+
   // Expanded diagnostics must not carry macro-body columns onto call-site lines.
   {
     const overflowSource = [
