@@ -61,6 +61,7 @@ export function parseDocument(source: string | LexedSource): ParsedDocument {
   const lines: DocumentLine[] = [];
   const errors: DocumentError[] = [];
   const macroCalls: MacroCallSite[] = [];
+  const loopStarts: DocumentLine[] = [];
 
   for (const [line, node] of parsedLines.entries()) {
     const tokens = lexed.lines[line]?.tokens ?? [];
@@ -78,6 +79,27 @@ export function parseDocument(source: string | LexedSource): ParsedDocument {
       });
     }
 
+    if (node.shape === "directive") {
+      const directiveName = node.directive.lexeme.toLowerCase();
+      if (directiveName === "lup") {
+        loopStarts.push(lines.at(-1)!);
+      } else if (directiveName === "--^") {
+        const loopStart = loopStarts.pop();
+        if (loopStart === undefined) {
+          errors.push({ line, text: node.text, message: "Unmatched loop terminator --^" });
+        }
+      }
+    }
+
+    const firstToken = tokens[0];
+    if (firstToken?.kind === "label" && firstToken.lexeme.startsWith("@")) {
+      errors.push({
+        line,
+        text: node.text,
+        message: `Unsupported generated label ${firstToken.lexeme}`
+      });
+    }
+
     if (
       (assemblyEndLine === null || line <= assemblyEndLine) &&
       node.shape === "macroCall"
@@ -89,6 +111,14 @@ export function parseDocument(source: string | LexedSource): ParsedDocument {
         args: node.args
       });
     }
+  }
+
+  for (const loopStart of loopStarts) {
+    errors.push({
+      line: loopStart.line,
+      text: loopStart.node.text,
+      message: "Unterminated LUP region"
+    });
   }
 
   const macroDefinitions = parsed.macroDefinitions.map((macroDefinition) => ({

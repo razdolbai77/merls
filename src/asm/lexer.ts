@@ -101,6 +101,12 @@ function lexLine(text: string, line: number): LexedLine {
       (text[index + 1] === "." || text[index + 1] === "/" || text[index + 1] === "\\") &&
       (index === 0 || text[index - 1] === " " || text[index - 1] === "\t");
     if (operatorCharacters[char] === true && !startsRelativePath) {
+      if (text.slice(index, index + 3) === "--^") {
+        tokens.push(createToken("directive", "--^", index, index + 3));
+        sawOperation = true;
+        index += 3;
+        continue;
+      }
       if (char === "<" && text.slice(index, index + 3) === "<<<") {
         tokens.push(createToken("directive", "<<<", index, index + 3));
         sawOperation = true;

@@ -104,4 +104,20 @@ export function runDocumentModelTest(): void {
       ]
     }
   ]);
+
+  const loopDocument = parseDocument([
+    "        lup 2",
+    "        db 0",
+    "        --^",
+    "        --^",
+    "        lup 1"
+  ].join("\n"));
+  assert.equal(loopDocument.errors.some((error) => error.message === "Unmatched loop terminator --^"), true);
+  assert.equal(loopDocument.errors.some((error) => error.message === "Unterminated LUP region"), true);
+
+  const generatedLabelDocument = parseDocument("@generated\n        nop");
+  assert.equal(
+    generatedLabelDocument.errors.some((error) => error.message === "Unsupported generated label @generated"),
+    true
+  );
 }
