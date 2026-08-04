@@ -11,6 +11,7 @@ export type SymbolDefinition = {
   line: number;
   token: Token;
   macroDefinition: DocumentMacroDefinition | null;
+  docComment?: string;
 };
 
 export function collectSymbols(document: ParsedDocument): Map<string, SymbolDefinition> {
@@ -19,7 +20,7 @@ export function collectSymbols(document: ParsedDocument): Map<string, SymbolDefi
 
   const addSymbol = (name: string, kind: SymbolKind, line: number, token: Token, macroDefinition: DocumentMacroDefinition | null = null) => {
     if (!symbols.has(name)) {
-      symbols.set(name, defineSymbol(name, kind, line, token, macroDefinition));
+      symbols.set(name, defineSymbol(name, kind, line, token, macroDefinition, getDocComment(document, line)));
     }
   };
 
@@ -67,6 +68,30 @@ export function collectSymbols(document: ParsedDocument): Map<string, SymbolDefi
   return symbols;
 }
 
+export function getDocComment(document: ParsedDocument, lineIndex: number): string | undefined {
+  const parts: string[] = [];
+
+  for (let index = lineIndex - 1; index >= 0; index -= 1) {
+    const tokens = document.lines[index]?.tokens;
+    const comment = tokens?.length === 1 && tokens[0]?.kind === "comment"
+      ? tokens[0].lexeme
+      : undefined;
+    if (!comment?.startsWith(";! ")) {
+      break;
+    }
+    parts.unshift(comment.slice(3));
+  }
+
+  const inlineComment = document.lines[lineIndex]?.tokens.find(
+    (token) => token.kind === "comment" && token.lexeme.startsWith(";! ")
+  );
+  if (inlineComment !== undefined) {
+    parts.push(inlineComment.lexeme.slice(3));
+  }
+
+  return parts.length > 0 ? parts.join("\n") : undefined;
+}
+
 export function findSymbol(
   openDocuments: ReadonlyMap<string, { parsed: ParsedDocument }>,
   name: string,
@@ -87,13 +112,18 @@ function defineSymbol(
   kind: SymbolKind,
   line: number,
   token: Token,
-  macroDefinition: DocumentMacroDefinition | null = null
+  macroDefinition: DocumentMacroDefinition | null = null,
+  docComment?: string
 ): SymbolDefinition {
-  return {
+  const symbol: SymbolDefinition = {
     name,
     kind,
     line,
     token,
     macroDefinition
   };
+  if (docComment !== undefined) {
+    symbol.docComment = docComment;
+  }
+  return symbol;
 }

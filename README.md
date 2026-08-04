@@ -23,6 +23,7 @@ The LSP feature set for Merlin32-style 6502 assembly is comprehensive and fully 
 - 6502-only Merlin32-style assembly
 - Parser-based diagnostics
 - Cross-file symbol resolution via `USE`, `PUT`, and `ASM`
+- Labels, equates, and macros accept `;! ` doc comments on the definition line or on consecutive lines immediately before the definition; symbol hover appends the documentation at call sites.
 - Extensive LSP features including:
   - diagnostics
   - hover
@@ -47,6 +48,27 @@ The LSP feature set for Merlin32-style 6502 assembly is comprehensive and fully 
 
 - non-6502 instruction-set extensions
 
+
+## Doc comments
+
+A semicolon comment beginning exactly with `;! ` documents a label, equate, or macro. Hovering over a reference appends the documentation to its definition information.
+
+Put a single doc comment at the end of the definition:
+
+```asm
+Entry nop ;! Program entry point.
+Limit equ 10 ;! Maximum item count.
+```
+
+Or put one or more consecutive doc-comment-only lines immediately before the definition:
+
+```asm
+;! Writes one byte to output.
+;! Preserves accumulator.
+WriteByte
+```
+
+Blank lines, ordinary comments, and source lines end a preceding doc-comment block. Complete examples for both forms and all three symbol kinds live in [`examples/doc_comments.S`](examples/doc_comments.S).
 
 ## Implementation
 

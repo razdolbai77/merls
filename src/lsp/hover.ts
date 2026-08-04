@@ -4,7 +4,7 @@ import { directiveTable, opcodeTable } from "../asm/metadata";
 import { type CachedDocument } from "../asm/document";
 import { tokenAtCharacter } from "../asm/lexer";
 import { findDefinition } from "./symbol-navigation";
-import { findSymbol } from "../asm/symbols";
+import { findSymbol, getDocComment } from "../asm/symbols";
 
 export function buildHover(
   openDocuments: ReadonlyMap<string, CachedDocument>,
@@ -80,9 +80,11 @@ export function buildHover(
         const signature = maxParam === 0
           ? `${token.lexeme}()`
           : `${token.lexeme}(${Array.from({ length: maxParam }, (_, index) => `]${index + 1}`).join(", ")})`;
-        return {
-          contents: `Macro ${signature} defined at line ${macroSymbol.symbol.line + 1}`
-        };
+        let contents = `Macro ${signature} defined at line ${macroSymbol.symbol.line + 1}`;
+        if (macroSymbol.symbol.docComment !== undefined) {
+          contents += `\n\n${macroSymbol.symbol.docComment}`;
+        }
+        return { contents };
       }
     }
 
@@ -90,15 +92,21 @@ export function buildHover(
     if (definitions !== null) {
       const definition = Array.isArray(definitions) ? definitions[0] : definitions;
       if (definition !== undefined) {
+        const definitionDocument = openDocuments.get(definition.uri);
+        const docComment = definitionDocument === undefined
+          ? undefined
+          : getDocComment(definitionDocument.parsed, definition.range.start.line);
+        let contents: string;
         if (definition.uri !== uri) {
           const filename = definition.uri.split("/").pop();
-          return {
-            contents: `Symbol ${token.lexeme} defined in ${filename} at line ${definition.range.start.line + 1}`
-          };
+          contents = `Symbol ${token.lexeme} defined in ${filename} at line ${definition.range.start.line + 1}`;
+        } else {
+          contents = `Symbol ${token.lexeme} defined at line ${definition.range.start.line + 1}`;
         }
-        return {
-          contents: `Symbol ${token.lexeme} defined at line ${definition.range.start.line + 1}`
-        };
+        if (docComment !== undefined) {
+          contents += `\n\n${docComment}`;
+        }
+        return { contents };
       }
     }
   }

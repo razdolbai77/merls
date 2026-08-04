@@ -114,6 +114,65 @@ export async function runHoverTest(): Promise<void> {
     assert.equal(macroHoverText.includes("Wrap(]1, ]2)"), true);
     assert.equal(macroHoverText.includes("defined at line 1"), true);
 
+    const docCommentUri = "file:///workspace/doc-comments.S";
+    const docCommentLines = [
+      "InlineLabel nop ;! Inline label documentation.",
+      "InlineEqu equ 42 ;! Inline equate documentation.",
+      "InlineMacro mac ;! Inline macro documentation.",
+      "        eom",
+      ";! Label documentation line one.",
+      ";! Label documentation line two.",
+      "PrecedingLabel nop",
+      ";! Equate documentation line one.",
+      ";! Equate documentation line two.",
+      "PrecedingEqu equ 7",
+      ";! Macro documentation line one.",
+      ";! Macro documentation line two.",
+      "PrecedingMacro mac",
+      "        eom",
+      "        lda InlineEqu",
+      "        jsr InlineLabel",
+      "        InlineMacro",
+      "        lda PrecedingEqu",
+      "        jsr PrecedingLabel",
+      "        PrecedingMacro"
+    ];
+    const docCommentCached = buildCachedDocument(docCommentLines.join("\n"));
+    const docCommentDocuments = new Map([[docCommentUri, docCommentCached]]);
+    const docCommentCases = [
+      { line: 14, name: "InlineEqu", documentation: "Inline equate documentation." },
+      { line: 15, name: "InlineLabel", documentation: "Inline label documentation." },
+      { line: 16, name: "InlineMacro", documentation: "Inline macro documentation." },
+      {
+        line: 17,
+        name: "PrecedingEqu",
+        documentation: "Equate documentation line one.\nEquate documentation line two."
+      },
+      {
+        line: 18,
+        name: "PrecedingLabel",
+        documentation: "Label documentation line one.\nLabel documentation line two."
+      },
+      {
+        line: 19,
+        name: "PrecedingMacro",
+        documentation: "Macro documentation line one.\nMacro documentation line two."
+      }
+    ];
+
+    for (const docCommentCase of docCommentCases) {
+      const character = docCommentLines[docCommentCase.line]!.indexOf(docCommentCase.name) + 1;
+      const hover = buildHover(
+        docCommentDocuments,
+        docCommentUri,
+        docCommentCase.line,
+        character
+      );
+      assert.ok(hover);
+      assert.equal(typeof hover.contents, "string");
+      assert.ok((hover.contents as string).endsWith(`\n\n${docCommentCase.documentation}`));
+    }
+
     const regUri = "file:///workspace/registers.S";
     const regText = [
       "a       EQU $00",
