@@ -1,8 +1,10 @@
+import { SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokenTypes } from "vscode-languageserver/node";
+
+import { type CachedDocument } from "../asm/document";
+import { type TokenKind } from "../asm/lexer";
 import { resolveLocalLabels, isLocalLabel, type LocalLabelScope } from "../asm/local-labels";
 import { macroParameterPattern } from "../asm/macros";
-import { SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTokenTypes } from "vscode-languageserver";
-import { type TokenKind } from "../asm/lexer";
-import { type CachedDocument } from "../asm/document";
+import { directiveTable } from "../asm/metadata";
 
 const tokenTypesList = [
   SemanticTokenTypes.comment,
@@ -33,7 +35,6 @@ const tokenTypeMap: Record<TokenKind, number> = {
   expressionOperator: tokenTypesList.indexOf(SemanticTokenTypes.operator),
   identifier: tokenTypesList.indexOf(SemanticTokenTypes.variable)
 };
-import { directiveTable } from "../asm/metadata";
 
 type SemanticSymbolsCache = {
   allSymbols: Set<string>;

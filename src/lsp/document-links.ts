@@ -1,5 +1,6 @@
-import { DocumentLink } from "vscode-languageserver/node";
-import { CachedDocument } from "../asm/document";
+import { type DocumentLink } from "vscode-languageserver/node";
+
+import { type CachedDocument } from "../asm/document";
 import { includeDirectives, readIncludeTarget } from "../asm/workspace";
 
 export function buildDocumentLinks(uri: string, cached: CachedDocument): DocumentLink[] {

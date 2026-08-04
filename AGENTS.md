@@ -91,6 +91,7 @@ The supported stdio launch contract is now `merls --stdio`, with `node dist/src/
 ## Coding Style & Naming Conventions
 
 Use TypeScript throughout the implementation. Prefer small modules with explicit types and single-purpose exports. Use `camelCase` for variables and functions, `PascalCase` for types and classes, and kebab-case for example/config file names.
+Imports are grouped external-first, then local, alphabetized within each group, with inline `type` modifiers on type-only members; `vscode-languageserver/node` is the canonical entry point for LSP types in `src/lsp/`, and all imports stay at the top of the file.
 
 Keep parser, symbol, and LSP layers separate. Name tests and fixtures after the behavior they cover, for example `parser.labels.test.ts` or `fixtures/invalid/unknown-addressing-modifiers.S`.
 

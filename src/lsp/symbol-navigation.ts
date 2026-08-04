@@ -2,13 +2,13 @@ import { type Location } from "vscode-languageserver/node";
 
 import { type CachedDocument } from "../asm/document";
 import { type Expression, isAccumulatorOperand, walkExpression } from "../asm/expression";
-import { type ParsedLine } from "../asm/parser";
+import { getEffectiveLines, splitMacroCallArguments, type ExpandedToken } from "../asm/expansion";
 import { type Token, tokenAtCharacter } from "../asm/lexer";
-import { collectSymbols } from "../asm/symbols";
-import { splitMacroCallArguments, getEffectiveLines, type ExpandedToken } from "../asm/expansion";
-import { resolveLocalLabels, isLocalLabel } from "../asm/local-labels";
-
+import { isLocalLabel, resolveLocalLabels } from "../asm/local-labels";
 import { macroParameterPattern } from "../asm/macros";
+import { type ParsedLine } from "../asm/parser";
+import { collectSymbols } from "../asm/symbols";
+
 type SymbolDefinition = {
   name: string;
   location: Location;

@@ -1,9 +1,10 @@
-import { CallHierarchyItem, CallHierarchyIncomingCall, CallHierarchyOutgoingCall, SymbolKind } from "vscode-languageserver/node";
-import { CachedDocument } from "../asm/document";
-import { ParsedLine } from "../asm/parser";
-import { getSymbolAtPosition, collectDefinitions, collectReferences, getReferencedTokens } from "./symbol-navigation";
+import { type CallHierarchyItem, type CallHierarchyIncomingCall, type CallHierarchyOutgoingCall, SymbolKind } from "vscode-languageserver/node";
+
+import { type CachedDocument } from "../asm/document";
 import { getEffectiveLines, type ExpandedToken } from "../asm/expansion";
 import { getGlobalLabelToken } from "../asm/local-labels";
+import { type ParsedLine } from "../asm/parser";
+import { getSymbolAtPosition, collectDefinitions, collectReferences, getReferencedTokens } from "./symbol-navigation";
 
 function getEnclosingGlobalLabel(parsed: CachedDocument["parsed"], lineIndex: number): { line: number, node: ParsedLine } | null {
   for (let i = lineIndex; i >= 0; i--) {

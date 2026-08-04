@@ -1,8 +1,9 @@
-import { ParsedLine } from "../asm/parser";
+import { TextEdit, FormattingOptions, type Range, type Position } from "vscode-languageserver/node";
+
+import { type CachedDocument } from "../asm/document";
 import { isAccumulatorOperand } from "../asm/expression";
-import { TextEdit, FormattingOptions, Range, Position } from "vscode-languageserver/node";
-import { CachedDocument } from "../asm/document";
-import { Token } from "../asm/lexer";
+import { type Token } from "../asm/lexer";
+import { type ParsedLine } from "../asm/parser";
 
 export function formatDocument(
   cached: CachedDocument,
