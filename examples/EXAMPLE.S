@@ -11,6 +11,13 @@
 TargetValue EQU $C000
 Counter =       0
 
+* Current address and precedence
+LeftRight EQU 1+2*3             ; left-to-right: (1+2)*3 = 9
+Braced    EQU {1+2*3}           ; braced algebraic: 1+2*3 = 7
+CodeSize  = *                   ; current address
+]counter  = 0                   ; Merlin variables are reassignable
+]counter  = ]counter + 1
+
 * ==========================================
 * Macro Definitions
 * ==========================================
@@ -23,6 +30,15 @@ AnotherMacro MAC
         LDY     ]1      ; ]1 is the first positional parameter
         LDX     ]2      ; ]2 is the second positional parameter
         <<<
+
+Move MAC
+        LDA     ]1
+        STA     ]2
+        EOM
+
+ArgCount MAC
+        DFB     ]0      ; ]0 expands to the supplied argument count
+        EOM
 
 * ==========================================
 * Instructions and Addressing Modes
@@ -70,6 +86,9 @@ StartRoutine
 
         WaitLoop #$FF
         WaitLoop #10
+        Move #$00;$02   ; semicolon-separated macro parameters
+        ArgCount        ; ]0 reports 0 arguments
+        ArgCount TargetValue ; ]0 reports 1 argument
 
 * ==========================================
 * Ordinary Local Labels

@@ -51,6 +51,39 @@ export function runExamplesShowcaseTest(): void {
     false,
     "examples/EXAMPLE.S must not contain the unresolved LDA a reference"
   );
+  const codeLines = cleanSource.split(/\r?\n/).map((line) => line.split(";")[0] ?? "");
+  assert.equal(
+    codeLines.some((line) => /=\s*\*/.test(line)),
+    true,
+    "examples/EXAMPLE.S should demonstrate the current address * expression"
+  );
+  assert.equal(
+    codeLines.some((line) => /1\+2\*3/.test(line)) &&
+      codeLines.some((line) => /\{1\+2\*3\}/.test(line)),
+    true,
+    "examples/EXAMPLE.S should demonstrate left-to-right and braced precedence"
+  );
+  assert.equal(
+    codeLines.filter((line) => /^\]counter\s*=/.test(line)).length >= 2,
+    true,
+    "examples/EXAMPLE.S should demonstrate reassignable Merlin variables"
+  );
+  assert.equal(
+    cleanDocument.lines.some(
+      (line) =>
+        line.node.shape === "macroCall" &&
+        line.node.args.some((token) => token.kind === "expressionOperator" && token.lexeme === ";")
+    ),
+    true,
+    "examples/EXAMPLE.S should demonstrate semicolon-separated macro parameters"
+  );
+  assert.equal(
+    cleanDocument.lines.some((line) =>
+      line.tokens.some((token) => token.kind !== "comment" && token.lexeme === "]0")
+    ),
+    true,
+    "examples/EXAMPLE.S should demonstrate the ]0 argument-count placeholder"
+  );
 
   const invalidPath = path.resolve(process.cwd(), "examples/DIAGNOSTICS.S");
   const invalidDocument = parseDocument(fs.readFileSync(invalidPath, "utf8"));
