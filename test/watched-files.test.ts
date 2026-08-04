@@ -13,12 +13,17 @@ import { startJsonRpcClient } from "./helpers/json-rpc-client";
 export async function runWatchedFilesTest(): Promise<void> {
   const serverPath = path.resolve(__dirname, "../src/server.js");
   const workspacePath = path.resolve(process.cwd(), "test/fixtures/valid");
-  
-  // We'll simulate a file changing on disk
+
+  // Simulate a file changing on disk; it stays indexed only while an open
+  // document can reach it through the include graph.
   const testFilePath = path.resolve(workspacePath, "watched-test.S");
   const testFileUri = `file://${testFilePath.replace(/\\/g, "/")}`;
+  const entryFilePath = path.resolve(workspacePath, "watched-entry.S");
+  const entryFileUri = `file://${entryFilePath.replace(/\\/g, "/")}`;
+  const entryText = "  asm \"watched-test.S\"\n";
 
   fs.writeFileSync(testFilePath, "NewSymbol  equ $1234\n");
+  fs.writeFileSync(entryFilePath, entryText);
 
   const client = startJsonRpcClient(process.execPath, [serverPath], { requestTimeoutMs: 1_000 });
   const { notify: sendNotification, request: sendRequest, stop } = client;
@@ -30,6 +35,15 @@ export async function runWatchedFilesTest(): Promise<void> {
     });
 
     sendNotification("initialized", {});
+
+    sendNotification("textDocument/didOpen", {
+      textDocument: {
+        uri: entryFileUri,
+        languageId: "asm",
+        version: 1,
+        text: entryText
+      }
+    });
 
     // Notify that a file was created/changed
     sendNotification("workspace/didChangeWatchedFiles", {
@@ -63,6 +77,9 @@ export async function runWatchedFilesTest(): Promise<void> {
     // Cleanup
     if (fs.existsSync(testFilePath)) {
       fs.unlinkSync(testFilePath);
+    }
+    if (fs.existsSync(entryFilePath)) {
+      fs.unlinkSync(entryFilePath);
     }
   }
 }

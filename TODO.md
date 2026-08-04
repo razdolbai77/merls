@@ -13,7 +13,7 @@
 - [x] Fix unterminated string payloads in `src/asm/expression.ts:256`: `slice(1, -1)` drops the last real character when the lexer returns a string token without closing quote; strip the closing quote only when present.
 - [x] Clamp diagnostic columns for macro-expanded lines in `src/asm/diagnostics.ts`: expanded-text character offsets are reported against the original source line; also fix `getUnknownTextPattern` producing `start: -1` on raw-text scans and the `jmp (abs,x)` false positive.
 - [x] Bound total expansion output in `src/asm/expansion.ts` `getEffectiveLines` and `traceCalls` in `src/asm/diagnostics.ts`: the depth-only cap in `src/asm/limits.ts` still allows exponential line growth from branching macro chains; add a total-line cap that degrades with `deep-macro-expansion`.
-- [ ] Handle `sendDiagnostics` rejections in `src/server.ts:112,301` instead of `void`, and bound `diskCache` growth by evicting paths unreachable from any open document's include graph.
+- [x] Handle `sendDiagnostics` rejections in `src/server.ts:112,301` instead of `void`, and bound `diskCache` growth by evicting paths unreachable from any open document's include graph.
 - [ ] Make equate collection deterministic in `src/lsp/inlay-hints.ts:15-34`: the last-wins Map across documents shows the wrong value for duplicate `equ` names; prefer workspace load order matching diagnostics.
 - [ ] Include the `token.start` boundary in comment/string completion suppression in `src/lsp/completion.ts` so a cursor exactly at a comment's first character stops receiving completions.
 

@@ -43,7 +43,7 @@ export async function runDiskCacheMergeTest(): Promise<void> {
         uri: bufferUri,
         languageId: "asm",
         version: 1,
-        text: "BufferSym equ $2\n"
+        text: "  asm \"other.S\"\n  asm \"case.S\"\nBufferSym equ $2\n"
       }
     });
 

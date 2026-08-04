@@ -3,7 +3,8 @@ import {
   ProposedFeatures,
   TextDocumentSyncKind,
   createConnection,
-  FileChangeType
+  FileChangeType,
+  type PublishDiagnosticsParams
 } from "vscode-languageserver/node";
 import fs from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -32,6 +33,17 @@ const completionTriggerCharacters = "]:_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn
 
 function normalizeUriToPath(uri: string): string {
   return uri.startsWith("file://") ? fileURLToPath(uri) : uri;
+}
+
+export type DiagnosticsSender = Pick<Connection, "sendDiagnostics">;
+
+export function sendDiagnosticsSafely(
+  sender: DiagnosticsSender,
+  params: PublishDiagnosticsParams
+): void {
+  // Diagnostics are best-effort notifications; a disposed or disconnected
+  // client must not surface an unhandled promise rejection.
+  sender.sendDiagnostics(params).catch(() => undefined);
 }
 export function createServerConnection(
   inputStream: NodeJS.ReadableStream = process.stdin,
@@ -109,7 +121,8 @@ export function startServer(
   connection.onDidCloseTextDocument((params) => {
     cachedIndexedDocuments = null;
     openDocuments.delete(params.textDocument.uri);
-    void connection.sendDiagnostics({
+    evictUnreachableDiskCache();
+    sendDiagnosticsSafely(connection, {
       uri: params.textDocument.uri,
       diagnostics: []
     });
@@ -281,6 +294,27 @@ export function startServer(
     buildSelectionRanges(getIndexedDocuments(), params.textDocument.uri, params.positions)
   );
 
+
+  function evictUnreachableDiskCache(): void {
+    const overrides = new Map<string, CachedDocument>();
+    for (const [uri, doc] of openDocuments.entries()) {
+      overrides.set(normalizeUriToPath(uri), doc);
+    }
+
+    const reachablePaths = new Set<string>();
+    for (const entryPath of overrides.keys()) {
+      const workspace = indexWorkspace(entryPath, diskCache, overrides);
+      for (const docPath of workspace.documents.keys()) {
+        reachablePaths.add(docPath.toLowerCase());
+      }
+    }
+
+    for (const filePath of [...diskCache.keys()]) {
+      if (!reachablePaths.has(filePath.toLowerCase())) {
+        diskCache.delete(filePath);
+      }
+    }
+  }
   connection.onDidChangeWatchedFiles(async (params) => {
     cachedIndexedDocuments = null;
     await Promise.all(params.changes.map(async (change) => {
@@ -296,13 +330,14 @@ export function startServer(
         }
       }
     }));
+    evictUnreachableDiskCache();
     cachedIndexedDocuments = null;
     publishDiagnostics();
   });
 
   function publishDiagnostics(): void {
     for (const [uri, diagnostics] of collectDiagnosticsByUri(openDocuments, getIndexedDocuments()).entries()) {
-      void connection.sendDiagnostics({
+      sendDiagnosticsSafely(connection, {
         uri,
         diagnostics: [...diagnostics]
       });
