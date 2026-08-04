@@ -164,10 +164,10 @@ export async function runHoverTest(): Promise<void> {
     const regCached = buildCachedDocument(regText);
     const openDocuments = new Map([[regUri, regCached]]);
     
-    // LSR a (Accumulator mode)
+    // Explicit A is a symbol operand, not an accumulator mode.
     const hoverLsrA = buildHover(openDocuments, regUri, 1, 12);
     assert.ok(hoverLsrA);
-    assert.equal((hoverLsrA.contents as string).includes("Register A"), true);
+    assert.equal(hoverLsrA.contents, "Symbol a defined at line 1");
     
     // LDA foo, x (Index register X)
     const hoverLdaX = buildHover(openDocuments, regUri, 2, 17);

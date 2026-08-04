@@ -1,7 +1,7 @@
 import { type Location } from "vscode-languageserver/node";
 
 import { type CachedDocument } from "../asm/document";
-import { type Expression, isAccumulatorOperand, walkExpression } from "../asm/expression";
+import { type Expression, walkExpression } from "../asm/expression";
 import { getEffectiveLines, splitMacroCallArguments, type ExpandedToken } from "../asm/expansion";
 import { type Token, tokenAtCharacter } from "../asm/lexer";
 import { isLocalLabel, resolveLocalLabels } from "../asm/local-labels";
@@ -285,11 +285,7 @@ export function collectReferences(uri: string, cached: CachedDocument): readonly
 
 export function getReferencedTokens(cached: CachedDocument, lineNumber: number, node: ParsedLine): readonly Token[] {
   if (node.shape === "instruction" && node.operand !== null) {
-    const refs = collectExpressionIdentifiers(node.operand.expression);
-    if (refs.length === 1 && isAccumulatorOperand(node.mnemonic.lexeme, node.operand, refs[0])) {
-      return [];
-    }
-    return refs;
+    return collectExpressionIdentifiers(node.operand.expression);
   }
 
   if (node.shape === "directive" && node.operand !== null) {

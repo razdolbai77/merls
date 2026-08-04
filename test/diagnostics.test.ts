@@ -74,6 +74,11 @@ export function runDiagnosticsTest(): void {
     "AfterEnd equ MissingAfterEnd"
   ].join("\n");
 
+  const accumulatorSource = [
+    "        lsr",
+    "        lsr a"
+  ].join("\n");
+
   const bankOpsPath = path.resolve(
     process.cwd(),
     "test/fixtures/invalid/unknown-bank-ops.S"
@@ -103,6 +108,10 @@ export function runDiagnosticsTest(): void {
     {
       filePath: longPath,
       document: parseDocument(fs.readFileSync(longPath, "utf8"))
+    },
+    {
+      filePath: "<accumulator>",
+      document: parseDocument(accumulatorSource)
     }
   ]);
 
@@ -427,6 +436,24 @@ export function runDiagnosticsTest(): void {
         diagnostic.code === "invalid-addressing-mode" &&
         diagnostic.line === 15 &&
         diagnostic.message.includes("lda")
+    ),
+    true
+  );
+
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<accumulator>" && diagnostic.line === 0
+    ),
+    false
+  );
+  assert.equal(
+    diagnostics.some(
+      (diagnostic: Diagnostic) =>
+        diagnostic.filePath === "<accumulator>" &&
+        diagnostic.code === "invalid-addressing-mode" &&
+        diagnostic.line === 1 &&
+        diagnostic.message.includes("lsr")
     ),
     true
   );

@@ -204,7 +204,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - The local-label resolver exports one shared `isLocalLabel` predicate used by diagnostics, completion, semantic tokens, code lens, selection ranges, navigation, and rename instead of divergent inline copies.
 - One shared `getGlobalLabelToken` walker replaces the four divergent global-label shape walkers; diagnostics, selection ranges, and call hierarchy all resolve the global label token through it.
 - Identifier collection across navigation, diagnostics, local-label resolution, and macro usage tracking shares one `walkExpression` traversal in `src/asm/expression.ts` instead of four recursive copies.
-- Implied-accumulator operand detection shares one `isAccumulatorOperand` helper across navigation, diagnostics, hover, and formatting.
+- Merlin `ASL`, `LSR`, `ROL`, and `ROR` use implied accumulator syntax; explicit `A` operands remain identifiers and produce normal diagnostics.
 - Location and reference deduplication shares one generic `uniqueLocations` helper in `src/lsp/symbol-navigation.ts` instead of four `JSON.stringify`-keyed Map copies.
 - Macro parameter placeholder detection shares one `macroParameterPattern` regex in `src/asm/macros.ts` across the parser, expansion, diagnostics, navigation, rename, and semantic tokens.
 - Workspace include lookups compare paths case-insensitively on win32, so includes spelled with different drive or letter case resolve to open buffers and cached documents instead of stale disk content.

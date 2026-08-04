@@ -2,7 +2,6 @@ import { type Hover } from "vscode-languageserver/node";
 
 import { directiveTable, opcodeTable } from "../asm/metadata";
 import { type CachedDocument, type DocumentLine } from "../asm/document";
-import { isAccumulatorOperand } from "../asm/expression";
 import { type Token, tokenAtCharacter } from "../asm/lexer";
 import { type ParsedLine } from "../asm/parser";
 import { renderMacroParameters } from "./macro-signature";
@@ -53,7 +52,7 @@ function buildIdentifierHover(
   documentLine: DocumentLine,
   tokens: readonly Token[]
 ): Hover | null | undefined {
-  if (isRegisterToken(token, documentLine, tokens)) {
+  if (isRegisterToken(token, tokens)) {
     return { contents: `Register ${token.lexeme.toUpperCase()}` };
   }
   if ("label" in documentLine.node && documentLine.node.label?.start === token.start) return null;
@@ -63,17 +62,12 @@ function buildIdentifierHover(
   return buildSymbolHover(openDocuments, uri, line, token);
 }
 
-function isRegisterToken(token: Token, documentLine: DocumentLine, tokens: readonly Token[]): boolean {
+function isRegisterToken(token: Token, tokens: readonly Token[]): boolean {
   const lexeme = token.lexeme.toLowerCase();
-  if (lexeme === "x" || lexeme === "y") {
-    const tokenIndex = tokens.indexOf(token);
-    return tokenIndex > 0 && tokens[tokenIndex - 1]?.lexeme === ",";
-  }
-  return (
-    lexeme === "a" &&
-    documentLine.node.shape === "instruction" &&
-    isAccumulatorOperand(documentLine.node.mnemonic.lexeme, documentLine.node.operand, token)
-  );
+  if (lexeme !== "x" && lexeme !== "y") return false;
+
+  const tokenIndex = tokens.indexOf(token);
+  return tokenIndex > 0 && tokens[tokenIndex - 1]?.lexeme === ",";
 }
 
 function buildMacroHover(

@@ -1,6 +1,5 @@
 export type AddressingMode =
   | "implied"
-  | "accumulator"
   | "immediate"
   | "zeroPage"
   | "zeroPageX"
@@ -66,7 +65,7 @@ function defineDirective(
 export const opcodeDefinitions: readonly OpcodeDefinition[] = [
   defineOpcode("adc", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"], "Add with Carry"),
   defineOpcode("and", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"], "Logical AND"),
-  defineOpcode("asl", ["accumulator", "zeroPage", "zeroPageX", "absolute", "absoluteX"], "Arithmetic Shift Left"),
+  defineOpcode("asl", ["implied", "zeroPage", "zeroPageX", "absolute", "absoluteX"], "Arithmetic Shift Left"),
   defineOpcode("bcc", ["relative"], "Branch if Carry Clear"),
   defineOpcode("bcs", ["relative"], "Branch if Carry Set"),
   defineOpcode("beq", ["relative"], "Branch if Equal"),
@@ -96,15 +95,15 @@ export const opcodeDefinitions: readonly OpcodeDefinition[] = [
   defineOpcode("lda", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"], "Load Accumulator"),
   defineOpcode("ldx", ["immediate", "zeroPage", "zeroPageY", "absolute", "absoluteY"], "Load X Register"),
   defineOpcode("ldy", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX"], "Load Y Register"),
-  defineOpcode("lsr", ["accumulator", "zeroPage", "zeroPageX", "absolute", "absoluteX"], "Logical Shift Right"),
+  defineOpcode("lsr", ["implied", "zeroPage", "zeroPageX", "absolute", "absoluteX"], "Logical Shift Right"),
   defineOpcode("nop", ["implied"], "No Operation"),
   defineOpcode("ora", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"], "Logical Inclusive OR"),
   defineOpcode("pha", ["implied"], "Push Accumulator"),
   defineOpcode("php", ["implied"], "Push Processor Status"),
   defineOpcode("pla", ["implied"], "Pull Accumulator"),
   defineOpcode("plp", ["implied"], "Pull Processor Status"),
-  defineOpcode("rol", ["accumulator", "zeroPage", "zeroPageX", "absolute", "absoluteX"], "Rotate Left"),
-  defineOpcode("ror", ["accumulator", "zeroPage", "zeroPageX", "absolute", "absoluteX"], "Rotate Right"),
+  defineOpcode("rol", ["implied", "zeroPage", "zeroPageX", "absolute", "absoluteX"], "Rotate Left"),
+  defineOpcode("ror", ["implied", "zeroPage", "zeroPageX", "absolute", "absoluteX"], "Rotate Right"),
   defineOpcode("rti", ["implied"], "Return from Interrupt"),
   defineOpcode("rts", ["implied"], "Return from Subroutine"),
   defineOpcode("sbc", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"], "Subtract with Carry"),

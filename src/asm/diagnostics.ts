@@ -1,5 +1,5 @@
 import { type ParsedDocument } from "./document";
-import { type Expression, type Operand, isAccumulatorOperand, walkExpression } from "./expression";
+import { type Expression, type Operand, walkExpression } from "./expression";
 import { type Token } from "./lexer";
 import { resolveLocalLabels, isLocalLabel, getGlobalLabelToken } from "./local-labels";
 import { directiveTable, opcodeTable, type AddressingMode } from "./metadata";
@@ -893,11 +893,7 @@ function getGlobalDefinitionToken(node: ParsedLine): Token | null {
 
 function findExpressionReferences(node: ParsedLine): readonly Token[] {
   if (node.shape === "instruction" && node.operand !== null) {
-    const refs = findReferencesInOperand(node.operand);
-    if (refs.length === 1 && isAccumulatorOperand(node.mnemonic.lexeme, node.operand, refs[0])) {
-      return [];
-    }
-    return refs;
+    return findReferencesInOperand(node.operand);
   }
 
   if (node.shape === "directive" && node.operand !== null) {
@@ -1045,9 +1041,12 @@ function resolveDiagnosticRange(
 }
 
 
-function getOperandAddressingModes(operand: Operand | null): readonly AddressingMode[] {
+function getOperandAddressingModes(
+  mnemonic: string,
+  operand: Operand | null
+): readonly AddressingMode[] {
   if (operand === null) {
-    return ["implied", "accumulator"];
+    return ["implied"];
   }
 
   if (operand.immediate) {
@@ -1075,9 +1074,10 @@ function getOperandAddressingModes(operand: Operand | null): readonly Addressing
 
   if (
     operand.expression.kind === "identifier" &&
-    operand.expression.value.toLowerCase() === "a"
+    operand.expression.value.toLowerCase() === "a" &&
+    (mnemonic === "asl" || mnemonic === "lsr" || mnemonic === "rol" || mnemonic === "ror")
   ) {
-    return ["accumulator", "zeroPage", "absolute", "relative"];
+    return [];
   }
 
   return ["zeroPage", "absolute", "relative"];
@@ -1106,7 +1106,7 @@ function collectAddressingModeDiagnostics(
       continue;
     }
 
-    const possibleModes = getOperandAddressingModes(line.node.operand);
+    const possibleModes = getOperandAddressingModes(mnemonic, line.node.operand);
     const hasValidMode = possibleModes.some((mode) => definition.modes.includes(mode));
 
     if (!hasValidMode) {

@@ -1,7 +1,6 @@
 import { TextEdit, FormattingOptions, type Range, type Position } from "vscode-languageserver/node";
 
 import { type CachedDocument } from "../asm/document";
-import { isAccumulatorOperand } from "../asm/expression";
 import { type Token } from "../asm/lexer";
 import { type ParsedLine } from "../asm/parser";
 export const formattingLabelColumn = 8;
@@ -172,9 +171,6 @@ function formatOperandToken(node: ParsedLine, tokens: readonly Token[], index: n
 
   const lower = token.lexeme.toLowerCase();
   if ((lower === "x" || lower === "y") && tokens[index - 1]?.lexeme === ",") {
-    return token.lexeme.toUpperCase();
-  }
-  if (lower === "a" && isAccumulatorOperand(node.mnemonic.lexeme, node.operand, token)) {
     return token.lexeme.toUpperCase();
   }
   return token.lexeme;
