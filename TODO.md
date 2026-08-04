@@ -31,7 +31,7 @@
 - [x] Unify handler input shapes and empty results: `src/lsp/document-highlights.ts:5-9` alone takes `cached | undefined` while peers take the documents map, and `src/lsp/selection-range.ts:12-13` returns `null` where array handlers return `[]`.
 - [x] Align `vscode/src` with root conventions: double quotes and `node:`-prefixed default imports (`vscode/src/extension.ts:1-3`, `vscode/src/compile.ts:1`), template literals instead of `+` (`extension.ts:82`), and one canonical language id (`asm` in tests vs `6502` in the extension).
 - [x] Move the copied `positionOf`/`positionOfLast`/`positionOfInMatch` helpers (`test/completion.test.ts:12-30`, `test/hover.test.ts:14-33`, `test/definition-references.test.ts:12-20`) into `test/helpers/`.
-- [ ] Port the hand-rolled JSON-RPC framing in `test/server-initialize.test.ts:29-75` to `test/helpers/json-rpc-client.ts` per AGENTS.md.
+- [x] Port the hand-rolled JSON-RPC framing in `test/server-initialize.test.ts:29-75` to `test/helpers/json-rpc-client.ts` per AGENTS.md.
 - [ ] Stop `test/watched-files.test.ts:18-21` from writing runtime fixtures into `test/fixtures/valid`; use a temp directory outside the corpus.
 - [ ] Pick one loop-counter style: `index += 1` in `src/asm/parser.ts:187,308` and `src/asm/symbols.ts:73` versus `i++` elsewhere, and replace the lone `.forEach` line loop in `src/asm/document.ts:63` with for-of.
 - [ ] Rewrite exploratory and stale comments as factual statements: `src/server.ts:52`, `src/lsp/formatting.ts:95-97`, `src/lsp/semantic-tokens.ts:74,134`.

@@ -1,110 +1,50 @@
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
 import path from "node:path";
+import { startJsonRpcClient } from "./helpers/json-rpc-client";
 
-type JsonRpcMessage = {
-  id?: number;
-  jsonrpc: "2.0";
-  method?: string;
-  result?: {
-    capabilities?: {
-      definitionProvider?: boolean;
-      referencesProvider?: boolean;
-      completionProvider?: {
-        triggerCharacters?: readonly string[];
-      };
-      textDocumentSync?: {
-        change?: number;
-        openClose?: boolean;
-      };
+type InitializeResult = {
+  capabilities?: {
+    definitionProvider?: boolean;
+    referencesProvider?: boolean;
+    completionProvider?: {
+      triggerCharacters?: readonly string[];
+    };
+    textDocumentSync?: {
+      change?: number;
+      openClose?: boolean;
     };
   };
 };
 
-function encodeMessage(message: object): string {
-  const body = JSON.stringify(message);
-  return `Content-Length: ${Buffer.byteLength(body, "utf8")}\r\n\r\n${body}`;
-}
-
 export async function runInitializeHandshakeTest(): Promise<void> {
   const serverPath = path.resolve(__dirname, "../src/server.js");
-  const child = spawn(process.execPath, [serverPath], {
-    stdio: ["pipe", "pipe", "pipe"]
-  });
-
-  const response = new Promise<JsonRpcMessage>((resolve, reject) => {
-    let stdout = "";
-    let stderr = "";
-
-    child.stdout.setEncoding("utf8");
-    child.stderr.setEncoding("utf8");
-
-    child.stdout.on("data", (chunk: string) => {
-      stdout += chunk;
-
-      const separator = stdout.indexOf("\r\n\r\n");
-      if (separator === -1) {
-        return;
-      }
-
-      const header = stdout.slice(0, separator);
-      const match = /Content-Length: (\d+)/i.exec(header);
-      if (!match) {
-        reject(new Error(`Missing Content-Length header in response: ${stdout}`));
-        return;
-      }
-
-      const length = Number(match[1]);
-      const body = stdout.slice(separator + 4);
-      if (Buffer.byteLength(body, "utf8") < length) {
-        return;
-      }
-
-      resolve(JSON.parse(body.slice(0, length)) as JsonRpcMessage);
-    });
-
-    child.stderr.on("data", (chunk: string) => {
-      stderr += chunk;
-    });
-
-    child.once("error", reject);
-    child.once("exit", (code) => {
-      reject(new Error(`Server exited before initialize response. code=${code}, stderr=${stderr}`));
-    });
-  });
-
-  child.stdin.write(
-    encodeMessage({
-      id: 1,
-      jsonrpc: "2.0",
-      method: "initialize",
-      params: {
-        capabilities: {},
-        clientInfo: {
-          name: "merls-test"
-        },
-        processId: process.pid,
-        rootUri: null
-      }
-    })
-  );
+  const client = startJsonRpcClient(process.execPath, [serverPath]);
 
   try {
-    const message = await response;
+    const message = await client.request("initialize", {
+      capabilities: {},
+      clientInfo: {
+        name: "merls-test"
+      },
+      processId: process.pid,
+      rootUri: null
+    });
+    const result = message.result as InitializeResult | undefined;
+
     assert.equal(message.id, 1);
     assert.equal(message.jsonrpc, "2.0");
-    assert.equal(typeof message.result?.capabilities, "object");
-    assert.equal(message.result?.capabilities?.textDocumentSync?.openClose, true);
-    assert.equal(message.result?.capabilities?.textDocumentSync?.change, 1);
-    assert.equal(message.result?.capabilities?.definitionProvider, true);
-    assert.equal(message.result?.capabilities?.referencesProvider, true);
-    const completionTriggers = message.result?.capabilities?.completionProvider?.triggerCharacters;
+    assert.equal(typeof result?.capabilities, "object");
+    assert.equal(result?.capabilities?.textDocumentSync?.openClose, true);
+    assert.equal(result?.capabilities?.textDocumentSync?.change, 1);
+    assert.equal(result?.capabilities?.definitionProvider, true);
+    assert.equal(result?.capabilities?.referencesProvider, true);
+    const completionTriggers = result?.capabilities?.completionProvider?.triggerCharacters;
     assert.equal(completionTriggers?.includes("]"), true);
     assert.equal(completionTriggers?.includes(":"), true);
     assert.equal(completionTriggers?.includes("b"), true);
     assert.equal(completionTriggers?.includes("G"), true);
     assert.equal(completionTriggers?.includes("_"), true);
   } finally {
-    child.kill();
+    client.stop();
   }
 }
