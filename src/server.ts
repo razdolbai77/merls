@@ -58,7 +58,7 @@ export function startServer(
   const diskCache = new Map<string, CachedDocument>();
 
   let cachedIndexedDocuments: Map<string, CachedDocument> | null = null;
-  // (getAllDocuments removed since publishDiagnostics will use getIndexedDocuments)
+  // Reused until workspace or open-document changes invalidate it.
 
   connection.onInitialize(() => ({
     capabilities: {

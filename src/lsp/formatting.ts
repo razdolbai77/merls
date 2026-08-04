@@ -93,9 +93,7 @@ function formatLine(
     return "";
   }
   if (shape === "commentOnly" && tokens.length > 0) {
-    // Optionally format full-line comments?
-    // Often full line comments start with ; or * at column 0.
-    // Let's just preserve them as is for now.
+    // Preserve full-line comment text except trailing whitespace.
     return originalText.trimEnd();
   }
   if (shape === "labelOnly") {

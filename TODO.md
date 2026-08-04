@@ -34,7 +34,7 @@
 - [x] Port the hand-rolled JSON-RPC framing in `test/server-initialize.test.ts:29-75` to `test/helpers/json-rpc-client.ts` per AGENTS.md.
 - [x] Stop `test/watched-files.test.ts:18-21` from writing runtime fixtures into `test/fixtures/valid`; use a temp directory outside the corpus.
 - [x] Pick one loop-counter style: `index += 1` in `src/asm/parser.ts:187,308` and `src/asm/symbols.ts:73` versus `i++` elsewhere, and replace the lone `.forEach` line loop in `src/asm/document.ts:63` with for-of.
-- [ ] Rewrite exploratory and stale comments as factual statements: `src/server.ts:52`, `src/lsp/formatting.ts:95-97`, `src/lsp/semantic-tokens.ts:74,134`.
+- [x] Rewrite exploratory and stale comments as factual statements: `src/server.ts:52`, `src/lsp/formatting.ts:95-97`, `src/lsp/semantic-tokens.ts:74,134`.
 
 ### Low Priority — Refactoring
 

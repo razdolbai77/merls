@@ -73,7 +73,7 @@ export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Ma
 
   const { allSymbols, allMacros, allVariables } = cache;
 
-  // Also collect local labels from the current document
+  // Cache local-label resolution for current document.
   let localScope = localScopeCache.get(cached);
   if (localScope === undefined) {
     localScope = resolveLocalLabels(cached.parsed);
@@ -133,7 +133,7 @@ export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Ma
             typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.function); // label
           }
         } else {
-          // Unresolved! Let's color it as variable
+          // Unresolved names use variable tokens.
           typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.variable);
         }
       }
