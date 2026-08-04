@@ -133,8 +133,12 @@ export const opcodeTable = new Map(
 
 export const directiveDefinitions: readonly DirectiveDefinition[] = [
   defineDirective("asm", "include", true, "Assemble another source file immediately."),
+  defineDirective("adr", "data", true, "Emit an address value."),
+  defineDirective("adrl", "data", true, "Emit a long address value."),
   defineDirective("asc", "data", true, "Emit an ASCII string."),
+  defineDirective("chk", "data", true, "Emit a checksum payload."),
   defineDirective("da", "data", true, "Emit an address-sized value."),
+  defineDirective("dat", "data", true, "Emit raw data payload."),
   defineDirective("db", "data", true, "Emit byte data."),
   defineDirective("dend", "storage", true, "End a DUM storage section."),
   defineDirective("dsk", "build", true, "Set the output disk or image name."),
@@ -150,6 +154,7 @@ export const directiveDefinitions: readonly DirectiveDefinition[] = [
   defineDirective("mx", "mode", false, "Unknown width-control directive.", ["%00", "%01", "%10", "%11"]),
   defineDirective("org", "assembler", true, "Set or restore the assembly origin."),
   defineDirective("put", "include", true, "Include another source file."),
+  defineDirective("putbin", "data", true, "Embed a binary payload."),
   defineDirective("sav", "build", true, "Save an output file."),
   defineDirective("sna", "build", true, "Set the output file name."),
   defineDirective("str", "data", true, "Emit a Merlin string."),
@@ -168,6 +173,7 @@ export const directiveDefinitions: readonly DirectiveDefinition[] = [
   defineDirective("inv", "data", true, "Emit an inverse text string."),
   defineDirective("fls", "data", true, "Emit a flashing text string."),
   defineDirective("rev", "data", true, "Emit a reversed string."),
+  defineDirective("rel", "data", true, "Emit a relocatable data payload."),
   defineDirective("strl", "data", true, "Emit a length-prefixed string.")
 ];
 

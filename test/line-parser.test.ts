@@ -124,4 +124,12 @@ export function runLineParserTest(): void {
   if (forcedAbsoluteLine?.shape === "instruction") {
     assert.equal(forcedAbsoluteLine.mnemonic.lexeme, "lda:");
   }
+
+  for (const directive of ["adr", "adrl", "putbin", "chk", "dat", "rel"]) {
+    const payloadLine = parseSourceLines(`        ${directive} VALUE,1`)[0];
+    assert.equal(payloadLine?.shape, "data");
+    if (payloadLine?.shape === "data") {
+      assert.equal(payloadLine.payload, "VALUE,1");
+    }
+  }
 }
