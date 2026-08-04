@@ -289,7 +289,11 @@ export function getReferencedTokens(cached: CachedDocument, lineNumber: number, 
   }
 
   if (node.shape === "directive" && node.operand !== null) {
-    return collectExpressionIdentifiers(node.operand);
+    const tokens: Token[] = [...collectExpressionIdentifiers(node.operand)];
+    for (const additionalOperand of node.additionalOperands ?? []) {
+      tokens.push(...collectExpressionIdentifiers(additionalOperand));
+    }
+    return tokens.filter((token) => token.lexeme !== "\\");
   }
 
   if (node.shape === "equate") {

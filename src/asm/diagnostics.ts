@@ -5,6 +5,7 @@ import { resolveLocalLabels, isLocalLabel, getGlobalLabelToken } from "./local-l
 import { directiveTable, normalizeMnemonic, opcodeTable, type AddressingMode } from "./metadata";
 import {
   isAssemblyEndDirective,
+  splitTopLevelCommaTokens,
   type MacroDefinitionRegion,
   type ParsedLine
 } from "./parser";
@@ -32,7 +33,8 @@ export type DiagnosticCode =
   | "invalid-addressing-mode"
   | "unterminated-loop"
   | "unmatched-loop-terminator"
-  | "unsupported-generated-label";
+  | "unsupported-generated-label"
+  | "invalid-data-operand";
 
 export type Diagnostic = {
   filePath: string;
@@ -209,7 +211,8 @@ export function collectWorkspaceDiagnostics(
         activeLines
       ),
       ...collectMacroCallDiagnostics(entry.filePath, entry.document, macrosByName, documentIndex),
-      ...collectLoopDiagnostics(entry.filePath, entry.document)
+      ...collectLoopDiagnostics(entry.filePath, entry.document),
+      ...collectDataOperandDiagnostics(entry.filePath, entry.document)
     );
   }
 
@@ -516,6 +519,76 @@ function collectLoopDiagnostics(
 function getDocumentAssemblyEndLine(document: ParsedDocument): number | null {
   const endLine = document.lines.findIndex((line) => isAssemblyEndDirective(line.node));
   return endLine === -1 ? null : endLine;
+}
+function collectDataOperandDiagnostics(
+  filePath: string,
+  document: ParsedDocument
+): readonly Diagnostic[] {
+  const diagnostics: Diagnostic[] = [];
+  const assemblyEndLine = getDocumentAssemblyEndLine(document);
+
+  for (const line of document.lines) {
+    if (assemblyEndLine !== null && line.line > assemblyEndLine) {
+      continue;
+    }
+    const node = line.node;
+
+    if (node.shape === "directive" && node.directive.lexeme.toLowerCase() === "ds") {
+      if (node.additionalOperands !== undefined && node.additionalOperands.length > 1) {
+        diagnostics.push({
+          filePath,
+          line: line.line,
+          code: "invalid-data-operand",
+          message: "DS accepts at most two operands: count and optional fill",
+          startCharacter: node.directive.start,
+          endCharacter: node.directive.end
+        });
+      }
+
+      if (
+        node.operand?.kind === "identifier" &&
+        node.operand.value === "\\" &&
+        !hasPrecedingDsLine(document, line.line)
+      ) {
+        diagnostics.push({
+          filePath,
+          line: line.line,
+          code: "invalid-data-operand",
+          message: "DS continuation \\ requires a preceding DS line",
+          startCharacter: node.operand.token.start,
+          endCharacter: node.operand.token.end
+        });
+      }
+      continue;
+    }
+
+    if (node.shape === "data" && node.directive.lexeme.toLowerCase() === "asc") {
+      const segments = splitTopLevelCommaTokens(node.tokens);
+      if (segments.some((segment) => segment.length === 0)) {
+        diagnostics.push({
+          filePath,
+          line: line.line,
+          code: "invalid-data-operand",
+          message: "Empty ASC operand segment",
+          startCharacter: node.directive.start,
+          endCharacter: node.directive.end
+        });
+      }
+    }
+  }
+
+  return diagnostics;
+}
+
+function hasPrecedingDsLine(document: ParsedDocument, line: number): boolean {
+  for (let index = line - 1; index >= 0; index--) {
+    const node = document.lines[index]?.node;
+    if (node === undefined || node.shape === "empty" || node.shape === "commentOnly") {
+      continue;
+    }
+    return node.shape === "directive" && node.directive.lexeme.toLowerCase() === "ds";
+  }
+  return false;
 }
 
 function collectUnknownDiagnostics(
@@ -994,9 +1067,12 @@ function findExpressionReferences(node: ParsedLine): readonly Token[] {
       }
       return [];
     }
-    return findReferencesInExpression(node.operand);
+    const references: Token[] = [...findReferencesInExpression(node.operand)];
+    for (const additionalOperand of node.additionalOperands ?? []) {
+      references.push(...findReferencesInExpression(additionalOperand));
+    }
+    return references.filter((reference) => reference.lexeme !== "\\");
   }
-
   if (node.shape === "equate") {
     return findReferencesInExpression(node.expression);
   }

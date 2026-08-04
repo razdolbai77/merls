@@ -61,6 +61,7 @@ export type DirectiveLine = {
   label: Token | null;
   directive: Token;
   operand: Expression | null;
+  additionalOperands?: readonly Expression[];
 };
 
 export type DataLine = {
@@ -293,6 +294,41 @@ function parseStructuredLine(text: string, tokens: readonly Token[]): ParsedLine
       throw new Error(`unexpected operand for ${directiveName}`);
     }
 
+    if (directiveName === "ds") {
+      if (operandTokens.length === 0) {
+        return {
+          shape: "directive",
+          text,
+          label,
+          directive: token,
+          operand: null
+        };
+      }
+
+      const segments = splitTopLevelCommaTokens(operandTokens);
+      const operands = segments.map((segment) => {
+        if (segment.length === 0) {
+          throw new Error(`Empty DS operand segment`);
+        }
+        const parsed = parseExpression(segment);
+        if (parsed.nextTokenIndex < segment.length) {
+          throw new Error(`unexpected token after DS operand: ${segment[parsed.nextTokenIndex]?.lexeme}`);
+        }
+        return parsed.expression;
+      });
+      const firstOperand = operands[0];
+      if (firstOperand === undefined) {
+        throw new Error(`Empty DS operand segment`);
+      }
+      return {
+        shape: "directive",
+        text,
+        label,
+        directive: token,
+        operand: firstOperand,
+        ...(operands.length > 1 ? { additionalOperands: operands.slice(1) } : {})
+      };
+    }
     let operand = null;
     if (operandTokens.length > 0) {
       const parsed = parseExpression(operandTokens);
@@ -486,6 +522,9 @@ function collectMacroBodyUsage(node: ParsedLine): Omit<MacroBodyLine, "line" | "
       if (node.operand !== null) {
         collectExpressionUsage(node.operand, collectTokenUsage);
       }
+      for (const additionalOperand of node.additionalOperands ?? []) {
+        collectExpressionUsage(additionalOperand, collectTokenUsage);
+      }
       break;
     case "labelOnly":
       if (node.label.kind === "localLabel") {
@@ -513,4 +552,26 @@ function collectMacroBodyUsage(node: ParsedLine): Omit<MacroBodyLine, "line" | "
 
 function collectExpressionUsage(expression: Expression, collectTokenUsage: (token: Token) => void): void {
   walkExpression(expression, (identifier) => collectTokenUsage(identifier.token));
+}
+
+export function splitTopLevelCommaTokens(tokens: readonly Token[]): readonly (readonly Token[])[] {
+  const segments: Token[][] = [[]];
+  let depth = 0;
+
+  for (const token of tokens) {
+    if (token.kind === "expressionOperator" && token.lexeme === "(") {
+      depth += 1;
+    } else if (token.kind === "expressionOperator" && token.lexeme === ")") {
+      depth = Math.max(0, depth - 1);
+    }
+
+    if (token.kind === "expressionOperator" && token.lexeme === "," && depth === 0) {
+      segments.push([]);
+      continue;
+    }
+
+    segments.at(-1)?.push(token);
+  }
+
+  return segments;
 }
