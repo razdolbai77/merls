@@ -16,6 +16,7 @@ import { runMacroParameterPatternTest } from "./macro-parameter-pattern.test";
 import { runLspDiagnosticsTest } from "./lsp-diagnostics.test";
 import { runDocumentModelTest } from "./document-model.test";
 import { runAlternateMacroCallTest } from "./alternate-macro-calls.test";
+import { runExamplesShowcaseTest } from "./examples-showcase.test";
 import { runDocConsistencyTest } from "./doc-consistency.test";
 import { runInvFlsRangeTest } from "./inv-fls-ranges.test";
 import { runDataOperandTest } from "./data-operands.test";
@@ -161,6 +162,10 @@ const tests: TestCase[] = [
   {
     name: "documentation never references removed substitution modules",
     run: runDocConsistencyTest
+  },
+  {
+    name: "examples split into a clean starter and a diagnostic showcase",
+    run: runExamplesShowcaseTest
   },
   {
     name: "symbol collection indexes labels equates and named data definitions",

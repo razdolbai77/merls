@@ -176,6 +176,8 @@ To enable semantic tokens for syntax highlighting, ensure `"semanticTokens.enabl
 
 An example configuration lives in `examples/coc-settings.json`.
 
+`examples/EXAMPLE.S` is a diagnostics-free feature showcase users can open as a clean starter file; `examples/DIAGNOSTICS.S` collects intentionally invalid syntax demonstrating every diagnostic category (`duplicate-symbol`, `unresolved-reference`, `duplicate-macro-definition`, `invalid-macro-local-label`, `unsupported-instruction`, `invalid-addressing-mode`, `unknown-syntax`, `missing-macro-end`), and `examples/doc_comments.S` shows both doc-comment forms.
+
 ## Development Notes
 
 - TDD is mandatory for implementation work in this repository.
