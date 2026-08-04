@@ -57,10 +57,13 @@ export function startServer(
   const openDocuments = new Map<string, CachedDocument>();
   const diskCache = new Map<string, CachedDocument>();
 
+  let macroFolder: string | undefined;
   let cachedIndexedDocuments: Map<string, CachedDocument> | null = null;
   // Reused until workspace or open-document changes invalidate it.
 
-  connection.onInitialize(() => ({
+  connection.onInitialize((params) => {
+    macroFolder = readMacroFolder(params.initializationOptions);
+    return {
     capabilities: {
       completionProvider: {
         triggerCharacters: completionTriggerCharacters
@@ -99,7 +102,8 @@ export function startServer(
         change: TextDocumentSyncKind.Full
       }
     }
-  }));
+    };
+  });
   connection.onDidOpenTextDocument((params) => {
     cachedIndexedDocuments = null;
     openDocuments.set(params.textDocument.uri, buildCachedDocument(params.textDocument.text));
@@ -160,7 +164,7 @@ export function startServer(
     }
     for (const uri of openDocuments.keys()) {
       const filePath = uriToFilePath(uri);
-      const workspace = indexWorkspace(filePath, diskCache, overrides);
+      const workspace = indexWorkspace(filePath, diskCache, overrides, { macroFolder });
       for (const [docPath, cached] of workspace.documents.entries()) {
         const normalizedDocPath = docPath.toLowerCase();
         if (!addedPaths.has(normalizedDocPath)) {
@@ -300,7 +304,7 @@ export function startServer(
 
     const reachablePaths = new Set<string>();
     for (const entryPath of overrides.keys()) {
-      const workspace = indexWorkspace(entryPath, diskCache, overrides);
+      const workspace = indexWorkspace(entryPath, diskCache, overrides, { macroFolder });
       for (const docPath of workspace.documents.keys()) {
         reachablePaths.add(docPath.toLowerCase());
       }
@@ -347,4 +351,15 @@ export function startServer(
 
 if (require.main === module) {
   startServer();
+}
+
+
+function readMacroFolder(initializationOptions: unknown): string | undefined {
+  if (initializationOptions === null || typeof initializationOptions !== "object") {
+    return undefined;
+  }
+
+  const options = initializationOptions as Record<string, unknown>;
+  const macroFolder = options.merlinMacroFolder ?? options.macroFolder;
+  return typeof macroFolder === "string" && macroFolder.length > 0 ? macroFolder : undefined;
 }

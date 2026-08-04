@@ -23,10 +23,15 @@ export type IndexedWorkspace = {
 
 export const includeDirectives = new Set(["asm", "put", "use"]);
 
+export type WorkspaceIndexOptions = {
+  macroFolder?: string;
+};
+
 export function indexWorkspace(
   entryPath: string,
   diskCache: Map<string, CachedDocument>,
-  overrides?: ReadonlyMap<string, CachedDocument>
+  overrides?: ReadonlyMap<string, CachedDocument>,
+  options?: WorkspaceIndexOptions
 ): IndexedWorkspace {
   const documents = new Map<string, CachedDocument>();
   const dependencies = new Map<string, readonly string[]>();
@@ -34,7 +39,10 @@ export function indexWorkspace(
   const symbols = new Map<string, WorkspaceSymbol>();
 
   const resolvedEntry = isUntitledDocument(entryPath) ? entryPath : path.resolve(entryPath);
-  visitFile(resolvedEntry, documents, dependencies, loadOrder, diskCache, overrides);
+  const macroFolder = options?.macroFolder === undefined || isUntitledDocument(resolvedEntry)
+    ? undefined
+    : path.resolve(path.dirname(resolvedEntry), options.macroFolder);
+  visitFile(resolvedEntry, documents, dependencies, loadOrder, diskCache, overrides, macroFolder);
 
   for (const filePath of loadOrder) {
     const document = documents.get(filePath);
@@ -90,7 +98,8 @@ function visitFile(
   dependencies: Map<string, readonly string[]>,
   loadOrder: string[],
   diskCache: Map<string, CachedDocument>,
-  overrides?: ReadonlyMap<string, CachedDocument>
+  overrides: ReadonlyMap<string, CachedDocument> | undefined,
+  macroFolder: string | undefined
 ): void {
   if (lookupByPath(documents, filePath) !== undefined) {
     return;
@@ -133,14 +142,48 @@ function visitFile(
         return [];
       }
 
-      return [path.resolve(path.dirname(filePath), includeTarget.path)];
+      return [
+        resolveIncludePath(
+          filePath,
+          node.directive.lexeme.toLowerCase(),
+          includeTarget.path,
+          macroFolder,
+          diskCache,
+          overrides
+        )
+      ];
     });
 
   dependencies.set(filePath, resolvedDependencies);
 
   for (const dependencyPath of resolvedDependencies) {
-    visitFile(dependencyPath, documents, dependencies, loadOrder, diskCache, overrides);
+    visitFile(dependencyPath, documents, dependencies, loadOrder, diskCache, overrides, macroFolder);
   }
+}
+
+function resolveIncludePath(
+  sourcePath: string,
+  directiveName: string,
+  includePath: string,
+  macroFolder: string | undefined,
+  diskCache: ReadonlyMap<string, CachedDocument>,
+  overrides: ReadonlyMap<string, CachedDocument> | undefined
+): string {
+  const isMacroInclude = directiveName === "use";
+  const targetPath = isMacroInclude
+    ? includePath.replace(/^\d+[\\/]/u, "")
+    : includePath;
+  const basePath = isMacroInclude && macroFolder !== undefined
+    ? macroFolder
+    : path.dirname(sourcePath);
+  const resolvedPath = path.resolve(basePath, targetPath);
+  const candidates = isMacroInclude ? [resolvedPath, `${resolvedPath}.s`] : [resolvedPath];
+
+  return candidates.find((candidate) =>
+    (overrides !== undefined && lookupByPath(overrides, candidate) !== undefined) ||
+    lookupByPath(diskCache, candidate) !== undefined ||
+    fs.existsSync(candidate)
+  ) ?? resolvedPath;
 }
 
 export type IncludeTarget = {

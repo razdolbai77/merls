@@ -100,6 +100,8 @@ If you are using Vim/Neovim or another LSP client, you can install the standalon
 npm install -g @razdolbai/merls
 ```
 
+Set `initializationOptions.merlinMacroFolder` to a Merlin macro directory when launching the server. `USE 4/Int.Macs` resolves from that directory as `Int.Macs.s`: the legacy numeric prefix is ignored and `.s` is tried when no exact target exists.
+
 ## Development Workflow
 
 - `npm install`: install project dependencies
@@ -207,6 +209,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - Macro parameter placeholder detection shares one `macroParameterPattern` regex in `src/asm/macros.ts` across the parser, expansion, diagnostics, navigation, rename, and semantic tokens.
 - Workspace include lookups compare paths case-insensitively on win32, so includes spelled with different drive or letter case resolve to open buffers and cached documents instead of stale disk content.
 - Include handling shares `includeDirectives` and one `readIncludeTarget` reader in `src/asm/workspace.ts` between workspace indexing and document links, so both resolve identifier, string, numeric, and concatenated include operands the same way.
+- Workspace `USE` resolution accepts `initializationOptions.merlinMacroFolder`, strips the legacy leading numeric subfolder, and tries an implicit `.s` suffix while preserving open-buffer and disk-cache precedence.
 - Untitled editor documents remain indexable but do not resolve `asm`/`put`/`use` dependencies, preventing virtual URI names from producing invalid disk paths.
 - Diagnostic notifications swallow transport rejections through `sendDiagnosticsSafely`, so a disposed client cannot surface unhandled promise rejections, and the disk cache evicts paths unreachable from any open document's include graph after watched-file updates and document closes.
 - LSP feature handlers share one input shape (open-document map plus request URI) and every array result returns `[]` for unknown documents instead of `null`, so document highlights and selection ranges match their peers.

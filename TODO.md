@@ -66,7 +66,7 @@ Reference: <https://brutaldeluxe.fr/products/crossdevtools/merlin/>
 - [x] Enforce definition-before-use for macros and `EQU` symbols using workspace load order; add forward-call and forward-equate diagnostics without breaking ordinary forward label references.
 - [x] Support Merlin's documented nested macro-definition form instead of always emitting `invalid-macro-nesting`; keep nested definitions scoped to the enclosing macro and test the shared `<<<` terminator.
 - [x] Evaluate resolvable `DO`/`IF`/`ELSE`/`FIN` branches before unresolved-reference and duplicate-symbol analysis so inactive code does not produce false diagnostics.
-- [ ] Resolve `USE` through a configured Merlin macro folder, ignore the legacy numeric subfolder prefix, and try the implicit `.s` suffix; cover `USE 4/Int.Macs` outside the source directory.
+- [x] Resolve `USE` through a configured Merlin macro folder, ignore the legacy numeric subfolder prefix, and try the implicit `.s` suffix; cover `USE 4/Int.Macs` outside the source directory.
 - [ ] Stop indexing and diagnosing source after an `END` directive; add symbols and unresolved references after `END` as negative coverage.
 
 ### High Priority — 6502 Syntax Accuracy

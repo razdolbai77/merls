@@ -33,6 +33,7 @@ import { runMetadataTableTest } from "./metadata.test";
 import {
   runWorkspaceGraphTest,
   runWorkspaceCaseInsensitiveLookupTest,
+  runMacroFolderUseTest,
   runIncludeTargetTest,
   runUntitledWorkspaceTest
 } from "./workspace.test";
@@ -42,7 +43,10 @@ import { runServerEntrypointTest } from "./server-entrypoint.test";
 import { runSymbolsTest } from "./symbols.test";
 import { runVariableTest } from "./variables.test";
 import { runSyntaxShapeTest } from "./syntax-shape.test";
-import { runWorkspaceSymbolTest } from "./workspace-symbol.test";
+import {
+  runMacroFolderWorkspaceSymbolTest,
+  runWorkspaceSymbolTest
+} from "./workspace-symbol.test";
 import { runSemanticTokensTest } from "./semantic-tokens.test";
 import { runFormattingTest } from "./formatting.test";
 import { runRenameTest } from "./rename.test";
@@ -154,6 +158,10 @@ const tests: TestCase[] = [
     run: runWorkspaceCaseInsensitiveLookupTest
   },
   {
+    name: "workspace resolves USE through configured macro folder",
+    run: runMacroFolderUseTest
+  },
+  {
     name: "include targets parse paths with optional ranges",
     run: runIncludeTargetTest
   },
@@ -184,6 +192,10 @@ const tests: TestCase[] = [
   {
     name: "server returns workspace symbols across open Merlin documents",
     run: runWorkspaceSymbolTest
+  },
+  {
+    name: "server resolves USE through configured macro folder",
+    run: runMacroFolderWorkspaceSymbolTest
   },
   {
     name: "server resolves definitions and references for Merlin symbols",

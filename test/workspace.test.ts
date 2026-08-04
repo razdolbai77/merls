@@ -107,6 +107,25 @@ export function runWorkspaceCaseInsensitiveLookupTest(): void {
   }
 }
 
+export function runMacroFolderUseTest(): void {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "merls-macro-folder-"));
+  const macroFolder = path.join(tempDir, "MerlinMacros");
+  const entryPath = path.join(tempDir, "main.S");
+  const macroPath = path.join(macroFolder, "Int.Macs.s");
+  fs.mkdirSync(macroFolder);
+  fs.writeFileSync(entryPath, "        use 4/Int.Macs\n");
+  fs.writeFileSync(macroPath, "MacroFolderSymbol equ 1\n");
+
+  try {
+    const workspace = indexWorkspace(entryPath, new Map(), undefined, { macroFolder });
+    assert.deepEqual(workspace.loadOrder, [entryPath, macroPath]);
+    assert.deepEqual(workspace.dependencies.get(entryPath), [macroPath]);
+    assert.equal(workspace.symbols.has("MacroFolderSymbol"), true);
+  } finally {
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  }
+}
+
 export function runIncludeTargetTest(): void {
   const document = parseDocument(
     ["  asm \"main.S\"", "  put dir/child.S", "  use 4/Int.Macs", "  asm pre+post"].join("\n")
