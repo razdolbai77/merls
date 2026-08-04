@@ -6,7 +6,7 @@ import {
 } from "../src/asm/metadata";
 
 export function runMetadataTableTest(): void {
-  assert.equal(opcodeTable.size, 56);
+  assert.equal(opcodeTable.size, 58);
   assert.deepEqual(opcodeTable.get("lda")?.modes, [
     "immediate",
     "zeroPage",
@@ -18,6 +18,8 @@ export function runMetadataTableTest(): void {
     "indirectIndexed"
   ]);
   assert.equal(opcodeTable.has("mvn"), false);
+  assert.deepEqual(opcodeTable.get("bge")?.modes, ["relative"]);
+  assert.deepEqual(opcodeTable.get("blt")?.modes, ["relative"]);
 
   assert.equal(directiveTable.get("org")?.supported, true);
   assert.equal(directiveTable.get("dum")?.supported, true);

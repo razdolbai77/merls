@@ -60,6 +60,8 @@ export async function runCompletionTest(): Promise<void> {
     });
     const opcodeItems = opcodeResponse.result as Array<{ label: string }>;
     assert.equal(opcodeItems.some((item) => item.label === "lda"), true);
+    assert.equal(opcodeItems.some((item) => item.label === "bge"), true);
+    assert.equal(opcodeItems.some((item) => item.label === "blt"), true);
 
     const directiveResponse = await sendRequest("textDocument/completion", {
       textDocument: { uri: mainUri },

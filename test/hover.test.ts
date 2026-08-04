@@ -183,6 +183,16 @@ export async function runHoverTest(): Promise<void> {
     const hoverLdaVarA = buildHover(openDocuments, regUri, 4, 12);
     assert.ok(hoverLdaVarA);
     assert.equal(typeof hoverLdaVarA.contents === "string" ? hoverLdaVarA.contents.includes("Register A") : false, false);
+
+    const aliasUri = "file:///workspace/branch-aliases.S";
+    const aliasCached = buildCachedDocument("        bge $10\n        blt $10");
+    const aliasDocuments = new Map([[aliasUri, aliasCached]]);
+    const bgeHover = buildHover(aliasDocuments, aliasUri, 0, 9);
+    const bltHover = buildHover(aliasDocuments, aliasUri, 1, 9);
+    assert.ok(bgeHover);
+    assert.ok(bltHover);
+    assert.equal((bgeHover.contents as string).includes("Carry Set"), true);
+    assert.equal((bltHover.contents as string).includes("Carry Clear"), true);
   } finally {
     stop();
   }
