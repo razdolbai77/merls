@@ -16,6 +16,7 @@ import { runMacroParameterPatternTest } from "./macro-parameter-pattern.test";
 import { runLspDiagnosticsTest } from "./lsp-diagnostics.test";
 import { runDocumentModelTest } from "./document-model.test";
 import { runAlternateMacroCallTest } from "./alternate-macro-calls.test";
+import { runInvFlsRangeTest } from "./inv-fls-ranges.test";
 import { runDataOperandTest } from "./data-operands.test";
 import { runLupRegionTest } from "./lup-regions.test";
 import { runDocumentSymbolTest } from "./document-symbol.test";
@@ -151,6 +152,10 @@ const tests: TestCase[] = [
   {
     name: "multi-value data and storage operands validate and resolve",
     run: runDataOperandTest
+  },
+  {
+    name: "inv and fls strings reject lowercase payloads",
+    run: runInvFlsRangeTest
   },
   {
     name: "symbol collection indexes labels equates and named data definitions",

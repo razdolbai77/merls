@@ -574,6 +574,27 @@ function collectDataOperandDiagnostics(
           endCharacter: node.directive.end
         });
       }
+      continue;
+    }
+
+    if (node.shape === "data") {
+      const directiveName = node.directive.lexeme.toLowerCase();
+      if (directiveName === "inv" || directiveName === "fls") {
+        for (const token of node.tokens) {
+          if (token.kind === "string" && /[a-z]/.test(token.lexeme)) {
+            diagnostics.push({
+              filePath,
+              line: line.line,
+              code: "invalid-data-operand",
+              message:
+                `${node.directive.lexeme.toUpperCase()} string contains lowercase characters; ` +
+                `${directiveName === "inv" ? "inverse" : "flashing"} text only supports uppercase, digits, and punctuation`,
+              startCharacter: token.start,
+              endCharacter: token.end
+            });
+          }
+        }
+      }
     }
   }
 
