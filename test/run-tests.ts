@@ -16,6 +16,7 @@ import { runMacroParameterPatternTest } from "./macro-parameter-pattern.test";
 import { runLspDiagnosticsTest } from "./lsp-diagnostics.test";
 import { runDocumentModelTest } from "./document-model.test";
 import { runAlternateMacroCallTest } from "./alternate-macro-calls.test";
+import { runDocConsistencyTest } from "./doc-consistency.test";
 import { runInvFlsRangeTest } from "./inv-fls-ranges.test";
 import { runDataOperandTest } from "./data-operands.test";
 import { runLupRegionTest } from "./lup-regions.test";
@@ -156,6 +157,10 @@ const tests: TestCase[] = [
   {
     name: "inv and fls strings reject lowercase payloads",
     run: runInvFlsRangeTest
+  },
+  {
+    name: "documentation never references removed substitution modules",
+    run: runDocConsistencyTest
   },
   {
     name: "symbol collection indexes labels equates and named data definitions",

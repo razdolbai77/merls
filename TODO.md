@@ -92,7 +92,7 @@ Reference: <https://brutaldeluxe.fr/products/crossdevtools/merlin/>
 - [x] Add fixture-driven cases transcribed from the official page for current address, brace precedence, variables, semicolon-separated macro parameters, `]0`, nested macro definitions, and implicit include suffixes.
 - [x] Add exact expected diagnostic-code assertions for every file under `test/fixtures/invalid/` instead of accepting any nonempty provenance marker.
 - [x] Replace README's “comprehensive and fully implemented” claim with a 6502/Merlin syntax coverage matrix and clearly separate intentional 65C02/65C816 exclusions from missing processor-neutral syntax.
-- [ ] Remove README and AGENTS references to nonexistent `src/asm/substitution.ts` and `test/substitution.test.ts`, or restore one shared substitution module and its actual test file.
+- [x] Remove README and AGENTS references to nonexistent `src/asm/substitution.ts` and `test/substitution.test.ts`, or restore one shared substitution module and its actual test file.
 
 ### Medium Priority — `examples/` Improvements
 
