@@ -131,65 +131,61 @@ export function expandMacroCall(
 }
 
 
+export function forEachMacroArgumentToken(
+  tokens: readonly Token[],
+  visit: (token: Token, argumentIndex: number, isSeparator: boolean) => void
+): void {
+  let depth = 0;
+  let argumentIndex = 0;
+
+  for (const token of tokens) {
+    if (token.kind === "expressionOperator" && token.lexeme === "(") {
+      depth += 1;
+      visit(token, argumentIndex, false);
+      continue;
+    }
+
+    if (token.kind === "expressionOperator" && token.lexeme === ")") {
+      depth = Math.max(0, depth - 1);
+      visit(token, argumentIndex, false);
+      continue;
+    }
+
+    if (token.kind === "expressionOperator" && token.lexeme === ";" && depth === 0) {
+      visit(token, argumentIndex, true);
+      argumentIndex += 1;
+      continue;
+    }
+
+    visit(token, argumentIndex, false);
+  }
+}
+
 export function splitMacroCallArguments(tokens: readonly Token[]): readonly (readonly Token[])[] {
   if (tokens.length === 0) {
     return [];
   }
 
   const argumentsByIndex: Token[][] = [[]];
-  let depth = 0;
-
-  for (const token of tokens) {
-    if (token.kind === "expressionOperator" && token.lexeme === "(") {
-      depth += 1;
-      argumentsByIndex.at(-1)?.push(token);
-      continue;
-    }
-
-    if (token.kind === "expressionOperator" && token.lexeme === ")") {
-      depth = Math.max(0, depth - 1);
-      argumentsByIndex.at(-1)?.push(token);
-      continue;
-    }
-
-    if (token.kind === "expressionOperator" && token.lexeme === ";" && depth === 0) {
+  forEachMacroArgumentToken(tokens, (token, argumentIndex, isSeparator) => {
+    if (isSeparator) {
       argumentsByIndex.push([]);
-      continue;
+      return;
     }
-
-    argumentsByIndex.at(-1)?.push(token);
-  }
+    argumentsByIndex[argumentIndex]?.push(token);
+  });
 
   return argumentsByIndex;
 }
 
 export function getActiveMacroCallArgumentIndex(tokens: readonly Token[], character: number): number {
   let activeArgumentIndex = 0;
-  let depth = 0;
 
-  for (const token of tokens) {
-    if (token.start >= character) {
-      break;
-    }
-
-    if (token.kind !== "expressionOperator") {
-      continue;
-    }
-
-    if (token.lexeme === "(") {
-      depth += 1;
-      continue;
-    }
-
-    if (token.lexeme === ")") {
-      depth = Math.max(0, depth - 1);
-      continue;
-    }
-
-    if (token.lexeme === ";" && depth === 0) {
+  forEachMacroArgumentToken(tokens, (token, _argumentIndex, isSeparator) => {
+    if (isSeparator && token.start < character) {
       activeArgumentIndex += 1;
     }
-  }
+  });
 
   return activeArgumentIndex;
 }

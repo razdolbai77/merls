@@ -83,7 +83,7 @@ Reference: <https://brutaldeluxe.fr/products/crossdevtools/merlin/>
 - [x] Parse alternate macro calls `PMC name,args` and `>>> name,args` into the same macro-call model used by direct calls.
 - [x] Validate multi-value data/storage operands, including `DS 8,$EE`, `DS \,$A0`, and mixed string/numeric `ASC` payloads.
 - [x] Validate `INV` and `FLS` character ranges so lowercase strings receive a targeted diagnostic rather than being advertised as valid.
-- [ ] Centralize macro argument splitting now duplicated in `expandMacroCall`, `splitMacroCallArguments`, arity diagnostics, and signature help; remove the stale reference to nonexistent `src/asm/substitution.ts`.
+- [x] Centralize macro argument splitting now duplicated in `expandMacroCall`, `splitMacroCallArguments`, arity diagnostics, and signature help; remove the stale reference to nonexistent `src/asm/substitution.ts`.
 
 ### Medium Priority — Tests and Compatibility Claims
 
