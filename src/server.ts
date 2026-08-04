@@ -7,7 +7,7 @@ import {
   type PublishDiagnosticsParams
 } from "vscode-languageserver/node";
 import fs from "node:fs";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { pathToFileURL } from "node:url";
 
 import { buildCachedDocument, type CachedDocument } from "./asm/document";
 import { buildDocumentSymbols } from "./lsp/document-symbols";
@@ -28,12 +28,9 @@ import { prepareCallHierarchy, provideCallHierarchyIncomingCalls, provideCallHie
 import { buildCodeLenses } from "./lsp/code-lens";
 import { buildSelectionRanges } from "./lsp/selection-range";
 import { indexWorkspace } from "./asm/workspace";
+import { uriToFilePath } from "./lsp/uri";
 
 const completionTriggerCharacters = "]:_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".split("");
-
-function normalizeUriToPath(uri: string): string {
-  return uri.startsWith("file://") ? fileURLToPath(uri) : uri;
-}
 
 export type DiagnosticsSender = Pick<Connection, "sendDiagnostics">;
 
@@ -146,7 +143,7 @@ export function startServer(
     // Normalize paths to prevent duplicate entries (e.g. file:///c:/ vs file:///C:/)
     const addedPaths = new Set<string>();
     for (const [uri, doc] of openDocuments.entries()) {
-      const filePath = normalizeUriToPath(uri);
+      const filePath = uriToFilePath(uri);
       if (uri.startsWith("file://")) {
         addedPaths.add(filePath.toLowerCase());
       }
@@ -162,7 +159,7 @@ export function startServer(
       addedPaths.add(filePath.toLowerCase());
     }
     for (const uri of openDocuments.keys()) {
-      const filePath = normalizeUriToPath(uri);
+      const filePath = uriToFilePath(uri);
       const workspace = indexWorkspace(filePath, diskCache, overrides);
       for (const [docPath, cached] of workspace.documents.entries()) {
         const normalizedDocPath = docPath.toLowerCase();
@@ -298,7 +295,7 @@ export function startServer(
   function evictUnreachableDiskCache(): void {
     const overrides = new Map<string, CachedDocument>();
     for (const [uri, doc] of openDocuments.entries()) {
-      overrides.set(normalizeUriToPath(uri), doc);
+      overrides.set(uriToFilePath(uri), doc);
     }
 
     const reachablePaths = new Set<string>();
@@ -318,7 +315,7 @@ export function startServer(
   connection.onDidChangeWatchedFiles(async (params) => {
     cachedIndexedDocuments = null;
     await Promise.all(params.changes.map(async (change) => {
-      const filePath = normalizeUriToPath(change.uri);
+      const filePath = uriToFilePath(change.uri);
       if (change.type === FileChangeType.Deleted) {
         diskCache.delete(filePath);
       } else {

@@ -1,5 +1,3 @@
-import { fileURLToPath } from "node:url";
-
 import {
   DiagnosticSeverity,
   type Diagnostic as LspDiagnostic
@@ -11,6 +9,7 @@ import {
   type Diagnostic as AsmDiagnostic,
   type DocumentEntry
 } from "../asm/diagnostics";
+import { uriToFilePath } from "./uri";
 
 export function collectDiagnosticsByUri(
   openDocuments: ReadonlyMap<string, CachedDocument>,
@@ -88,9 +87,4 @@ function toLspDiagnostic(source: string, diagnostic: AsmDiagnostic): LspDiagnost
       }
     }
   };
-}
-
-function uriToFilePath(uri: string): string {
-  const filePath = uri.startsWith("file://") ? fileURLToPath(uri) : uri;
-  return process.platform === "win32" ? filePath.toLowerCase() : filePath;
 }

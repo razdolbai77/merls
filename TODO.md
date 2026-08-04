@@ -19,7 +19,7 @@
 
 ### Medium Priority — Inconsistencies
 
-- [ ] Merge the two URI-to-path helpers with divergent win32 case handling: `normalizeUriToPath` (`src/server.ts:33-35`) and `uriToFilePath` (`src/lsp/diagnostics.ts:93-96`) into one canonical helper.
+- [x] Merge the two URI-to-path helpers with divergent win32 case handling: `normalizeUriToPath` (`src/server.ts:33-35`) and `uriToFilePath` (`src/lsp/diagnostics.ts:93-96`) into one canonical helper.
 - [ ] Export one `isLocalLabel` from `src/asm/local-labels.ts` and delete the identical copies in `src/asm/diagnostics.ts:724` and `src/lsp/completion.ts:176` plus inlined variants in `src/lsp/semantic-tokens.ts:83`, `src/lsp/code-lens.ts:29`, and `src/lsp/selection-range.ts:101`.
 - [ ] Consolidate the four global-label shape walkers (`src/asm/local-labels.ts:149`, `src/asm/diagnostics.ts:534`, `src/lsp/selection-range.ts:92`, `src/lsp/call-hierarchy.ts:7`) into one helper returning the label token.
 - [ ] Replace the four near-identical recursive Expression walkers (`src/lsp/symbol-navigation.ts:309`, `src/asm/diagnostics.ts:618`, `src/asm/local-labels.ts:218`, `src/asm/parser.ts:466`) with one shared traversal taking a collector.

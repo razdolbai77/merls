@@ -195,6 +195,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - Caching and invalidation rules for macro indexes and expansion-analysis results ensure that open-document updates do not unnecessarily re-expand the entire workspace.
 - The workspace index cache is invalidated both before and after watched-file updates, so a request that races the asynchronous disk reload cannot retain a stale empty index.
 - Workspace index merges skip disk-cache entries whose lowercased path is already indexed and never overwrite open-document keys, so unsaved buffers keep precedence over stale disk content and case-mismatched paths do not produce duplicate entries on Windows.
+- URI-to-path conversion has one canonical helper, `uriToFilePath` in `src/lsp/uri.ts`, shared by the server index and LSP diagnostics; it lowercases file paths on win32 so case-mismatched URIs never produce duplicate index entries.
 - Workspace include lookups compare paths case-insensitively on win32, so includes spelled with different drive or letter case resolve to open buffers and cached documents instead of stale disk content.
 - Diagnostic notifications swallow transport rejections through `sendDiagnosticsSafely`, so a disposed client cannot surface unhandled promise rejections, and the disk cache evicts paths unreachable from any open document's include graph after watched-file updates and document closes.
 - Inlay hints resolve duplicate equ names deterministically: the first definition in workspace load order wins, matching duplicate-symbol diagnostics.

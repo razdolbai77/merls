@@ -9,6 +9,7 @@ import { runDiagnosticsTest } from "./diagnostics.test";
 import { runDiagnosticsPublishTest } from "./diagnostics-publish.test";
 import { runDiskCacheEvictionTest } from "./disk-cache-eviction.test";
 import { runCompletionSuppressionTest } from "./completion-suppression.test";
+import { runUriToFilePathTest } from "./uri.test";
 import { runLspDiagnosticsTest } from "./lsp-diagnostics.test";
 import { runDocumentModelTest } from "./document-model.test";
 import { runDocumentSymbolTest } from "./document-symbol.test";
@@ -185,6 +186,10 @@ const tests: TestCase[] = [
   {
     name: "server returns semantic tokens for highlighting",
     run: runSemanticTokensTest
+  },
+  {
+    name: "uri to file path helpers normalize win32 case consistently",
+    run: runUriToFilePathTest
   },
   {
     name: "server returns opcode directive and symbol completions",
