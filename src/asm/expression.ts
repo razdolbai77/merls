@@ -250,10 +250,15 @@ function parsePrefix(
   }
 
   if (token.kind === "string") {
+    const lexeme = token.lexeme;
+    const quote = lexeme.charAt(0);
+    const value = lexeme.length > 1 && lexeme.endsWith(quote)
+      ? lexeme.slice(1, -1)
+      : lexeme.slice(1);
     return {
       expression: {
         kind: "string",
-        value: token.lexeme.slice(1, -1),
+        value,
         token
       },
       nextTokenIndex: startIndex + 1

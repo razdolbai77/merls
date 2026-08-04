@@ -205,4 +205,27 @@ export function runExpressionTest(): void {
     },
     right: { kind: "numericLiteral", value: "1" }
   });
+
+  const terminatedStringTokens = lexSource("  asc \"hello\"").lines[0]?.tokens ?? [];
+  const terminatedString = parseExpression(terminatedStringTokens.slice(1));
+  assert.deepEqual(summarizeExpression(terminatedString.expression), {
+    kind: "string",
+    value: "hello"
+  });
+
+  const unterminatedStringTokens = lexSource("  asc \"hello").lines[0]?.tokens ?? [];
+  assert.equal(unterminatedStringTokens[1]?.kind, "string");
+  const unterminatedString = parseExpression(unterminatedStringTokens.slice(1));
+  assert.deepEqual(summarizeExpression(unterminatedString.expression), {
+    kind: "string",
+    value: "hello"
+  });
+
+  const unterminatedSingleQuoteTokens = lexSource("  asc 'x").lines[0]?.tokens ?? [];
+  assert.equal(unterminatedSingleQuoteTokens[1]?.kind, "string");
+  const unterminatedSingleQuote = parseExpression(unterminatedSingleQuoteTokens.slice(1));
+  assert.deepEqual(summarizeExpression(unterminatedSingleQuote.expression), {
+    kind: "string",
+    value: "x"
+  });
 }
