@@ -167,6 +167,120 @@ export function runMacroDiagnosticsTest(): void {
     true,
     `Expected macro expansion to stop at depth ${MAX_MACRO_EXPANSION_DEPTH}`
   );
+
+  // Expanded diagnostics must not carry macro-body columns onto call-site lines.
+  {
+    const overflowSource = [
+      "Wrap mac",
+      "        lda ^dp",
+      "        eom",
+      "dp      equ $10",
+      "  Wrap"
+    ].join("\n");
+    const overflowDiagnostics = collectWorkspaceDiagnostics([
+      { filePath: "<overflow>", document: parseDocument(overflowSource) }
+    ]);
+    const overflowLines = overflowSource.split("\n");
+
+    for (const diagnostic of overflowDiagnostics) {
+      const lineLength = overflowLines[diagnostic.line]?.length ?? 0;
+      const startCharacter = diagnostic.startCharacter ?? 0;
+      const endCharacter = diagnostic.endCharacter ?? lineLength;
+      assert.ok(
+        startCharacter >= 0 && startCharacter <= lineLength,
+        `expected startCharacter within line for ${diagnostic.code} at ${diagnostic.line}`
+      );
+      assert.ok(
+        endCharacter >= startCharacter && endCharacter <= lineLength,
+        `expected endCharacter within line for ${diagnostic.code} at ${diagnostic.line}`
+      );
+    }
+
+    // The macro body line itself keeps its unknown-syntax diagnostic.
+    assert.deepEqual(findDiagnostic(overflowDiagnostics, "unknown-syntax", 1), {
+      filePath: "<overflow>",
+      line: 1,
+      code: "unknown-syntax",
+      message: "Unknown syntax: ^",
+      startCharacter: 12,
+      endCharacter: 13
+    });
+
+    // The expanded copy on the call-site line must not be reported again.
+    assert.equal(
+      overflowDiagnostics.some(
+        (diagnostic) => diagnostic.code === "unknown-syntax" && diagnostic.line === 4
+      ),
+      false
+    );
+  }
+
+  // Argument-derived unresolved references map to call-site columns.
+  {
+    const argSource = [
+      "Wrap mac",
+      "        sta ]1",
+      "        eom",
+      "  Wrap Missing"
+    ].join("\n");
+    const argDiagnostics = collectWorkspaceDiagnostics([
+      { filePath: "<args>", document: parseDocument(argSource) }
+    ]);
+    assert.deepEqual(findDiagnostic(argDiagnostics, "unresolved-reference", 3), {
+      filePath: "<args>",
+      line: 3,
+      code: "unresolved-reference",
+      message: "Unresolved reference Missing",
+      startCharacter: 7,
+      endCharacter: 14
+    });
+  }
+
+  // jmp (abs,x) is accepted; jmp #$1000 stays invalid.
+  {
+    const addressingSource = [
+      "abs",
+      "        jmp (abs,x)",
+      "        jmp #$1000"
+    ].join("\n");
+    const addressingDiagnostics = collectWorkspaceDiagnostics([
+      { filePath: "<addressing>", document: parseDocument(addressingSource) }
+    ]);
+    assert.equal(
+      addressingDiagnostics.some(
+        (diagnostic) =>
+          diagnostic.code === "invalid-addressing-mode" && diagnostic.line === 1
+      ),
+      false
+    );
+    assert.equal(
+      addressingDiagnostics.some(
+        (diagnostic) =>
+          diagnostic.code === "invalid-addressing-mode" && diagnostic.line === 2
+      ),
+      true
+    );
+  }
+
+  // getUnknownTextPattern never emits negative columns.
+  {
+    const textPatternSource = [
+      "        lda ^dp",
+      "        lda |dp",
+      "        lda >dp"
+    ].join("\n");
+    const textPatternDiagnostics = collectWorkspaceDiagnostics([
+      { filePath: "<text-pattern>", document: parseDocument(textPatternSource) }
+    ]);
+    for (const diagnostic of textPatternDiagnostics) {
+      if (diagnostic.startCharacter !== undefined) {
+        assert.ok(diagnostic.startCharacter >= 0, "startCharacter must never be negative");
+      }
+      if (diagnostic.endCharacter !== undefined) {
+        assert.ok(diagnostic.endCharacter >= 0, "endCharacter must never be negative");
+      }
+    }
+  }
 }
 
 function findDiagnostic(

@@ -4,7 +4,7 @@ import { type Token } from "./lexer";
 import { resolveLocalLabels } from "./local-labels";
 import { directiveTable, opcodeTable, type AddressingMode } from "./metadata";
 import { type ParsedLine, type MacroDefinitionRegion } from "./parser";
-import { getEffectiveLines, splitMacroCallArguments } from "./expansion";
+import { getEffectiveLines, splitMacroCallArguments, type ExpandedToken } from "./expansion";
 import { MAX_MACRO_EXPANSION_DEPTH } from "./limits";
 
 export type DiagnosticCode =
@@ -178,28 +178,58 @@ function collectUnknownDiagnostics(
   const effectiveLines = getEffectiveLines(document, macroDefinitions);
 
   for (const line of effectiveLines) {
-    const unknownDirectiveToken = getUnknownDirectiveToken(line.node);
-    if (unknownDirectiveToken !== null) {
-      diagnostics.push({
-        filePath,
-        line: line.line,
-        code: "unknown-directive",
-        message: `Unknown directive: ${unknownDirectiveToken.lexeme}`,
-        startCharacter: unknownDirectiveToken.start,
-        endCharacter: unknownDirectiveToken.end
-      });
+    const lineLength = document.lines[line.line]?.node.text.length ?? 0;
+
+    if (line.isExpanded) {
+      // Virtual expansion text has no call-site columns. Only
+      // argument-derived hex payload tokens map back to the call site;
+      // directive tokens and raw-text patterns are body-derived and are
+      // already diagnosed on the macro body line itself.
+      const invalidHexPayload = getInvalidHexPayloadToken(line.node);
+      if (invalidHexPayload !== null) {
+        const range = resolveDiagnosticRange(line.isExpanded, invalidHexPayload, lineLength);
+        if (range !== null) {
+          diagnostics.push({
+            filePath,
+            line: line.line,
+            code: "unknown-syntax",
+            message: `Unknown syntax: ${invalidHexPayload.lexeme}`,
+            startCharacter: range.start,
+            endCharacter: range.end
+          });
+        }
+      }
+      continue;
     }
 
-    const invalidHexPayload = getInvalidHexPayloadPattern(line.node);
+    const unknownDirectiveToken = getUnknownDirectiveToken(line.node);
+    if (unknownDirectiveToken !== null) {
+      const range = resolveDiagnosticRange(line.isExpanded, unknownDirectiveToken, lineLength);
+      if (range !== null) {
+        diagnostics.push({
+          filePath,
+          line: line.line,
+          code: "unknown-directive",
+          message: `Unknown directive: ${unknownDirectiveToken.lexeme}`,
+          startCharacter: range.start,
+          endCharacter: range.end
+        });
+      }
+    }
+
+    const invalidHexPayload = getInvalidHexPayloadToken(line.node);
     if (invalidHexPayload !== null) {
-      diagnostics.push({
-        filePath,
-        line: line.line,
-        code: "unknown-syntax",
-        message: `Unknown syntax: ${invalidHexPayload.text}`,
-        startCharacter: invalidHexPayload.start,
-        endCharacter: invalidHexPayload.end
-      });
+      const range = resolveDiagnosticRange(line.isExpanded, invalidHexPayload, lineLength);
+      if (range !== null) {
+        diagnostics.push({
+          filePath,
+          line: line.line,
+          code: "unknown-syntax",
+          message: `Unknown syntax: ${invalidHexPayload.lexeme}`,
+          startCharacter: range.start,
+          endCharacter: range.end
+        });
+      }
     }
 
     const unknownTextMatch = getUnknownTextPattern(line.node.text);
@@ -411,22 +441,26 @@ function collectUnresolvedDiagnostics(
   const effectiveLines = getEffectiveLines(document, macroDefinitions);
 
   for (const line of effectiveLines) {
+    const lineLength = document.lines[line.line]?.node.text.length ?? 0;
+
     for (const reference of findExpressionReferences(line.node)) {
       if (!line.isExpanded && macroParameterLines.get(line.line)?.has(reference.lexeme) === true) {
         continue;
       }
 
+      const range = resolveDiagnosticRange(line.isExpanded, reference, lineLength);
+
       if (reference.lexeme.startsWith("]")) {
         const definitionLine = variableDefinitionLines.get(reference.lexeme);
         if (definitionLine !== undefined) {
-          if (line.line < definitionLine && !line.isExpanded) {
+          if (line.line < definitionLine && !line.isExpanded && range !== null) {
             diagnostics.push({
               filePath,
               line: line.line,
               code: "unresolved-reference",
               message: `Unresolved variable reference ${reference.lexeme}`,
-              startCharacter: reference.start,
-              endCharacter: reference.end
+              startCharacter: range.start,
+              endCharacter: range.end
             });
           }
           continue;
@@ -437,28 +471,28 @@ function collectUnresolvedDiagnostics(
         const localKey = `${reference.lexeme}@${line.line}`;
 
         if (!localScope.references.has(localKey)) {
-          if (!line.isExpanded) {
+          if (!line.isExpanded && range !== null) {
             diagnostics.push({
               filePath,
               line: line.line,
               code: "unresolved-reference",
               message: `Unresolved local reference ${reference.lexeme}`,
-              startCharacter: reference.start,
-              endCharacter: reference.end
+              startCharacter: range.start,
+              endCharacter: range.end
             });
           }
         }
         continue;
       }
 
-      if (!globalSymbols.has(reference.lexeme)) {
+      if (!globalSymbols.has(reference.lexeme) && range !== null) {
         diagnostics.push({
           filePath,
           line: line.line,
           code: "unresolved-reference",
           message: `Unresolved reference ${reference.lexeme}`,
-          startCharacter: reference.start,
-          endCharacter: reference.end
+          startCharacter: range.start,
+          endCharacter: range.end
         });
       }
     }
@@ -652,22 +686,21 @@ function getUnknownDirectiveToken(node: ParsedLine): Token | null {
 }
 
 function getUnknownTextPattern(text: string): { text: string; start: number; end: number } | null {
-  const trimmed = text.trim().toLowerCase();
-
-  if (trimmed.includes("^")) {
-    const index = text.indexOf("^");
-    return { text: "^", start: index, end: index + 1 };
+  const caretMatch = /\^/.exec(text);
+  if (caretMatch !== null) {
+    return { text: "^", start: caretMatch.index, end: caretMatch.index + 1 };
   }
 
-  if (trimmed.includes("|")) {
-    const index = text.indexOf("|");
-    return { text: "|", start: index, end: index + 1 };
+  const pipeMatch = /\|/.exec(text);
+  if (pipeMatch !== null) {
+    return { text: "|", start: pipeMatch.index, end: pipeMatch.index + 1 };
   }
 
-  const match = /\b(lda|sta|cmp|adc|sbc|and|ora|eor|jmp|jsr|ldx|ldy|stx|sty|bit)\s+>[^=]/i.exec(text);
-  if (match !== null) {
-    const index = text.indexOf(">", match.index);
-    if (index !== -1) {
+  const modifierMatch = /\b(lda|sta|cmp|adc|sbc|and|ora|eor|jmp|jsr|ldx|ldy|stx|sty|bit)\s+>[^=]/i.exec(text);
+  if (modifierMatch !== null) {
+    const modifierIndex = />/.exec(modifierMatch[0]);
+    if (modifierIndex !== null) {
+      const index = modifierMatch.index + modifierIndex.index;
       return { text: ">", start: index, end: index + 1 };
     }
   }
@@ -675,7 +708,7 @@ function getUnknownTextPattern(text: string): { text: string; start: number; end
   return null;
 }
 
-function getInvalidHexPayloadPattern(node: ParsedLine): { text: string; start: number; end: number } | null {
+function getInvalidHexPayloadToken(node: ParsedLine): Token | null {
   if (node.shape !== "data" || node.directive.lexeme.toLowerCase() !== "hex") {
     return null;
   }
@@ -686,11 +719,7 @@ function getInvalidHexPayloadPattern(node: ParsedLine): { text: string; start: n
   for (const token of node.tokens) {
     if (token.kind === "expressionOperator" && token.lexeme === ",") {
       if (expectValue) {
-        return {
-          text: token.lexeme,
-          start: token.start,
-          end: token.end
-        };
+        return token;
       }
       expectValue = true;
       lastComma = token;
@@ -703,22 +732,34 @@ function getInvalidHexPayloadPattern(node: ParsedLine): { text: string; start: n
       continue;
     }
 
-    return {
-      text: token.lexeme,
-      start: token.start,
-      end: token.end
-    };
+    return token;
   }
 
   if (expectValue && lastComma !== null) {
-    return {
-      text: lastComma.lexeme,
-      start: lastComma.start,
-      end: lastComma.end
-    };
+    return lastComma;
   }
 
   return null;
+}
+
+function resolveDiagnosticRange(
+  isExpanded: boolean,
+  token: Token,
+  lineLength: number
+): { start: number; end: number } | null {
+  let rangeToken: Token = token;
+
+  if (isExpanded) {
+    const callSiteToken = (token as ExpandedToken).callSiteToken;
+    if (callSiteToken === null || callSiteToken === undefined) {
+      return null;
+    }
+    rangeToken = callSiteToken;
+  }
+
+  const start = Math.max(0, Math.min(rangeToken.start, lineLength));
+  const end = Math.max(start, Math.min(rangeToken.end, lineLength));
+  return { start, end };
 }
 
 function isLocalLabel(name: string): boolean {
@@ -773,7 +814,7 @@ function collectAddressingModeDiagnostics(
   const effectiveLines = getEffectiveLines(document, macroDefinitions);
 
   for (const line of effectiveLines) {
-    if (line.node.shape !== "instruction") {
+    if (line.isExpanded || line.node.shape !== "instruction") {
       continue;
     }
 
@@ -787,13 +828,15 @@ function collectAddressingModeDiagnostics(
     const hasValidMode = possibleModes.some((mode) => definition.modes.includes(mode));
 
     if (!hasValidMode) {
+      const lineLength = document.lines[line.line]?.node.text.length ?? 0;
+      const range = resolveDiagnosticRange(false, line.node.mnemonic, lineLength);
       diagnostics.push({
         filePath,
         line: line.line,
         code: "invalid-addressing-mode",
         message: `Invalid addressing mode for '${mnemonic}'`,
-        startCharacter: line.node.mnemonic.start,
-        endCharacter: line.node.mnemonic.end
+        startCharacter: range?.start ?? line.node.mnemonic.start,
+        endCharacter: range?.end ?? line.node.mnemonic.end
       });
     }
   }

@@ -91,7 +91,7 @@ export const opcodeDefinitions: readonly OpcodeDefinition[] = [
   defineOpcode("inc", ["zeroPage", "zeroPageX", "absolute", "absoluteX"], "Increment Memory"),
   defineOpcode("inx", ["implied"], "Increment X Register"),
   defineOpcode("iny", ["implied"], "Increment Y Register"),
-  defineOpcode("jmp", ["absolute", "indirect"], "Jump"),
+  defineOpcode("jmp", ["absolute", "indirect", "indexedIndirect"], "Jump"),
   defineOpcode("jsr", ["absolute"], "Jump to Subroutine"),
   defineOpcode("lda", ["immediate", "zeroPage", "zeroPageX", "absolute", "absoluteX", "absoluteY", "indexedIndirect", "indirectIndexed"], "Load Accumulator"),
   defineOpcode("ldx", ["immediate", "zeroPage", "zeroPageY", "absolute", "absoluteY"], "Load X Register"),
