@@ -183,6 +183,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - Macro-aware definition/reference coverage now includes call-site symbol resolution through nested macro calls, ensuring navigation lands on the concrete symbol definition supplied to the macro rather than on the macro symbol itself.
 - Rename planning now propagates through macro-expanded call-site symbol references, so renaming a concrete symbol updates both its definition and the macro call arguments that expand to that symbol.
 - Rename coverage now includes nested macro-call expansion paths, ensuring the propagated edit set still targets only the concrete symbol definition and call-site argument tokens rather than macro placeholders.
+- Rename rejects cross-scope targets: macro parameter placeholders (`]1`-style) and `:local`/`]local` labels fail with a descriptive error, and the new name must be a valid Merlin identifier. Renaming a Merlin variable preserves its `]` prefix.
 - Local-label resolution is limited to ordinary Merlin anchor-based locals; local labels inside macros are rejected to match Merlin32 behavior.
 - Completion items replace the active token explicitly, so accepting `]local` or `:loop` after typing its prefix does not duplicate the prefix.
 - Completion is triggered automatically while typing Merlin identifier characters, including the `]` and `:` prefixes of local labels.

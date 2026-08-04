@@ -6,7 +6,7 @@
 
 - [x] Add a position bounds guard in `src/lsp/selection-range.ts:28-58`: a `pos.line` at or past `lines.length` throws TypeError at `lines[pos.line].length`; return the file range for out-of-bounds positions.
 - [x] Fix shell quoting in `vscode/src/compile.ts:11-33`: `quoteWindowsArg` must also quote cmd metacharacters (`& | < > ^ %`), and `quotePosixArg` must quote `; & | < > ( ) * ? [ ] # ~ ^ %` even without spaces, so paths containing them cannot break or inject into the terminal command.
-- [ ] Guard `src/lsp/rename.ts:12-25` against cross-scope raw-lexeme renames: reject renaming `]N` parameters and `:local`/`]local` labels, and validate `newName` as a Merlin identifier before emitting edits.
+- [x] Guard `src/lsp/rename.ts:12-25` against cross-scope raw-lexeme renames: reject renaming `]N` parameters and `:local`/`]local` labels, and validate `newName` as a Merlin identifier before emitting edits.
 - [ ] Fix mislocated macro-expansion ranges in `src/lsp/symbol-navigation.ts:181,252`: expanded tokens carry `sourceToken.start/end` columns from the macro definition file but are emitted on call-site lines; map columns through the call-site argument tokens so references and rename stop producing corrupting TextEdits.
 - [ ] Make `src/server.ts:143-146` diskCache merge safe: it can overwrite unsaved open buffers with stale disk content and creates case-duplicate entries on Windows; skip disk entries whose lowercased path is already present and never overwrite open-document keys.
 - [ ] Make `src/asm/workspace.ts:78-93` override and diskCache lookups case-insensitive on win32 so includes spelled with different drive/letter case resolve to the open buffer instead of stale disk content.
