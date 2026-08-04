@@ -73,7 +73,7 @@ Reference: <https://brutaldeluxe.fr/products/crossdevtools/merlin/>
 
 - [x] Remove explicit `A` operands from `ASL`/`LSR`/`ROL`/`ROR` acceptance to match Merlin 32's implied-accumulator syntax; add `LSR` as valid and `LSR A` as invalid diagnostic coverage.
 - [x] Make direct-page versus absolute addressing validation value-sensitive; reject `STA $00,Y` unless absolute mode is explicitly forced.
-- [ ] Parse Merlin opcode suffixes that force absolute addressing, including `LDA: $11`, and preserve the suffix through formatting and semantic tokens.
+- [x] Parse Merlin opcode suffixes that force absolute addressing, including `LDA: $11`, and preserve the suffix through formatting and semantic tokens.
 - [ ] Add the documented 6502 aliases `BGE`/`BLT` with `BCS`/`BCC` addressing behavior, hover text, completion, and tests.
 
 ### Medium Priority — Merlin Directive Coverage

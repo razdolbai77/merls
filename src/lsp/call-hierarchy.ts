@@ -3,6 +3,7 @@ import { type CallHierarchyItem, type CallHierarchyIncomingCall, type CallHierar
 import { type CachedDocument } from "../asm/document";
 import { getEffectiveLines, type EffectiveLine, type ExpandedToken } from "../asm/expansion";
 import { getGlobalLabelToken } from "../asm/local-labels";
+import { normalizeMnemonic } from "../asm/metadata";
 import { type ParsedLine } from "../asm/parser";
 import {
   type SymbolDefinition,
@@ -98,7 +99,7 @@ export function provideCallHierarchyIncomingCalls(
         const parsedLine = docCached.parsed.lines[refLineIndex];
         if (!parsedLine || parsedLine.node.shape !== "instruction") continue;
 
-        const mnemonic = parsedLine.node.mnemonic.lexeme.toLowerCase();
+        const mnemonic = normalizeMnemonic(parsedLine.node.mnemonic.lexeme);
         if (mnemonic !== "jsr" && mnemonic !== "jmp") continue;
 
         const enclosing = getEnclosingGlobalLabel(docCached.parsed, refLineIndex);
@@ -168,7 +169,7 @@ function startsNextGlobalLabel(line: EffectiveLine): boolean {
 function getOutgoingTarget(cached: CachedDocument, line: EffectiveLine): OutgoingTarget | null {
   if (line.node.shape !== "instruction") return null;
 
-  const mnemonic = line.node.mnemonic.lexeme.toLowerCase();
+  const mnemonic = normalizeMnemonic(line.node.mnemonic.lexeme);
   if (mnemonic !== "jsr" && mnemonic !== "jmp") return null;
 
   for (const token of getReferencedTokens(cached, line.line, line.node)) {

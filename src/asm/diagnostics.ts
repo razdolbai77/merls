@@ -2,7 +2,7 @@ import { type ParsedDocument } from "./document";
 import { type Expression, type Operand, walkExpression } from "./expression";
 import { type Token } from "./lexer";
 import { resolveLocalLabels, isLocalLabel, getGlobalLabelToken } from "./local-labels";
-import { directiveTable, opcodeTable, type AddressingMode } from "./metadata";
+import { directiveTable, normalizeMnemonic, opcodeTable, type AddressingMode } from "./metadata";
 import {
   isAssemblyEndDirective,
   type MacroDefinitionRegion,
@@ -1048,6 +1048,7 @@ function resolveDiagnosticRange(
 
 function getOperandAddressingModes(
   mnemonic: string,
+  forcesAbsolute: boolean,
   operand: Operand | null,
   values: ReadonlyMap<string, number>
 ): readonly AddressingMode[] {
@@ -1082,19 +1083,21 @@ function getOperandAddressingModes(
   const isDirectPage = address !== null && address >= 0 && address <= 0xff;
 
   if (operand.indexRegister === "x") {
+    if (forcesAbsolute) return ["absoluteX"];
     if (address === null) return ["zeroPageX", "absoluteX"];
     return isDirectPage ? ["zeroPageX"] : ["absoluteX"];
   }
 
   if (operand.indexRegister === "y") {
+    if (forcesAbsolute) return ["absoluteY"];
     if (address === null) return ["zeroPageY", "absoluteY"];
     return isDirectPage ? ["zeroPageY"] : ["absoluteY"];
   }
 
+  if (forcesAbsolute) return ["absolute"];
   if (address === null) return ["zeroPage", "absolute", "relative"];
   return isDirectPage ? ["zeroPage", "relative"] : ["absolute", "relative"];
 }
-
 function collectAddressingModeDiagnostics(
   filePath: string,
   document: ParsedDocument,
@@ -1113,13 +1116,18 @@ function collectAddressingModeDiagnostics(
       continue;
     }
 
-    const mnemonic = line.node.mnemonic.lexeme.toLowerCase();
+    const mnemonic = normalizeMnemonic(line.node.mnemonic.lexeme);
     const definition = opcodeTable.get(mnemonic);
     if (definition === undefined) {
       continue;
     }
 
-    const possibleModes = getOperandAddressingModes(mnemonic, line.node.operand, values);
+    const possibleModes = getOperandAddressingModes(
+      mnemonic,
+      line.node.mnemonic.lexeme.endsWith(":"),
+      line.node.operand,
+      values
+    );
     const hasValidMode = possibleModes.some((mode) => definition.modes.includes(mode));
 
     if (!hasValidMode) {

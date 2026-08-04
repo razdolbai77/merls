@@ -57,6 +57,15 @@ export function runFormattingTest(): void {
     assert.equal(edits[0].newText, "        HEX     00,01,02,03");
   }
 
+  // preserves absolute-address suffixes on known instructions
+  {
+    const cached = buildCachedDocument("        lda: $11");
+    const edits = formatDocument(cached, { insertSpaces: true, tabSize: 8 });
+
+    assert.equal(edits.length, 1);
+    assert.equal(edits[0].newText, "        LDA:    $11");
+  }
+
   // handles long labels
   {
     const source = "veryLongLabel adc #0";

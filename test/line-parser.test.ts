@@ -118,4 +118,10 @@ export function runLineParserTest(): void {
   });
 
   assert.equal(lines[8]?.shape, "malformed");
+
+  const forcedAbsoluteLine = parseSourceLines("        lda: $11")[0];
+  assert.equal(forcedAbsoluteLine?.shape, "instruction");
+  if (forcedAbsoluteLine?.shape === "instruction") {
+    assert.equal(forcedAbsoluteLine.mnemonic.lexeme, "lda:");
+  }
 }

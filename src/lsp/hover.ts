@@ -1,6 +1,6 @@
 import { type Hover } from "vscode-languageserver/node";
 
-import { directiveTable, opcodeTable } from "../asm/metadata";
+import { directiveTable, normalizeMnemonic, opcodeTable } from "../asm/metadata";
 import { type CachedDocument, type DocumentLine } from "../asm/document";
 import { type Token, tokenAtCharacter } from "../asm/lexer";
 import { type ParsedLine } from "../asm/parser";
@@ -120,7 +120,7 @@ function buildNodeHover(node: ParsedLine): Hover | null {
 }
 
 function buildOpcodeHover(mnemonic: string): Hover | null {
-  const definition = opcodeTable.get(mnemonic.toLowerCase());
+  const definition = opcodeTable.get(normalizeMnemonic(mnemonic));
   if (definition === undefined) return null;
   return {
     contents: `Opcode ${definition.mnemonic}: ${definition.description}\n\nModes: ${definition.modes.join(", ")}`

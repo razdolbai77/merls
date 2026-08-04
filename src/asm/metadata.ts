@@ -34,6 +34,10 @@ export type DirectiveDefinition = {
   completions?: readonly string[];
 };
 
+export function normalizeMnemonic(lexeme: string): string {
+  return lexeme.endsWith(":") ? lexeme.slice(0, -1).toLowerCase() : lexeme.toLowerCase();
+}
+
 function defineOpcode(
   mnemonic: string,
   modes: readonly AddressingMode[],

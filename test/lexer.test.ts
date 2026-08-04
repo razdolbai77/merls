@@ -117,4 +117,11 @@ export function runLexerTest(): void {
       ["mnemonic", "rts"]
     ]
   );
+  assert.deepEqual(
+    summarizeTokens(lexSource("        lda: $11").lines[0]?.tokens ?? []),
+    [
+      ["mnemonic", "lda:"],
+      ["numericLiteral", "$11"]
+    ]
+  );
 }

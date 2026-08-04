@@ -90,6 +90,22 @@ export function runVariableTest(): void {
     true
   );
 
+  const suffixCached = buildCachedDocument("        lda: $11");
+  const suffixDocuments = new Map([[uri, suffixCached]]);
+  const keywordTokenType = semanticTokensLegend.tokenTypes.indexOf(SemanticTokenTypes.keyword);
+  const suffixTokens = decodeSemanticTokens(
+    buildSemanticTokens(suffixCached, suffixDocuments).data
+  );
+  assert.equal(
+    suffixTokens.some((token) =>
+      token.line === 0 &&
+      token.character === 8 &&
+      token.length === 4 &&
+      token.type === keywordTokenType
+    ),
+    true
+  );
+
   const forwardDocument = parseDocument([
     "Start",
     "        lda ]future",

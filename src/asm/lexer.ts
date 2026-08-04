@@ -1,4 +1,4 @@
-import { directiveTable, opcodeTable } from "./metadata";
+import { directiveTable, normalizeMnemonic, opcodeTable } from "./metadata";
 
 export type TokenKind =
   | "comment"
@@ -219,7 +219,7 @@ function classifyWord(
   sawOperation: boolean,
   firstNonWhitespace: number
 ): TokenKind {
-  const normalized = lexeme.toLowerCase();
+  const normalized = normalizeMnemonic(lexeme);
 
   if (opcodeTable.has(normalized)) {
     return "mnemonic";
