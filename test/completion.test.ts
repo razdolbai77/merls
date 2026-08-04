@@ -168,6 +168,10 @@ export async function runCompletionTest(): Promise<void> {
     const macroParamItems = macroParamResponse.result as Array<{ label: string }>;
     assert.equal(macroParamItems.some((item) => item.label === "]1"), true);
     assert.equal(macroParamItems.some((item) => item.label === "]2"), true);
+    assert.equal(macroParamItems.some((item) => item.label === "]0"), true);
+    assert.equal(macroParamItems.some((item) => item.label === "]8"), true);
+    assert.equal(macroParamItems.some((item) => item.label === "]9"), false);
+    assert.equal(macroParamItems.some((item) => item.label === "]10"), false);
 
     const macroNameResponse = await sendRequest("textDocument/completion", {
       textDocument: { uri: macroUri },

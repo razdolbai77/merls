@@ -189,6 +189,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - Local-label resolution is limited to ordinary Merlin anchor-based locals; local labels inside macros are rejected to match Merlin32 behavior.
 - Completion items replace the active token explicitly, so accepting `]local` or `:loop` after typing its prefix does not duplicate the prefix.
 - Completion is triggered automatically while typing Merlin identifier characters, including the `]` and `:` prefixes of local labels, and is suppressed whenever the cursor sits on any character of a comment or string token, including its first character.
+- Macro-body completion offers only documented positional placeholders: `]0` and `]1` through `]8`.
 - Local-label completion candidates are limited to the current global-label anchor, and backward `]label` candidates must already be defined.
 - Local-label tests now also cover that macro-local labels remain unresolved while ordinary Merlin anchor-based locals before or after a macro call still resolve normally.
 - Hover now recognizes macro call sites directly, showing parsed positional signatures and macro definition lines instead of only falling back to generic symbol hover text.

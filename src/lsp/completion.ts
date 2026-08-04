@@ -10,8 +10,10 @@ import { collectSymbols } from "../asm/symbols";
 import { type Token } from "../asm/lexer";
 import { renderMacroParameters } from "./macro-signature";
 
+const documentedMacroParameters = ["]0", ...renderMacroParameters(8)];
+
 type CompletionContext = {
-  enclosingMacroMaxParameterIndex: number | null;
+  isInsideMacro: boolean;
   localScope: LocalLabelScope | null;
   operandToken: Token | null;
   replacementToken: Token | null;
@@ -78,7 +80,7 @@ function getCompletionContext(
       (definition) => line > definition.startLine && (definition.endLine === null || line < definition.endLine)
     );
     return {
-      enclosingMacroMaxParameterIndex: enclosingMacro?.maxParameterIndex ?? null,
+      isInsideMacro: enclosingMacro !== undefined,
       localScope: resolveLocalLabels(cached.parsed),
       operandToken,
       replacementToken,
@@ -87,7 +89,7 @@ function getCompletionContext(
   }
 
   return {
-    enclosingMacroMaxParameterIndex: null,
+    isInsideMacro: false,
     localScope: null,
     operandToken,
     replacementToken,
@@ -151,9 +153,9 @@ function addMacroParameterCompletions(
   seenSymbols: Set<string>,
   createItem: CompletionItemFactory
 ): void {
-  if (context.enclosingMacroMaxParameterIndex === null || context.operandToken === null) return;
+  if (!context.isInsideMacro || context.operandToken === null) return;
 
-  for (const parameter of renderMacroParameters(context.enclosingMacroMaxParameterIndex, 9)) {
+  for (const parameter of documentedMacroParameters) {
     if (!seenSymbols.has(parameter)) {
       seenSymbols.add(parameter);
       completions.push(createItem(parameter, CompletionItemKind.Variable));
