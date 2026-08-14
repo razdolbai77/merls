@@ -14,4 +14,4 @@ if (getCallSiteToken(token, isExpanded)) {
 ```
 */
 
-export { getCallSiteToken } from "../asm/expansion";
+export { CALL_SITE_TOKEN_KEY, getCallSiteToken } from "../asm/expansion";

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { lexSource } from "../src/asm/lexer";
 import { parseDocument } from "../src/asm/document";
-import { expandMacroCall, getCallSiteToken, getEffectiveLines } from "../src/asm/expansion";
+import { CALL_SITE_TOKEN_KEY, expandMacroCall, getCallSiteToken, getEffectiveLines } from "../src/asm/expansion";
 import { MAX_MACRO_EXPANSION_LINES } from "../src/asm/limits";
 
 export async function runExpansionTest(): Promise<void> {
@@ -38,6 +38,7 @@ export async function runExpansionTest(): Promise<void> {
   assert.equal(getCallSiteToken(arg1Token, true)?.lexeme, "$12");
   assert.equal(getCallSiteToken(arg1Token, false), null);
 
+  assert.equal(CALL_SITE_TOKEN_KEY, "callSiteToken");
   // Verify caching
   const expansion2 = expandMacroCall(callLine.node, parsed.macroDefinitions);
   assert.equal(expansion, expansion2, "expansion should be cached");

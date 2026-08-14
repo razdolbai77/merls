@@ -8,6 +8,8 @@ import { macroParameterPattern } from "./macros";
 export type ExpandedToken = Token & {
   callSiteToken: Token | null;
 };
+export const CALL_SITE_TOKEN_KEY = "callSiteToken";
+
 /**
  * Gets the call-site token for a token on an expanded line, or null if unexpanded or body-derived.
  */
@@ -15,7 +17,7 @@ export function getCallSiteToken(
   token: Token,
   isExpanded: boolean
 ): Token | null {
-  return isExpanded && "callSiteToken" in token ? (token as ExpandedToken).callSiteToken : null;
+  return isExpanded && CALL_SITE_TOKEN_KEY in token ? (token as ExpandedToken).callSiteToken : null;
 }
 
 
@@ -91,7 +93,7 @@ export function expandMacroCall(
             const argToken = argTokens[i]!;
             const spaceBefore = i === 0 ? " ".repeat(token.start - lastTokenEnd) : "";
             expandedText += spaceBefore + argToken.lexeme;
-            const callSiteToken = "callSiteToken" in argToken
+            const callSiteToken = CALL_SITE_TOKEN_KEY in argToken
               ? (argToken as ExpandedToken).callSiteToken
               : argToken;
             expandedTokens.push({
