@@ -15,7 +15,7 @@
 ## Refactoring Opportunities
 
 - [x] Add type guard for unknown keys in `initializationOptions` validation path; silently ignored options should trigger warnings
-- [ ] Replace indexOf pattern in `src/lsp/semantic-tokens.ts` with Map/set data structure for O(n) → O(1) lookups
+- [x] Replace indexOf pattern in `src/lsp/semantic-tokens.ts` with Map/set data structure for O(n) → O(1) lookups
 - [ ] Cover 17 of 21 diagnostic codes with dedicated test fixtures; missing coverage prevents regression detection
 
 ## Testing & Documentation

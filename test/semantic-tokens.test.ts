@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { startJsonRpcClient } from "./helpers/json-rpc-client";
-
+import { buildCachedDocument } from "../src/asm/document";
+import { buildSemanticTokens } from "../src/lsp/semantic-tokens";
 
 
 
@@ -68,6 +69,12 @@ export async function runSemanticTokensTest(): Promise<void> {
     const macroResult = macroTokensResponse.result as { data: number[] };
     assert.ok(Array.isArray(macroResult.data), "Expected macro data to be an array");
     assert.ok(macroResult.data.length > 0, "Expected non-empty semantic tokens for macro file");
+
+    // Direct unit test of buildSemanticTokens for O(1) directive completion colorizing
+    const cachedDoc = buildCachedDocument("        TYP BIN\nMacro mac\n        lda ]1\n        eom\n");
+    const indexedMap = new Map([["file:///test.S", cachedDoc]]);
+    const tokens = buildSemanticTokens(cachedDoc, indexedMap);
+    assert.ok(tokens.data.length > 0, "buildSemanticTokens returns token data");
 
   } finally {
     stop();

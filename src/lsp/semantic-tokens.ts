@@ -23,18 +23,39 @@ export const semanticTokensLegend: SemanticTokensLegend = {
   tokenModifiers: []
 };
 
+const COMMENT_TYPE_INDEX = tokenTypesList.indexOf(SemanticTokenTypes.comment);
+const FUNCTION_TYPE_INDEX = tokenTypesList.indexOf(SemanticTokenTypes.function);
+const MACRO_TYPE_INDEX = tokenTypesList.indexOf(SemanticTokenTypes.macro);
+const KEYWORD_TYPE_INDEX = tokenTypesList.indexOf(SemanticTokenTypes.keyword);
+const STRING_TYPE_INDEX = tokenTypesList.indexOf(SemanticTokenTypes.string);
+const NUMBER_TYPE_INDEX = tokenTypesList.indexOf(SemanticTokenTypes.number);
+const OPERATOR_TYPE_INDEX = tokenTypesList.indexOf(SemanticTokenTypes.operator);
+const VARIABLE_TYPE_INDEX = tokenTypesList.indexOf(SemanticTokenTypes.variable);
+const PARAMETER_TYPE_INDEX = tokenTypesList.indexOf(SemanticTokenTypes.parameter);
+
 const tokenTypeMap: Record<TokenKind, number> = {
-  comment: tokenTypesList.indexOf(SemanticTokenTypes.comment),
-  label: tokenTypesList.indexOf(SemanticTokenTypes.function),
-  localLabel: tokenTypesList.indexOf(SemanticTokenTypes.function),
-  directive: tokenTypesList.indexOf(SemanticTokenTypes.macro),
-  mnemonic: tokenTypesList.indexOf(SemanticTokenTypes.keyword),
-  string: tokenTypesList.indexOf(SemanticTokenTypes.string),
-  numericLiteral: tokenTypesList.indexOf(SemanticTokenTypes.number),
-  modifier: tokenTypesList.indexOf(SemanticTokenTypes.operator),
-  expressionOperator: tokenTypesList.indexOf(SemanticTokenTypes.operator),
-  identifier: tokenTypesList.indexOf(SemanticTokenTypes.variable)
+  comment: COMMENT_TYPE_INDEX,
+  label: FUNCTION_TYPE_INDEX,
+  localLabel: FUNCTION_TYPE_INDEX,
+  directive: MACRO_TYPE_INDEX,
+  mnemonic: KEYWORD_TYPE_INDEX,
+  string: STRING_TYPE_INDEX,
+  numericLiteral: NUMBER_TYPE_INDEX,
+  modifier: OPERATOR_TYPE_INDEX,
+  expressionOperator: OPERATOR_TYPE_INDEX,
+  identifier: VARIABLE_TYPE_INDEX
 };
+
+const directiveCompletionSetCache = new WeakMap<readonly string[], Set<string>>();
+
+function getDirectiveCompletionSet(completions: readonly string[]): Set<string> {
+  let set = directiveCompletionSetCache.get(completions);
+  if (set === undefined) {
+    set = new Set(completions);
+    directiveCompletionSetCache.set(completions, set);
+  }
+  return set;
+}
 
 type SemanticSymbolsCache = {
   allSymbols: Set<string>;
@@ -108,32 +129,32 @@ export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Ma
         // Check if it's a known completion argument for the current directive
         if (parsedLine?.shape === "directive") {
           const dirDef = directiveTable.get(parsedLine.directive.lexeme.toLowerCase());
-          if (dirDef?.completions && dirDef.completions.includes(token.lexeme.toUpperCase())) {
+          if (dirDef?.completions && getDirectiveCompletionSet(dirDef.completions).has(token.lexeme.toUpperCase())) {
             isKnownCompletion = true;
           }
         }
 
         if (isKnownCompletion) {
           // Color known directive arguments (like BIN for TYP) as numbers/constants
-          typeIndex = tokenTypeMap["numericLiteral"];
+          typeIndex = NUMBER_TYPE_INDEX;
         } else if (parsedLine?.shape === "directive" && parsedLine.directive.lexeme.toLowerCase() === "mac" && token.start === parsedLine.label?.start) {
-          typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.macro);
+          typeIndex = MACRO_TYPE_INDEX;
         } else if (parsedLine?.shape === "macroCall" && token.start === parsedLine.macro.start) {
-          typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.macro);
+          typeIndex = MACRO_TYPE_INDEX;
         } else if (macroParameterPattern.test(token.lexeme)) {
           // Macro parameter placeholder
-          typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.parameter);
+          typeIndex = PARAMETER_TYPE_INDEX;
         } else if (allVariables.has(token.lexeme)) {
-          typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.variable);
+          typeIndex = VARIABLE_TYPE_INDEX;
         } else if (isResolved(token.lexeme, line.line)) {
           if (allMacros.has(token.lexeme)) {
-            typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.macro);
+            typeIndex = MACRO_TYPE_INDEX;
           } else {
-            typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.function); // label
+            typeIndex = FUNCTION_TYPE_INDEX; // label
           }
         } else {
           // Unresolved names use variable tokens.
-          typeIndex = tokenTypesList.indexOf(SemanticTokenTypes.variable);
+          typeIndex = VARIABLE_TYPE_INDEX;
         }
       }
 
