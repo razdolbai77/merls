@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { lexSource } from "../src/asm/lexer";
 import { parseDocument } from "../src/asm/document";
-import { expandMacroCall, getEffectiveLines } from "../src/asm/expansion";
+import { expandMacroCall, getCallSiteToken, getEffectiveLines } from "../src/asm/expansion";
 import { MAX_MACRO_EXPANSION_LINES } from "../src/asm/limits";
 
 export async function runExpansionTest(): Promise<void> {
@@ -34,6 +34,9 @@ export async function runExpansionTest(): Promise<void> {
   assert.ok(arg1Token);
   assert.equal(arg1Token.lexeme, "$12");
   assert.equal(arg1Token.callSiteToken?.lexeme, "$12"); // maps to call site
+  assert.equal(getCallSiteToken(ldaToken, true), null);
+  assert.equal(getCallSiteToken(arg1Token, true)?.lexeme, "$12");
+  assert.equal(getCallSiteToken(arg1Token, false), null);
 
   // Verify caching
   const expansion2 = expandMacroCall(callLine.node, parsed.macroDefinitions);

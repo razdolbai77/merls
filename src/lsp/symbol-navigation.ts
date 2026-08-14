@@ -2,7 +2,7 @@ import { type Location } from "vscode-languageserver/node";
 
 import { type CachedDocument } from "../asm/document";
 import { type Expression, walkExpression } from "../asm/expression";
-import { getEffectiveLines, splitMacroCallArguments, type ExpandedToken } from "../asm/expansion";
+import { getCallSiteToken, getEffectiveLines, splitMacroCallArguments } from "../asm/expansion";
 import { type Token, tokenAtCharacter } from "../asm/lexer";
 import { isLocalLabel, resolveLocalLabels } from "../asm/local-labels";
 import { macroParameterPattern } from "../asm/macros";
@@ -190,16 +190,12 @@ export function findReferences(
       const tokens = getReferencedTokens(cached, line.line, line.node);
 
       for (const token of tokens) {
-        if (line.isExpanded) {
-          const expandedToken = token as ExpandedToken;
-          if (!expandedToken.callSiteToken) {
-            continue;
-          }
+        const callSiteToken = getCallSiteToken(token, line.isExpanded);
+        if (line.isExpanded && !callSiteToken) {
+          continue;
         }
         if (token.lexeme === targetName) {
-          const rangeToken = "callSiteToken" in token
-            ? ((token as ExpandedToken).callSiteToken ?? token)
-            : token;
+          const rangeToken = callSiteToken ?? token;
 
           locations.push({
             uri: documentUri,
@@ -257,7 +253,7 @@ export function collectReferences(uri: string, cached: CachedDocument): readonly
     for (const token of tokens) {
       let rangeToken: Token = token;
       if (line.isExpanded) {
-        const callSiteToken = (token as ExpandedToken).callSiteToken;
+        const callSiteToken = getCallSiteToken(token, line.isExpanded);
         if (!callSiteToken) {
           continue;
         }

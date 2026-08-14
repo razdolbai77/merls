@@ -8,6 +8,16 @@ import { macroParameterPattern } from "./macros";
 export type ExpandedToken = Token & {
   callSiteToken: Token | null;
 };
+/**
+ * Gets the call-site token for a token on an expanded line, or null if unexpanded or body-derived.
+ */
+export function getCallSiteToken(
+  token: Token,
+  isExpanded: boolean
+): Token | null {
+  return isExpanded && "callSiteToken" in token ? (token as ExpandedToken).callSiteToken : null;
+}
+
 
 export type ExpandedLine = {
   text: string;

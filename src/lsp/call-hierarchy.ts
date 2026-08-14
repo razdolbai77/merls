@@ -1,7 +1,7 @@
 import { type CallHierarchyItem, type CallHierarchyIncomingCall, type CallHierarchyOutgoingCall, SymbolKind } from "vscode-languageserver/node";
 
 import { type CachedDocument } from "../asm/document";
-import { getEffectiveLines, type EffectiveLine, type ExpandedToken } from "../asm/expansion";
+import { getCallSiteToken, getEffectiveLines, type EffectiveLine } from "../asm/expansion";
 import { getGlobalLabelToken } from "../asm/local-labels";
 import { normalizeMnemonic } from "../asm/metadata";
 import { type ParsedLine } from "../asm/parser";
@@ -175,9 +175,9 @@ function getOutgoingTarget(cached: CachedDocument, line: EffectiveLine): Outgoin
   for (const token of getReferencedTokens(cached, line.line, line.node)) {
     if (token.kind !== "identifier" && token.kind !== "localLabel" && token.kind !== "label") continue;
 
-    const expandedToken = token as ExpandedToken;
-    if (line.isExpanded && !expandedToken.callSiteToken) continue;
-    const sourceToken = "callSiteToken" in token ? (expandedToken.callSiteToken ?? token) : token;
+    const callSiteToken = getCallSiteToken(token, line.isExpanded);
+    if (line.isExpanded && !callSiteToken) continue;
+    const sourceToken = callSiteToken ?? token;
     return {
       name: token.lexeme,
       sourceStart: sourceToken.start,

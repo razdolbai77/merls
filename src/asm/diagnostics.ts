@@ -10,7 +10,7 @@ import {
   type ParsedLine
 } from "./parser";
 import { macroParameterPattern } from "./macros";
-import { getEffectiveLines, splitMacroCallArguments, type ExpandedToken } from "./expansion";
+import { getCallSiteToken, getEffectiveLines, splitMacroCallArguments } from "./expansion";
 import { MAX_MACRO_EXPANSION_DEPTH, MAX_MACRO_EXPANSION_LINES } from "./limits";
 
 export type DiagnosticCode =
@@ -1208,7 +1208,7 @@ function resolveDiagnosticRange(
   let rangeToken: Token = token;
 
   if (isExpanded) {
-    const callSiteToken = (token as ExpandedToken).callSiteToken;
+    const callSiteToken = getCallSiteToken(token, isExpanded);
     if (callSiteToken === null || callSiteToken === undefined) {
       return null;
     }
