@@ -13,7 +13,16 @@ const expectedShowcaseCodes: readonly DiagnosticCode[] = [
   "unsupported-instruction",
   "invalid-addressing-mode",
   "unknown-syntax",
-  "missing-macro-end"
+  "missing-macro-end",
+  "macro-arity-mismatch",
+  "macro-recursion",
+  "unresolved-conditional",
+  "forward-macro-call",
+  "forward-equate-reference",
+  "unterminated-loop",
+  "unmatched-loop-terminator",
+  "unsupported-generated-label",
+  "invalid-data-operand"
 ];
 
 export function runExamplesShowcaseTest(): void {

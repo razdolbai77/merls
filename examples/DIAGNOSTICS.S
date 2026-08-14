@@ -52,6 +52,46 @@ BadLocalLabel MAC
         LDA     ($10),X ; invalid-addressing-mode: lda
         STA     ($10,Y) ; invalid-addressing-mode: sta
 
+* Diagnostic: Forward Macro Call
+        ForwardMac      ; forward-macro-call: ForwardMac defined later in file
+
+* Diagnostic: Forward Equate Reference
+        LDA     ForwardEqu ; forward-equate-reference: ForwardEqu defined later in file
+
+* Diagnostic: Macro Arity Mismatch
+ArityMac MAC
+        LDA     ]1
+        EOM
+        ArityMac #1;#2   ; macro-arity-mismatch: ArityMac expects at most 1 argument
+
+* Diagnostic: Macro Recursion
+RecurseMac MAC
+        RecurseMac      ; macro-recursion: recursive macro call
+        EOM
+
+* Diagnostic: Unresolved Conditional in Macro
+CondMac MAC
+        DO      1       ; unresolved-conditional: DO inside macro cannot be statically resolved
+        EOM
+
+* Diagnostic: Unmatched Loop Terminator
+        --^             ; unmatched-loop-terminator: standalone loop terminator
+
+* Diagnostic: Unsupported Generated Label
+        JMP     @       ; unsupported-generated-label: reference to generated label @
+
+* Diagnostic: Invalid Data Operand
+        INV     "lowercase" ; invalid-data-operand: INV payload contains lowercase text
+
+* Diagnostic: Unterminated Loop
+        LUP     5       ; unterminated-loop: missing --^ terminator
+        NOP
+
+* Diagnostic: Forward Definitions (satisfy forward references above)
+ForwardMac MAC
+        NOP
+        EOM
+ForwardEqu EQU  100
 * Diagnostic: Missing Macro Terminator (keep this last: everything after
 * an unclosed MAC belongs to the macro body)
 BadMacro MAC            ; missing-macro-end: no eom/<<< terminator
