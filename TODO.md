@@ -4,7 +4,7 @@
 
 - [x] Extract `getCallSiteToken` type guard into shared utility; currently duplicated across multiple diagnostic and navigation modules
 - [x] Add recursion depth guard to `parseExpression()` in `src/asm/expression.ts`; deeply nested expressions can cause stack overflow with no depth tracking
-- [ ] Fix `local-labels.ts` DRY violations: duplicate logic for local label resolution scattered across workspace indexing, symbol navigation, and diagnostic handling
+- [x] Fix `local-labels.ts` DRY violations: duplicate logic for local label resolution scattered across workspace indexing, symbol navigation, and diagnostic handling
 
 ## Medium Priority - Inconsistencies & Maintainability
 

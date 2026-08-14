@@ -55,7 +55,7 @@ export function resolveLocalLabels(document: ParsedDocument): LocalLabelScope {
       continue;
     }
 
-    const qualifiedName = qualifyName(localDefinition, line.line);
+    const qualifiedName = qualifyLocalName(localDefinition, line.line);
     const definition: LocalLabelDefinition = {
       name: localDefinition,
       line: line.line,
@@ -114,7 +114,7 @@ export function resolveLocalLabels(document: ParsedDocument): LocalLabelScope {
         continue;
       }
 
-      references.set(qualifyName(localName, line.line), {
+      references.set(qualifyLocalName(localName, line.line), {
         name: localName,
         line: line.line,
         anchor: currentAnchor.name,
@@ -152,52 +152,24 @@ function getGlobalLabel(node: ParsedLine): string | null {
 }
 
 export function getGlobalLabelToken(node: ParsedLine): Token | null {
-  if (node.shape === "equate" && isGlobalLabel(node.label.lexeme)) {
+  if ("label" in node && node.label !== null && isGlobalLabel(node.label.lexeme)) {
     return node.label;
   }
-
-  if (node.shape === "labelOnly" && isGlobalLabel(node.label.lexeme)) {
-    return node.label;
-  }
-
-  if (node.shape === "instruction" && node.label !== null && isGlobalLabel(node.label.lexeme)) {
-    return node.label;
-  }
-
-  if (node.shape === "directive" && node.label !== null && isGlobalLabel(node.label.lexeme)) {
-    return node.label;
-  }
-
-  if (node.shape === "data" && node.label !== null && isGlobalLabel(node.label.lexeme)) {
-    return node.label;
-  }
-
   return null;
 }
 
+export function getLocalLabelToken(node: ParsedLine): Token | null {
+  if (node.shape === "equate" && node.isVariable) {
+    return null;
+  }
+  if ("label" in node && node.label !== null && isLocalLabel(node.label.lexeme)) {
+    return node.label;
+  }
+  return null;
+}
 
 function getLocalDefinition(node: ParsedLine): string | null {
-  if (node.shape === "labelOnly" && isLocalLabel(node.label.lexeme)) {
-    return node.label.lexeme;
-  }
-
-  if (node.shape === "instruction" && node.label !== null && isLocalLabel(node.label.lexeme)) {
-    return node.label.lexeme;
-  }
-
-  if (node.shape === "directive" && node.label !== null && isLocalLabel(node.label.lexeme)) {
-    return node.label.lexeme;
-  }
-
-  if (node.shape === "data" && node.label !== null && isLocalLabel(node.label.lexeme)) {
-    return node.label.lexeme;
-  }
-
-  if (node.shape === "equate" && !node.isVariable && isLocalLabel(node.label.lexeme)) {
-    return node.label.lexeme;
-  }
-
-  return null;
+  return getLocalLabelToken(node)?.lexeme ?? null;
 }
 
 function findLocalReferences(node: ParsedLine): readonly string[] {
@@ -238,6 +210,40 @@ export function isLocalLabel(name: string): boolean {
   return name.startsWith("]") || name.startsWith(":");
 }
 
-function qualifyName(name: string, line: number): string {
+export function qualifyLocalName(name: string, line: number): string {
   return `${name}@${line}`;
+}
+
+export function getLocalLabelReference(
+  scope: LocalLabelScope,
+  name: string,
+  line: number
+): LocalLabelReference | undefined {
+  return scope.references.get(qualifyLocalName(name, line));
+}
+
+export function getLocalLabelDefinition(
+  scope: LocalLabelScope,
+  name: string,
+  line: number
+): LocalLabelDefinition | undefined {
+  return scope.definitions.get(qualifyLocalName(name, line));
+}
+
+export function getLocalLabelTargetLine(
+  scope: LocalLabelScope,
+  name: string,
+  line: number
+): number | undefined {
+  const key = qualifyLocalName(name, line);
+  return scope.references.get(key)?.targetLine ?? scope.definitions.get(key)?.line;
+}
+
+export function isLocalLabelResolved(
+  scope: LocalLabelScope,
+  name: string,
+  line: number
+): boolean {
+  const key = qualifyLocalName(name, line);
+  return scope.definitions.has(key) || scope.references.has(key);
 }

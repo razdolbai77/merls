@@ -1,7 +1,7 @@
 import { type ParsedDocument } from "./document";
 import { type Expression, type Operand, walkExpression } from "./expression";
 import { type Token } from "./lexer";
-import { resolveLocalLabels, isLocalLabel, getGlobalLabelToken } from "./local-labels";
+import { resolveLocalLabels, isLocalLabel, getGlobalLabelToken, getLocalLabelReference } from "./local-labels";
 import { directiveTable, normalizeMnemonic, opcodeTable, type AddressingMode } from "./metadata";
 import {
   isAssemblyEndDirective,
@@ -910,8 +910,7 @@ function collectUnresolvedDiagnostics(
       }
 
       if (isLocalLabel(reference.lexeme)) {
-        const localKey = `${reference.lexeme}@${line.line}`;
-        const localReference = localScope.references.get(localKey);
+        const localReference = getLocalLabelReference(localScope, reference.lexeme, line.line);
         if (localReference === undefined || !activeLines.has(localReference.targetLine)) {
           if (!line.isExpanded && range !== null) {
             diagnostics.push({

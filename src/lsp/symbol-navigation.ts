@@ -4,7 +4,7 @@ import { type CachedDocument } from "../asm/document";
 import { type Expression, walkExpression } from "../asm/expression";
 import { getCallSiteToken, getEffectiveLines, splitMacroCallArguments } from "../asm/expansion";
 import { type Token, tokenAtCharacter } from "../asm/lexer";
-import { isLocalLabel, resolveLocalLabels } from "../asm/local-labels";
+import { isLocalLabel, resolveLocalLabels, getLocalLabelTargetLine } from "../asm/local-labels";
 import { macroParameterPattern } from "../asm/macros";
 import { type ParsedLine } from "../asm/parser";
 import { collectSymbols } from "../asm/symbols";
@@ -114,9 +114,7 @@ function findLocalLabelDefinition(
   if (cached === undefined) return null;
 
   const localScope = resolveLocalLabels(cached.parsed);
-  const localKey = `${targetName}@${line}`;
-  const reference = localScope.references.get(localKey);
-  const targetLine = reference?.targetLine ?? localScope.definitions.get(localKey)?.line;
+  const targetLine = getLocalLabelTargetLine(localScope, targetName, line);
   if (targetLine === undefined) return null;
 
   const targetLexedLine = cached.lexed.lines[targetLine];

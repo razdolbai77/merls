@@ -3,7 +3,15 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { parseDocument } from "../src/asm/document";
-import { resolveLocalLabels, getGlobalLabelToken } from "../src/asm/local-labels";
+import {
+  resolveLocalLabels,
+  getGlobalLabelToken,
+  qualifyLocalName,
+  getLocalLabelReference,
+  getLocalLabelDefinition,
+  getLocalLabelTargetLine,
+  isLocalLabelResolved
+} from "../src/asm/local-labels";
 
 export function runLocalLabelScopeTest(): void {
   const fixturePath = path.resolve(
@@ -168,4 +176,13 @@ export function runLocalLabelScopeTest(): void {
 
   assert.equal(getGlobalLabelToken(shapeDocument.lines[5].node), null);
   assert.equal(getGlobalLabelToken(shapeDocument.lines[6].node), null);
+
+  // Shared helper utilities
+  assert.equal(qualifyLocalName("]loop", 74), "]loop@74");
+  assert.equal(getLocalLabelReference(scope, "]loop", 74)?.targetLine, 72);
+  assert.equal(getLocalLabelDefinition(scope, "]loop", 72)?.line, 72);
+  assert.equal(getLocalLabelTargetLine(scope, "]loop", 74), 72);
+  assert.equal(getLocalLabelTargetLine(scope, "]loop", 72), 72);
+  assert.equal(isLocalLabelResolved(scope, "]loop", 74), true);
+  assert.equal(isLocalLabelResolved(scope, "]unknown", 74), false);
 }

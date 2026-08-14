@@ -2,7 +2,7 @@ import { SemanticTokens, SemanticTokensBuilder, SemanticTokensLegend, SemanticTo
 
 import { type CachedDocument } from "../asm/document";
 import { type TokenKind } from "../asm/lexer";
-import { resolveLocalLabels, isLocalLabel, type LocalLabelScope } from "../asm/local-labels";
+import { resolveLocalLabels, isLocalLabel, isLocalLabelResolved, type LocalLabelScope } from "../asm/local-labels";
 import { macroParameterPattern } from "../asm/macros";
 import { directiveTable } from "../asm/metadata";
 
@@ -83,8 +83,7 @@ export function buildSemanticTokens(cached: CachedDocument, indexedDocuments: Ma
   const isResolved = (name: string, line: number) => {
     if (allSymbols.has(name)) return true;
     if (isLocalLabel(name)) {
-      const qualified = `${name}@${line}`;
-      return localScope.definitions.has(qualified) || localScope.references.has(qualified);
+      return isLocalLabelResolved(localScope, name, line);
     }
     return false;
   };
