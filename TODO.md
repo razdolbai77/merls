@@ -20,4 +20,4 @@
 
 ## Testing & Documentation
 
-- [ ] Add edge-case fixture files covering macro recursion depth limits and deeply nested call chains
+- [x] Add edge-case fixture files covering macro recursion depth limits and deeply nested call chains

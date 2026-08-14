@@ -15,7 +15,9 @@ const validFixturePaths = [
 const invalidFixturePaths = [
   "test/fixtures/invalid/macro-generated-unresolved.S",
   "test/fixtures/invalid/unknown-bank-ops.S",
-  "test/fixtures/invalid/unknown-addressing-modifiers.S"
+  "test/fixtures/invalid/unknown-addressing-modifiers.S",
+  "test/fixtures/invalid/macro-recursion-limit.S",
+  "test/fixtures/invalid/macro-deep-nested-calls.S"
 ];
 
 const expectedInvalidDiagnosticCodes: Record<string, readonly DiagnosticCode[]> = {
@@ -40,7 +42,9 @@ const expectedInvalidDiagnosticCodes: Record<string, readonly DiagnosticCode[]> 
     "unknown-syntax",
     "unknown-syntax",
     "unresolved-reference"
-  ]
+  ],
+  "test/fixtures/invalid/macro-recursion-limit.S": ["macro-recursion"],
+  "test/fixtures/invalid/macro-deep-nested-calls.S": ["deep-macro-expansion"]
 };
 
 export function runFixtureCorpusTest(): void {
@@ -66,6 +70,8 @@ export function runFixtureCorpusTest(): void {
     assert.match(content, /Source: apple2accumulator\/merlin32/);
     if (fixturePath.includes("unknown-")) {
       assert.match(content, /unknown diagnostic coverage/i);
+    } else if (fixturePath.includes("macro-recursion") || fixturePath.includes("macro-deep")) {
+      assert.match(content, /edge-case fixture/i);
     } else {
       assert.match(content, /macro-generated unresolved reference/);
     }
