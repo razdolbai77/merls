@@ -10,7 +10,7 @@
 
 - [x] Split `src/lsp/diagnostics.ts` into modular handler files (labels, expressions, general) for isolated testing and clearer maintenance
 - [x] Replace magic `"callSiteToken"` string in `src/lsp/completion.ts:37` with named constant; appears multiple times without central definition
-- [ ] Fix `effectiveLinesCache` to invalidate on document content changes rather than only identity (URI) changes
+- [x] Fix `effectiveLinesCache` to invalidate on document content changes rather than only identity (URI) changes
 
 ## Refactoring Opportunities
 

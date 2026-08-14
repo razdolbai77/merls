@@ -57,6 +57,14 @@ export async function runExpansionTest(): Promise<void> {
   const effectiveLines3 = getEffectiveLines(parsed, [otherDef]);
   assert.notEqual(effectiveLines, effectiveLines3, "effectiveLines should be invalidated if definitions change");
 
+  // Verify getEffectiveLines invalidation when macro calls or document lines change
+  const sameParsedReference = { ...parsed };
+  const cachedLines1 = getEffectiveLines(sameParsedReference, parsed.macroDefinitions);
+  const mutableReference = sameParsedReference as { macroCalls: typeof sameParsedReference.macroCalls };
+  mutableReference.macroCalls = [...sameParsedReference.macroCalls, sameParsedReference.macroCalls[0]!];
+  const cachedLines2 = getEffectiveLines(sameParsedReference, parsed.macroDefinitions);
+  assert.notEqual(cachedLines1, cachedLines2, "effectiveLines should be invalidated when document.macroCalls changes on same document reference");
+
   // Verify preservation of original tokens including operators, punctuation, and data payloads
   const complexSource = [
     "Complex mac",

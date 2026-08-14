@@ -209,6 +209,9 @@ export type EffectiveLine = {
 };
 
 type ExpansionCacheEntry = {
+  linesCount: number;
+  macroCallsCount: number;
+  macroDefinitions: readonly MacroDefinitionRegion[];
   resolvedDefinitions: Map<string, MacroDefinitionRegion | undefined>;
   effectiveLines: readonly EffectiveLine[];
 };
@@ -223,13 +226,24 @@ export function getEffectiveLines(
   let canReuseCache = false;
 
   if (cached) {
-    canReuseCache = true;
-    for (const macroCall of document.macroCalls) {
-      const macroName = macroCall.macro.lexeme;
-      const currentDefinition = macroDefinitions.find((def) => def.name === macroName);
-      if (cached.resolvedDefinitions.get(macroName) !== currentDefinition) {
-        canReuseCache = false;
-        break;
+    if (
+      cached.linesCount === document.lines.length &&
+      cached.macroCallsCount === document.macroCalls.length
+    ) {
+      if (cached.macroDefinitions === macroDefinitions) {
+        canReuseCache = true;
+      } else {
+        const uniqueCallNames = new Set(document.macroCalls.map((call) => call.macro.lexeme));
+        if (cached.resolvedDefinitions.size === uniqueCallNames.size) {
+          canReuseCache = true;
+          for (const macroName of uniqueCallNames) {
+            const currentDefinition = macroDefinitions.find((def) => def.name === macroName);
+            if (cached.resolvedDefinitions.get(macroName) !== currentDefinition) {
+              canReuseCache = false;
+              break;
+            }
+          }
+        }
       }
     }
   }
@@ -290,6 +304,12 @@ export function getEffectiveLines(
     expandNode(line.node, line.line, 0, new Set(), { remaining: MAX_MACRO_EXPANSION_LINES });
   }
 
-  effectiveLinesCache.set(document, { resolvedDefinitions, effectiveLines });
+  effectiveLinesCache.set(document, {
+    linesCount: document.lines.length,
+    macroCallsCount: document.macroCalls.length,
+    macroDefinitions,
+    resolvedDefinitions,
+    effectiveLines
+  });
   return effectiveLines;
 }

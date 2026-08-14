@@ -229,7 +229,7 @@ An example configuration lives in `examples/coc-settings.json`.
 - Local-label completion candidates are limited to the current global-label anchor, and backward `]label` candidates must already be defined.
 - Local-label tests now also cover that macro-local labels remain unresolved while ordinary Merlin anchor-based locals before or after a macro call still resolve normally.
 - Hover now recognizes macro call sites directly, showing parsed positional signatures and macro definition lines instead of only falling back to generic symbol hover text.
-- Caching and invalidation rules for macro indexes and expansion-analysis results ensure that open-document updates do not unnecessarily re-expand the entire workspace.
+- Caching and invalidation rules for macro indexes and expansion-analysis results ensure that open-document updates do not unnecessarily re-expand the entire workspace; `effectiveLinesCache` validates line count, macro call count, and resolved definition mappings to guarantee stale expansion views are invalidated on content changes.
 - The workspace index cache is invalidated both before and after watched-file updates, so a request that races the asynchronous disk reload cannot retain a stale empty index.
 - Workspace index merges skip disk-cache entries whose lowercased path is already indexed and never overwrite open-document keys, so unsaved buffers keep precedence over stale disk content and case-mismatched paths do not produce duplicate entries on Windows.
 - URI-to-path conversion has one canonical helper, `uriToFilePath` in `src/lsp/uri.ts`, shared by the server index and LSP diagnostics; it lowercases file paths on win32 so case-mismatched URIs never produce duplicate index entries.
