@@ -1,4 +1,5 @@
 import { type Token } from "./lexer";
+import { MAX_EXPRESSION_DEPTH } from "./limits";
 
 export type NumericLiteralExpression = {
   kind: "numericLiteral";
@@ -87,9 +88,14 @@ export function parseExpression(
   tokens: readonly Token[],
   startIndex = 0,
   minimumPrecedence = 0,
-  precedence: ExpressionPrecedence = "leftToRight"
+  precedence: ExpressionPrecedence = "leftToRight",
+  depth = 0
 ): ParsedExpression {
-  let { expression: left, nextTokenIndex } = parsePrefix(tokens, startIndex, precedence);
+  if (depth > MAX_EXPRESSION_DEPTH) {
+    throw new Error("maximum expression recursion depth exceeded");
+  }
+
+  let { expression: left, nextTokenIndex } = parsePrefix(tokens, startIndex, precedence, depth);
 
   while (nextTokenIndex < tokens.length) {
     const operatorToken = tokens[nextTokenIndex];
@@ -116,7 +122,7 @@ export function parseExpression(
       break;
     }
 
-    const parsedRight = parseExpression(tokens, nextTokenIndex + 1, operatorPrecedence + 1, precedence);
+    const parsedRight = parseExpression(tokens, nextTokenIndex + 1, operatorPrecedence + 1, precedence, depth + 1);
     left = {
       kind: "binary",
       operator: operatorToken.lexeme as BinaryExpression["operator"],
@@ -213,8 +219,13 @@ export function parseOperand(tokens: readonly Token[], startIndex = 0): ParsedOp
 function parsePrefix(
   tokens: readonly Token[],
   startIndex: number,
-  precedence: ExpressionPrecedence
+  precedence: ExpressionPrecedence,
+  depth: number
 ): ParsedExpression {
+  if (depth > MAX_EXPRESSION_DEPTH) {
+    throw new Error("maximum expression recursion depth exceeded");
+  }
+
   const token = tokens[startIndex];
   if (token === undefined) {
     throw new Error("expected expression token");
@@ -229,8 +240,6 @@ function parsePrefix(
       nextTokenIndex: startIndex + 1
     };
   }
-
-
 
   if (
     token.kind === "identifier" || 
@@ -275,7 +284,7 @@ function parsePrefix(
   }
 
   if (token.kind === "modifier") {
-    const parsedInner = parsePrefix(tokens, startIndex + 1, precedence);
+    const parsedInner = parsePrefix(tokens, startIndex + 1, precedence, depth + 1);
     return {
       expression: {
         kind: "modifier",
@@ -287,7 +296,7 @@ function parsePrefix(
   }
 
   if (token.kind === "expressionOperator" && token.lexeme === "{") {
-    const parsedInner = parseExpression(tokens, startIndex + 1, 0, "algebraic");
+    const parsedInner = parseExpression(tokens, startIndex + 1, 0, "algebraic", depth + 1);
     expectOperator(tokens[parsedInner.nextTokenIndex], "}");
     return {
       expression: parsedInner.expression,
@@ -296,7 +305,7 @@ function parsePrefix(
   }
 
   if (token.kind === "expressionOperator" && token.lexeme === "(") {
-    const parsedInner = parseExpression(tokens, startIndex + 1, 0, precedence);
+    const parsedInner = parseExpression(tokens, startIndex + 1, 0, precedence, depth + 1);
     expectOperator(tokens[parsedInner.nextTokenIndex], ")");
     return {
       expression: parsedInner.expression,
@@ -305,7 +314,7 @@ function parsePrefix(
   }
 
   if (token.kind === "expressionOperator" && (token.lexeme === "+" || token.lexeme === "-")) {
-    const parsedInner = parsePrefix(tokens, startIndex + 1, precedence);
+    const parsedInner = parsePrefix(tokens, startIndex + 1, precedence, depth + 1);
     return {
       expression: {
         kind: "unary",

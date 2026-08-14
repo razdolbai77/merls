@@ -248,5 +248,14 @@ export function runExpressionTest(): void {
     });
     assert.deepEqual(nestedVisited, ["a", "b"]);
   }
+  // Recursion depth guard prevents call stack overflow on deeply nested expressions.
+  {
+    const deeplyNestedSource = "(".repeat(105) + "1" + ")".repeat(105);
+    const deeplyNestedTokens = lexSource(deeplyNestedSource).lines[0]?.tokens ?? [];
+    assert.throws(
+      () => parseExpression(deeplyNestedTokens),
+      /maximum expression recursion depth exceeded/i
+    );
+  }
 
 }

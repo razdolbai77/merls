@@ -1,2 +1,3 @@
 export const MAX_MACRO_EXPANSION_DEPTH = 50;
 export const MAX_MACRO_EXPANSION_LINES = 5000;
+export const MAX_EXPRESSION_DEPTH = 100;
