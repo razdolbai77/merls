@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import { startJsonRpcClient } from "./helpers/json-rpc-client";
+import { isKnownInitializationOptionKey, readMacroFolder } from "../src/server";
 
 type InitializeResult = {
   capabilities?: {
@@ -44,6 +45,20 @@ export async function runInitializeHandshakeTest(): Promise<void> {
     assert.equal(completionTriggers?.includes("b"), true);
     assert.equal(completionTriggers?.includes("G"), true);
     assert.equal(completionTriggers?.includes("_"), true);
+
+    // Verify type guard and unknown option warning logic
+    assert.equal(isKnownInitializationOptionKey("merlinMacroFolder"), true);
+    assert.equal(isKnownInitializationOptionKey("macroFolder"), true);
+    assert.equal(isKnownInitializationOptionKey("unknownOption"), false);
+
+    const warnings: string[] = [];
+    const folder = readMacroFolder(
+      { merlinMacroFolder: "/path/to/macros", unknownOpt: "value" },
+      (msg: string) => warnings.push(msg)
+    );
+    assert.equal(folder, "/path/to/macros");
+    assert.equal(warnings.length, 1);
+    assert.match(warnings[0]!, /unknownOpt/i);
   } finally {
     client.stop();
   }

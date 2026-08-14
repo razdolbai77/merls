@@ -62,7 +62,10 @@ export function startServer(
   // Reused until workspace or open-document changes invalidate it.
 
   connection.onInitialize((params) => {
-    macroFolder = readMacroFolder(params.initializationOptions);
+    macroFolder = readMacroFolder(
+      params.initializationOptions,
+      (message) => connection.console.warn(message)
+    );
     return {
     capabilities: {
       completionProvider: {
@@ -354,12 +357,30 @@ if (require.main === module) {
 }
 
 
-function readMacroFolder(initializationOptions: unknown): string | undefined {
+export const KNOWN_INITIALIZATION_OPTION_KEYS: Record<string, true> = {
+  merlinMacroFolder: true,
+  macroFolder: true
+};
+
+export function isKnownInitializationOptionKey(key: string): key is keyof typeof KNOWN_INITIALIZATION_OPTION_KEYS {
+  return key in KNOWN_INITIALIZATION_OPTION_KEYS;
+}
+
+export function readMacroFolder(
+  initializationOptions: unknown,
+  logWarning?: (message: string) => void
+): string | undefined {
   if (initializationOptions === null || typeof initializationOptions !== "object") {
     return undefined;
   }
 
   const options = initializationOptions as Record<string, unknown>;
+  for (const key of Object.keys(options)) {
+    if (!isKnownInitializationOptionKey(key)) {
+      logWarning?.(`Unknown initializationOption '${key}' will be ignored`);
+    }
+  }
+
   const macroFolder = options.merlinMacroFolder ?? options.macroFolder;
   return typeof macroFolder === "string" && macroFolder.length > 0 ? macroFolder : undefined;
 }
