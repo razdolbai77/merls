@@ -6,6 +6,7 @@ import { runDefinitionReferencesTest } from "./definition-references.test";
 import { runMacroDefinitionReferencesIntegrationTest } from "./macro-definition-references.test";
 import { runDiskCacheMergeTest } from "./disk-cache-merge.test";
 import { runDiagnosticsTest } from "./diagnostics.test";
+import { runModularDiagnosticsTest } from "./diagnostics-modular.test";
 import { runDiagnosticsPublishTest } from "./diagnostics-publish.test";
 import { runDiskCacheEvictionTest } from "./disk-cache-eviction.test";
 import { runCompletionSuppressionTest } from "./completion-suppression.test";
@@ -346,6 +347,10 @@ const tests: TestCase[] = [
   {
     name: "parser and diagnostic layer processes large macro-heavy files responsively",
     run: runPerformanceTest
+  },
+  {
+    name: "modular diagnostic handlers process labels, expressions, and general syntax",
+    run: runModularDiagnosticsTest
   }
 ];
 
