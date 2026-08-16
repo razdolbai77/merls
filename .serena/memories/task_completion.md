@@ -1,7 +1,0 @@
-- A coding task is not done until relevant tests/fixtures added first by TDD are passing under the repo's actual toolchain.
-- The project has a runnable linting and build/test command (`npm run lint`, `npm run build`, `npm test`); use them.
-- No task can be called complete unless linting and tests pass 100% with no warnings.
-- Disabling linting rules is absolutely forbidden.
-- Always review whether the task changed project behavior, structure, workflow, or contributor expectations.
-- If yes, update both `README.md` and `AGENTS.md` in the same task.
-- Preserve scope invariants: 6502 support only, non-6502 syntax stays unsupported, coc.nvim/stdio integration target unchanged unless the docs and plan are updated together.

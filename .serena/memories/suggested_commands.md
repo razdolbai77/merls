@@ -1,4 +1,0 @@
-- Windows shell is PowerShell; use PowerShell forms when documenting local commands.
-- Current useful repo commands are read-only/doc-oriented: `Get-ChildItem`, `Get-Content README.md`, `Get-Content AGENTS.md`.
-- Available commands: `npm install`, `npm run build`, `npm test`, `npm run dev` (run the TypeScript compiler in watch mode).
-- A local publishing script is available at `.\publish.ps1`.

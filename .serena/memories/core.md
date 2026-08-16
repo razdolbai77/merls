@@ -1,7 +1,0 @@
-- Comprehensive LSP feature set implemented; current durable docs are `README.md`, `AGENTS.md`, and `vscode/DEVELOPMENT.md`.
-- Purpose: standalone LSP server for Merlin32-style 6502 assembly, with primary editor targets including Visual Studio Code (via the newly bundled extension in `vscode/`) and coc.nvim (via the standalone CLI). Published to npm as `@razdolbai/merls`.
-- Scope invariant: 6502-only. Non-6502 extensions are out of scope and should surface as unknown diagnostics.
-- Contributor rules and doc-maintenance requirement live in \AGENTS.md\.
-- For stack and workspace layout, read \mem:tech_stack\.
-- For code/test/doc conventions, read \mem:conventions\.
-- For done criteria and required verification/docs updates, read \mem:task_completion\.
