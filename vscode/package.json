@@ -2,13 +2,13 @@
   "name": "pearls",
   "displayName": "Pearls",
   "description": "VS Code extension for 6502 assembly, powered by merls",
-  "version": "4.6.72",
+  "version": "4.6.74",
   "publisher": "razdolbai",
   "icon": "images/icon.png",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://codeberg.org/razdolbai/merls.git"
+    "url": "https://github.com/razdolbai/merls.git"
   },
   "engines": {
     "vscode": "^1.91.0"
@@ -127,7 +127,7 @@
     "test": "npm run compile && node --test out/**/*.test.js"
   },
   "dependencies": {
-    "@razdolbai/merls": "^4.6.72",
+    "@razdolbai/merls": "^4.6.74",
     "vscode-languageclient": "^10.1.0"
   },
   "devDependencies": {
