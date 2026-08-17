@@ -1,12 +1,12 @@
 {
   "name": "@razdolbai/merls",
-  "version": "4.6.72",
+  "version": "4.6.73",
   "description": "Language server for Merlin32-style 6502 assembly.",
   "license": "MIT",
   "type": "commonjs",
   "repository": {
     "type": "git",
-    "url": "https://codeberg.org/razdolbai/merls.git"
+    "url": "https://github.com/razdolbai/merls.git"
   },
   "bin": {
     "merls": "dist/src/cli.js"
