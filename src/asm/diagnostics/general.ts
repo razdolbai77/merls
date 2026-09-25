@@ -223,6 +223,10 @@ export function collectUnknownDiagnostics(
       continue;
     }
 
+    if (line.node.shape === "empty" || line.node.shape === "commentOnly") {
+      continue;
+    }
+
     const unknownDirectiveToken = getUnknownDirectiveToken(line.node);
     if (unknownDirectiveToken !== null) {
       const range = resolveDiagnosticRange(line.isExpanded, unknownDirectiveToken, lineLength);
@@ -253,7 +257,9 @@ export function collectUnknownDiagnostics(
       }
     }
 
-    const unknownTextMatch = getUnknownTextPattern(line.node.text);
+    const tokens = document.lines[line.line]?.tokens ?? [];
+    const textToAnalyze = maskIgnoredTokens(line.node.text, tokens);
+    const unknownTextMatch = getUnknownTextPattern(textToAnalyze);
     if (unknownTextMatch !== null) {
       diagnostics.push({
         filePath,
@@ -472,6 +478,18 @@ function getUnknownDirectiveToken(node: ParsedLine): Token | null {
   }
 
   return null;
+}
+
+function maskIgnoredTokens(text: string, tokens: readonly Token[]): string {
+  let masked = text;
+  for (const token of tokens) {
+    if (token.kind === "comment" || token.kind === "string") {
+      const start = Math.max(0, Math.min(token.start, masked.length));
+      const end = Math.max(start, Math.min(token.end, masked.length));
+      masked = masked.slice(0, start) + " ".repeat(end - start) + masked.slice(end);
+    }
+  }
+  return masked;
 }
 
 function getUnknownTextPattern(text: string): { text: string; start: number; end: number } | null {

@@ -582,4 +582,24 @@ export function runDiagnosticsTest(): void {
     false,
     "expected forward ordinary labels to remain valid"
   );
+
+  const commentAndStringDiagnostics = collectWorkspaceDiagnostics([
+    {
+      filePath: "<comments>",
+      document: parseDocument([
+        "; FAC <- e^{FAC}",
+        "* FAC <- e^{FAC}",
+        "        lda #0 ; FAC <- e^{FAC}",
+        '        asc "Press ^C to exit"',
+        "        lda #0 ; a | b",
+        '        asc "a | b"',
+        "        cmp #0 ; a > b"
+      ].join("\n"))
+    }
+  ]);
+  assert.deepEqual(
+    commentAndStringDiagnostics.filter((d) => d.code === "unknown-syntax"),
+    [],
+    "expected zero unknown-syntax diagnostics inside comments or strings"
+  );
 }
